@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plataforma Xadrez com Z — Sistema de Gestão + Material Didático + Bônus</title>
+<meta name="description" content="A Plataforma Xadrez com Z reúne o sistema de gestão Z Play (rating, torneios, relatórios), o pacote didático completo e bônus para professores e jogadores. Tudo numa única compra.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0D0B07;
+  --bg-2:#14110B;
+  --surface:#1B1710;
+  --line:rgba(212,175,55,.16);
+  --line-soft:rgba(242,234,216,.08);
+  --gold:#D4AF37;
+  --gold-2:#E8C766;
+  --gold-deep:#9C7E1E;
+  --cream:#F2EAD8;
+  --muted:#A89C84;
+  --green:#7FBF7F;
+  --red:#D77;
+  --shadow:0 24px 60px rgba(0,0,0,.5);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--cream);
+  font-family:'DM Sans',sans-serif;
+  font-weight:400;
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+::selection{background:var(--gold);color:#100D07}
+img{max-width:100%}
+a{color:inherit}
+
+/* ---------- utilitários ---------- */
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:10px;
+  font-size:.74rem;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--gold);font-weight:600;
+}
+.eyebrow::before{content:"";width:28px;height:1px;background:var(--gold)}
+h1,h2,h3{font-family:'Playfair Display',serif;line-height:1.15;font-weight:600}
+h2{font-size:clamp(1.7rem,4vw,2.6rem);margin:.6em 0 .5em}
+h2 em,h1 em{font-style:italic;color:var(--gold-2)}
+.section{padding:96px 0}
+.section-tight{padding:72px 0}
+.center{text-align:center}
+.lead{color:var(--muted);font-size:1.06rem;max-width:660px}
+.center .lead{margin:0 auto}
+
+/* ---------- botões ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  font-weight:700;font-size:1rem;text-decoration:none;
+  padding:17px 34px;border-radius:999px;
+  transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
+  cursor:pointer;
+}
+.btn-gold{
+  background:linear-gradient(135deg,var(--gold-2),var(--gold) 55%,var(--gold-deep));
+  color:#14100A;
+  box-shadow:0 10px 30px rgba(212,175,55,.28);
+}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(212,175,55,.4)}
+.btn-ghost{
+  border:1px solid var(--line);color:var(--cream);background:transparent;
+}
+.btn-ghost:hover{background:rgba(212,175,55,.08)}
+.btn-note{display:block;margin-top:14px;font-size:.82rem;color:var(--muted);letter-spacing:.04em}
+
+/* ---------- header ---------- */
+header{
+  position:sticky;top:0;z-index:50;
+  backdrop-filter:blur(14px);
+  background:rgba(13,11,7,.82);
+  border-bottom:1px solid var(--line-soft);
+}
+.nav{display:flex;align-items:center;justify-content:space-between;height:66px}
+.logo{font-family:'Playfair Display',serif;font-weight:700;font-size:1.18rem;letter-spacing:.02em;text-decoration:none}
+.logo span{color:var(--gold)}
+.nav .btn{padding:10px 22px;font-size:.88rem}
+.nav-links{display:flex;gap:26px;font-size:.88rem;color:var(--muted)}
+.nav-links a{text-decoration:none;transition:color .15s}
+.nav-links a:hover{color:var(--gold-2)}
+@media(max-width:760px){.nav-links{display:none}}
+
+/* ---------- hero ---------- */
+.hero{
+  position:relative;
+  padding:84px 0 110px;
+  background:
+    radial-gradient(900px 480px at 80% -10%,rgba(212,175,55,.10),transparent 60%),
+    radial-gradient(700px 420px at 8% 110%,rgba(212,175,55,.06),transparent 60%);
+}
+.hero::before{ /* tabuleiro fantasma */
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(242,234,216,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(242,234,216,.025) 1px,transparent 1px);
+  background-size:72px 72px;
+  mask-image:radial-gradient(800px 500px at 70% 20%,#000 30%,transparent 75%);
+}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center;position:relative}
+.hero h1{font-size:clamp(2.1rem,5vw,3.3rem);margin:20px 0 18px}
+.hero .lead{margin-bottom:34px}
+.hero-ctas{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.hero-trust{display:flex;gap:22px;margin-top:36px;flex-wrap:wrap}
+.hero-trust div{font-size:.83rem;color:var(--muted)}
+.hero-trust strong{display:block;color:var(--cream);font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:600}
+
+/* mock duplo: app em destaque + material atrás */
+.duo{position:relative;min-height:440px}
+.card-mock{
+  position:absolute;border-radius:18px;background:var(--surface);
+  border:1px solid var(--line);box-shadow:var(--shadow);overflow:hidden;
+}
+.mock-print{
+  width:52%;top:4%;right:2%;transform:rotate(4deg);
+  aspect-ratio:3/4;padding:20px;
+  background:linear-gradient(170deg,#211C12,#16120B);
+  z-index:1;opacity:.92;
+}
+.mock-print .mp-head{font-family:'Playfair Display',serif;color:var(--gold-2);font-size:.9rem;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:14px}
+.mock-print .mp-piece{font-size:4.2rem;text-align:center;color:var(--gold);text-shadow:0 8px 24px rgba(212,175,55,.35);margin:6px 0 4px}
+.mock-print .mp-title{text-align:center;font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.8rem}
+.mock-print .mp-sub{text-align:center;color:var(--muted);font-size:.72rem;margin-top:6px;line-height:1.5}
+.mock-print .mp-tag{
+  margin:14px auto 0;width:max-content;font-size:.64rem;letter-spacing:.18em;text-transform:uppercase;
+  border:1px solid var(--line);border-radius:999px;padding:5px 12px;color:var(--gold);
+}
+.mock-app{
+  width:64%;left:0;bottom:0;transform:rotate(-2.5deg);
+  padding:18px;background:linear-gradient(165deg,#1E1910,#131009);
+  z-index:2;border-color:rgba(212,175,55,.32);
+}
+.mock-app .ma-head{display:flex;justify-content:space-between;align-items:center;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.mock-app .ma-head b{color:var(--gold)}
+.rank-row{
+  display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;
+  font-size:.84rem;background:rgba(242,234,216,.03);margin-bottom:7px;
+}
+.rank-row .pos{width:22px;text-align:center}
+.rank-row .nm{flex:1;font-weight:500}
+.rank-row .pts{font-variant-numeric:tabular-nums;font-weight:700}
+.rank-row .delta{font-size:.74rem;font-weight:700;width:42px;text-align:right}
+.up{color:var(--green)} .down{color:var(--red)}
+.rank-row.top{background:linear-gradient(90deg,rgba(212,175,55,.16),rgba(212,175,55,.04));border:1px solid var(--line)}
+.ma-foot{display:flex;gap:8px;margin-top:12px}
+.ma-chip{font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--line);border-radius:999px;padding:4px 10px;color:var(--muted)}
+.duo .plat-badge{
+  position:absolute;left:50%;top:42%;transform:translate(-50%,-50%) rotate(-3deg);
+  background:linear-gradient(135deg,var(--gold-2),var(--gold-deep));
+  color:#15100A;font-weight:700;font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;
+  padding:9px 18px;border-radius:999px;
+  box-shadow:0 12px 36px rgba(212,175,55,.45);z-index:3;white-space:nowrap;
+}
+@media(max-width:900px){
+  .hero-grid{grid-template-columns:1fr}
+  .duo{min-height:390px;max-width:480px;margin:0 auto}
+}
+
+/* ---------- faixa plataforma ---------- */
+.strip{
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  background:linear-gradient(90deg,rgba(212,175,55,.07),transparent 30%,transparent 70%,rgba(212,175,55,.07));
+  padding:22px 0;
+}
+.strip .wrap{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;align-items:center;text-align:center}
+.strip span{font-family:'Playfair Display',serif;font-size:clamp(.95rem,2.3vw,1.25rem)}
+.strip .x{color:var(--gold);font-style:italic}
+
+/* ---------- destaque: sistema de gestão ---------- */
+.feature-split{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;margin-top:56px}
+.feature-split.rev .fs-media{order:2}
+.feature-split h3{font-size:clamp(1.3rem,2.6vw,1.7rem);margin:.5em 0 .4em}
+.feature-split p{color:var(--muted);font-size:.97rem}
+.feature-split .quote{
+  margin-top:18px;border-left:2px solid var(--gold);padding:6px 0 6px 16px;
+  font-size:.9rem;color:var(--cream);font-style:italic;
+}
+.fs-media{
+  border:1px solid var(--line);border-radius:20px;background:var(--surface);
+  padding:22px;box-shadow:var(--shadow);
+}
+.fs-media .fm-head{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:16px}
+.ach-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.ach{
+  aspect-ratio:1;border-radius:12px;border:1px solid var(--line-soft);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  font-size:1.3rem;background:rgba(242,234,216,.03);
+}
+.ach small{font-size:.56rem;letter-spacing:.04em;color:var(--muted);text-align:center;padding:0 4px;line-height:1.3}
+.ach.on{border-color:rgba(212,175,55,.4);background:rgba(212,175,55,.08)}
+.ach.locked{opacity:.4}
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:12px;padding:10px 0 4px}
+.podium .pd{
+  width:74px;border-radius:10px 10px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  padding-top:10px;gap:2px;font-size:.72rem;font-weight:600;
+  background:linear-gradient(180deg,rgba(212,175,55,.22),rgba(212,175,55,.05));
+  border:1px solid var(--line);border-bottom:none;
+}
+.podium .pd em{font-style:normal;font-size:1.3rem}
+.pd.p1{height:120px} .pd.p2{height:92px} .pd.p3{height:74px}
+.report{display:grid;gap:10px}
+.report .rp-title{font-family:'Playfair Display',serif;font-size:1rem;color:var(--gold-2);border-bottom:1px solid var(--line);padding-bottom:8px}
+.report .rp-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.report .rp-stat{border:1px solid var(--line-soft);border-radius:10px;padding:10px 6px;text-align:center}
+.report .rp-stat b{display:block;font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--cream)}
+.report .rp-stat small{font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.report .rp-line{font-size:.78rem;color:var(--muted)}
+.report .rp-line b{color:var(--green)}
+@media(max-width:860px){
+  .feature-split{grid-template-columns:1fr;gap:28px}
+  .feature-split.rev .fs-media{order:0}
+}
+
+/* ---------- pacote didático grid ---------- */
+.mat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:48px}
+.mat{
+  border:1px solid var(--line-soft);border-radius:16px;padding:24px;background:var(--bg-2);
+  transition:border-color .2s,transform .2s;
+}
+.mat:hover{border-color:var(--line);transform:translateY(-3px)}
+.mat .mi{font-size:1.6rem;margin-bottom:10px}
+.mat h4{font-family:'DM Sans',sans-serif;font-weight:700;font-size:.98rem;margin-bottom:6px}
+.mat p{color:var(--muted);font-size:.87rem}
+.mat .tag{display:inline-block;margin-top:12px;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);border:1px solid var(--line);border-radius:999px;padding:4px 10px}
+@media(max-width:900px){.mat-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.mat-grid{grid-template-columns:1fr}}
+
+/* ---------- bônus duplo público ---------- */
+.bonus-cols{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:48px}
+.bonus-col{
+  border:1px solid var(--line);border-radius:22px;padding:32px;
+  background:linear-gradient(180deg,var(--surface),var(--bg-2));
+}
+.bonus-col .bc-kicker{font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:700}
+.bonus-col h3{font-size:1.4rem;margin:10px 0 6px}
+.bonus-col > p{color:var(--muted);font-size:.92rem;margin-bottom:20px}
+.bonus-item{
+  display:flex;gap:14px;padding:16px;border-radius:14px;
+  border:1px dashed rgba(212,175,55,.3);background:rgba(212,175,55,.04);
+  margin-bottom:12px;align-items:flex-start;
+}
+.bonus-item .bi{font-size:1.4rem;flex:0 0 auto}
+.bonus-item h4{font-family:'DM Sans',sans-serif;font-weight:700;font-size:.94rem}
+.bonus-item p{color:var(--muted);font-size:.84rem;margin-top:2px}
+@media(max-width:860px){.bonus-cols{grid-template-columns:1fr}}
+
+/* ---------- para quem é ---------- */
+.aud-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:44px}
+.aud{
+  border:1px solid var(--line);border-radius:22px;padding:32px;
+  background:linear-gradient(180deg,var(--surface),var(--bg-2));
+}
+.aud .ai{font-size:2rem;margin-bottom:12px}
+.aud h3{font-size:1.3rem;margin-bottom:14px}
+.aud ul{list-style:none;display:grid;gap:11px}
+.aud li{display:flex;gap:10px;font-size:.92rem;color:var(--muted)}
+.aud li b{color:var(--cream);font-weight:500}
+.aud .mk{color:var(--green);flex:0 0 auto}
+@media(max-width:760px){.aud-grid{grid-template-columns:1fr}}
+
+/* ---------- oferta ---------- */
+.offer{
+  border:1px solid var(--line);border-radius:28px;
+  background:
+    radial-gradient(600px 300px at 50% -20%,rgba(212,175,55,.14),transparent 70%),
+    linear-gradient(180deg,var(--surface),var(--bg-2));
+  padding:64px 40px;text-align:center;position:relative;overflow:hidden;
+}
+.offer .ribbon{
+  display:inline-block;font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--gold);border:1px solid var(--line);border-radius:999px;padding:7px 18px;
+  margin-bottom:22px;font-weight:700;
+}
+.offer h2{margin-top:0}
+.stack{max-width:560px;margin:30px auto 0;text-align:left}
+.stack-row{
+  display:flex;justify-content:space-between;gap:16px;align-items:center;
+  padding:13px 4px;border-bottom:1px solid var(--line-soft);font-size:.93rem;
+}
+.stack-row span:first-child{color:var(--cream)}
+.stack-row .val{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.stack-row.total{border-bottom:none;font-weight:700}
+.stack-row.total .val{color:var(--muted);text-decoration:line-through}
+.price-block{margin:30px 0 8px}
+.price-now{font-family:'Playfair Display',serif;font-size:clamp(2.6rem,6vw,3.8rem);font-weight:700;color:var(--gold-2);line-height:1.1}
+.price-now small{font-size:.42em;color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:500}
+.offer .btn-gold{margin-top:22px;font-size:1.08rem;padding:20px 44px}
+.offer-safe{margin-top:26px;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+
+/* ---------- garantia ---------- */
+.guarantee{display:flex;gap:28px;align-items:center;border:1px solid var(--line);border-radius:22px;padding:34px;background:var(--bg-2)}
+.guarantee .seal{
+  flex:0 0 auto;width:96px;height:96px;border-radius:50%;
+  border:2px solid var(--gold);display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-family:'Playfair Display',serif;color:var(--gold-2);
+}
+.guarantee .seal b{font-size:1.9rem;line-height:1}
+.guarantee .seal small{font-size:.6rem;letter-spacing:.18em;text-transform:uppercase}
+.guarantee p{color:var(--muted);font-size:.96rem}
+.guarantee h3{margin-bottom:6px;font-size:1.3rem}
+@media(max-width:640px){.guarantee{flex-direction:column;text-align:center}}
+
+/* ---------- FAQ ---------- */
+.faq{max-width:760px;margin:44px auto 0}
+.faq details{
+  border:1px solid var(--line-soft);border-radius:14px;background:var(--bg-2);
+  margin-bottom:12px;overflow:hidden;
+}
+.faq summary{
+  cursor:pointer;padding:20px 24px;font-weight:600;font-size:.98rem;
+  list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px;
+}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";color:var(--gold);font-size:1.3rem;font-weight:400;transition:transform .2s}
+.faq details[open] summary::after{transform:rotate(45deg)}
+.faq details p{padding:0 24px 22px;color:var(--muted);font-size:.93rem}
+
+/* ---------- footer ---------- */
+footer{border-top:1px solid var(--line-soft);padding:44px 0;text-align:center}
+footer .logo{font-size:1.05rem}
+footer p{color:var(--muted);font-size:.82rem;margin-top:12px}
+footer a{color:var(--gold-2);text-decoration:none}
+
+/* ---------- animações ---------- */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s ease}
+.reveal.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){
+  .reveal{opacity:1;transform:none;transition:none}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="#">Xadrez <span>com Z</span></a>
+    <nav class="nav-links">
+      <a href="#gestao">Sistema de gestão</a>
+      <a href="#material">Material didático</a>
+      <a href="#bonus">Bônus</a>
+      <a href="#oferta">Oferta</a>
+    </nav>
+    <a class="btn btn-gold" href="https://pay.hotmart.com/C102839941U">Entrar na plataforma</a>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow">Para quem ensina e para quem joga</span>
+      <h1>A Plataforma <em>Xadrez com Z.</em><br>Tudo do xadrez, num lugar só.</h1>
+      <p class="lead">Um único acesso que reúne o <strong>sistema de gestão Z Play</strong> — rating em tempo real, torneios automáticos, conquistas e relatórios — o <strong>pacote didático completo</strong> para suas aulas e uma <strong>biblioteca de bônus</strong> para professores e jogadores que querem evoluir.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-gold" href="https://pay.hotmart.com/C102839941U">♟ Quero acesso à plataforma</a>
+        <a class="btn btn-ghost" href="#gestao">Conhecer por dentro</a>
+      </div>
+      <div class="hero-trust">
+        <div><strong>1 acesso</strong>plataforma completa</div>
+        <div><strong>Vitalício</strong>sem mensalidade</div>
+        <div><strong>15 dias</strong>de garantia total</div>
+      </div>
+    </div>
+
+    <div class="duo" aria-hidden="true">
+      <!-- material atrás -->
+      <div class="card-mock mock-print">
+        <div class="mp-head">Material Didático · Xadrez com Z</div>
+        <div class="mp-piece">♞</div>
+        <div class="mp-title">O Cavalo</div>
+        <p class="mp-sub">Move-se em "L" e é a única peça<br>que pula sobre as outras.</p>
+        <div class="mp-tag">Imprimível · Canva</div>
+      </div>
+      <!-- app em destaque -->
+      <div class="card-mock mock-app">
+        <div class="ma-head"><b>♟ Z Play · Gestão</b><span>Ranking ao vivo</span></div>
+        <div class="rank-row top"><span class="pos">🥇</span><span class="nm">Ana Beatriz</span><span class="pts">1.347</span><span class="delta up">▲ 18</span></div>
+        <div class="rank-row"><span class="pos">🥈</span><span class="nm">Lucas Ferreira</span><span class="pts">1.289</span><span class="delta up">▲ 11</span></div>
+        <div class="rank-row"><span class="pos">🥉</span><span class="nm">Pedro Almeida</span><span class="pts">1.241</span><span class="delta down">▼ 8</span></div>
+        <div class="ma-foot">
+          <span class="ma-chip">Torneios</span>
+          <span class="ma-chip">Conquistas</span>
+          <span class="ma-chip">Relatórios</span>
+        </div>
+      </div>
+      <div class="plat-badge">Plataforma completa</div>
+    </div>
+  </div>
+</section>
+
+<!-- FAIXA -->
+<div class="strip">
+  <div class="wrap">
+    <span>Sistema de gestão</span>
+    <span class="x">+</span>
+    <span>Pacote didático</span>
+    <span class="x">+</span>
+    <span>Biblioteca de bônus</span>
+    <span class="x">=</span>
+    <span><em style="color:var(--gold-2)">Plataforma Xadrez com Z</em></span>
+  </div>
+</div>
+
+<!-- DESTAQUE: SISTEMA DE GESTÃO -->
+<section class="section" id="gestao">
+  <div class="wrap">
+    <div class="center">
+      <span class="eyebrow" style="justify-content:center">⭐ O coração da plataforma</span>
+      <h2>O sistema de gestão que faz<br>seus alunos <em>quererem jogar mais.</em></h2>
+      <p class="lead">O Z Play transforma partidas de tabuleiro físico em uma experiência com progresso visível, competição saudável e dados concretos. Abre no navegador, sem instalação e sem mensalidade.</p>
+    </div>
+
+    <!-- Rating -->
+    <div class="feature-split reveal">
+      <div>
+        <span class="eyebrow">Rating em tempo real</span>
+        <h3>Cada partida move o ranking. Na frente de todos.</h3>
+        <p>Quem perdeu quer revanche. Quem ganhou quer defender a posição. Quem está em 5º quer subir para o 4º. O rating ao vivo cria uma motivação que nenhuma dinâmica de aula consegue replicar sozinha.</p>
+        <div class="quote">"Quanto ficou meu rating depois daquela partida?" — alunos chegando na aula com essa pergunta.</div>
+      </div>
+      <div class="fs-media">
+        <div class="fm-head">Ranking da turma · ao vivo</div>
+        <div class="rank-row top"><span class="pos">🥇</span><span class="nm">Ana Beatriz</span><span class="pts">1.347</span><span class="delta up">▲ 18</span></div>
+        <div class="rank-row"><span class="pos">🥈</span><span class="nm">Lucas Ferreira</span><span class="pts">1.289</span><span class="delta up">▲ 11</span></div>
+        <div class="rank-row"><span class="pos">🥉</span><span class="nm">Pedro Almeida</span><span class="pts">1.241</span><span class="delta down">▼ 8</span></div>
+        <div class="rank-row"><span class="pos">4</span><span class="nm">Marina Costa</span><span class="pts">1.198</span><span class="delta up">▲ 6</span></div>
+        <div class="rank-row"><span class="pos">5</span><span class="nm">João Vitor</span><span class="pts">1.175</span><span class="delta down">▼ 14</span></div>
+      </div>
+    </div>
+
+    <!-- Conquistas -->
+    <div class="feature-split rev reveal">
+      <div>
+        <span class="eyebrow">Conquistas desbloqueáveis</span>
+        <h3>A aula inteira vira oportunidade.</h3>
+        <p>O sistema recompensa toda a jornada — não só vitórias. Primeira partida, mate com cavalo, marcos de rating, exercícios resolvidos. Cards animados e coloridos, com a data da conquista. O aluno que dispersava nos exercícios agora presta atenção: resolver exercícios desbloqueia conquistas.</p>
+        <div class="quote">"Quanto falta para a próxima conquista?" — essa pergunta muda o clima de uma aula.</div>
+      </div>
+      <div class="fs-media">
+        <div class="fm-head">Conquistas do jogador</div>
+        <div class="ach-grid">
+          <div class="ach on">♟️<small>1ª Jogada</small></div>
+          <div class="ach on">⚡<small>5 partidas</small></div>
+          <div class="ach on">🏅<small>Rating 1.000</small></div>
+          <div class="ach on">🐴<small>Mate Cavalo</small></div>
+          <div class="ach on">🎯<small>10 partidas</small></div>
+          <div class="ach on">🏅<small>Rating 1.100</small></div>
+          <div class="ach locked">🔒<small>25 partidas</small></div>
+          <div class="ach locked">🔒<small>Mate Torre</small></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Torneios -->
+    <div class="feature-split reveal">
+      <div>
+        <span class="eyebrow">Torneios automáticos</span>
+        <h3>Torneio pronto em minutos, com pódio e medalhas para sempre.</h3>
+        <p>Com um clique você cria o torneio e o sistema emparceira as rodadas automaticamente. No encerramento, um pódio animado — e os três primeiros recebem medalhas digitais salvas no perfil para sempre. Daqui a um ano, o aluno ainda vai ver que venceu aquele torneio.</p>
+        <div class="quote">"Quero participar do próximo torneio." — isso é pertencimento ao programa.</div>
+      </div>
+      <div class="fs-media">
+        <div class="fm-head">Encerramento do torneio</div>
+        <div class="podium">
+          <div class="pd p2"><em>🥈</em>Lucas F.<span>2º</span></div>
+          <div class="pd p1"><em>🥇</em>Ana B.<span>1º</span></div>
+          <div class="pd p3"><em>🥉</em>Pedro A.<span>3º</span></div>
+        </div>
+        <p style="text-align:center;font-size:.74rem;color:var(--muted);margin-top:10px">Medalhas salvas no perfil do aluno para sempre</p>
+      </div>
+    </div>
+
+    <!-- Relatórios -->
+    <div class="feature-split rev reveal">
+      <div>
+        <span class="eyebrow">Relatórios profissionais</span>
+        <h3>Dados reais para mostrar aos pais e à escola.</h3>
+        <p>Um clique gera um relatório A4 com partidas, vitórias, evolução de rating, conquistas e medalhas — com o nome da escola no cabeçalho. Chega de "ele está indo bem" sem nada concreto. Na reunião de pais ou na apresentação para a coordenação, você tem números, gráficos e histórico.</p>
+        <div class="quote">"Finalmente consigo mostrar para os pais o quanto o filho evoluiu."</div>
+      </div>
+      <div class="fs-media">
+        <div class="report">
+          <div class="rp-title">♟ Xadrez com Z Play · Relatório do aluno</div>
+          <div class="rp-stats">
+            <div class="rp-stat"><b>47</b><small>Partidas</small></div>
+            <div class="rp-stat"><b>31</b><small>Vitórias</small></div>
+            <div class="rp-stat"><b>8</b><small>Empates</small></div>
+            <div class="rp-stat"><b>8</b><small>Derrotas</small></div>
+          </div>
+          <div class="rp-line">Rating: 1.200 → <b>1.347 (+147 pts)</b> · 8 meses no programa</div>
+          <div class="rp-line">Impresso em A4 com o nome da escola no cabeçalho</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MATERIAL DIDÁTICO -->
+<section class="section" id="material" style="background:var(--bg-2)">
+  <div class="wrap">
+    <div class="center">
+      <span class="eyebrow" style="justify-content:center">📦 Incluso na plataforma</span>
+      <h2>O pacote didático <em>completo</em> para suas aulas</h2>
+      <p class="lead">Todo o material visual, gamificado e pronto para imprimir — criado por um professor que já impactou milhares de alunos em ambiente escolar. Pare de improvisar: entre na sala sabendo exatamente o que fazer.</p>
+    </div>
+    <div class="mat-grid">
+      <div class="mat reveal"><div class="mi">🎨</div><h4>Decoração da Sala</h4><p>Murais, faixas e pôsteres para transformar o ambiente em espaço temático e profissional.</p><span class="tag">Imprimível</span></div>
+      <div class="mat reveal"><div class="mi">🃏</div><h4>Cartinhas Pedagógicas</h4><p>Cartas de peças, aberturas, dicas, missões e desafios que deixam o conteúdo dinâmico.</p><span class="tag">Gamificado</span></div>
+      <div class="mat reveal"><div class="mi">🎮</div><h4>Jogos Didáticos</h4><p>Dinâmicas prontas para ensinar conceitos de forma prática, divertida e memorável.</p><span class="tag">Interativo</span></div>
+      <div class="mat reveal"><div class="mi">📄</div><h4>Atividades e Desafios</h4><p>Conteúdos graduados do básico ao avançado, prontos para imprimir e aplicar.</p><span class="tag">Multi-nível</span></div>
+      <div class="mat reveal"><div class="mi">📝</div><h4>Listas de Exercícios</h4><p>Para reforço, avaliação, lição de casa e acompanhamento da evolução dos alunos.</p><span class="tag">Avaliativo</span></div>
+      <div class="mat reveal"><div class="mi">📚</div><h4>Planos de Aula</h4><p>Planejamento organizado e progressivo — sequência clara do início ao fim do ano.</p><span class="tag">Estruturado</span></div>
+      <div class="mat reveal"><div class="mi">🏆</div><h4>Missão e Recompensa</h4><p>Sistema gamificado que aumenta motivação, disciplina e envolvimento dos alunos.</p><span class="tag">Premium</span></div>
+      <div class="mat reveal"><div class="mi">♟️</div><h4>Mini Torneios e Kits</h4><p>Estrutura pronta para torneios internos, desafios e eventos especiais de xadrez.</p><span class="tag">Eventos</span></div>
+      <div class="mat reveal"><div class="mi">✏️</div><h4>Editável no Canva</h4><p>Arquivos personalizáveis para adaptar à sua escola, turmas e identidade visual.</p><span class="tag">Personalizável</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- BÔNUS: DOIS PÚBLICOS -->
+<section class="section" id="bonus">
+  <div class="wrap">
+    <div class="center">
+      <span class="eyebrow" style="justify-content:center">🎁 Biblioteca de bônus</span>
+      <h2>Bônus para quem ensina.<br>E para quem quer <em>aprender e evoluir.</em></h2>
+      <p class="lead">A plataforma não é só para professores. Se você joga — ou quer começar — a biblioteca de bônus tem material para você estudar, anotar suas partidas e evoluir no tabuleiro.</p>
+    </div>
+
+    <div class="bonus-cols">
+      <!-- Jogadores -->
+      <div class="bonus-col reveal">
+        <span class="bc-kicker">♟ Para jogadores e estudantes</span>
+        <h3>Quer aprender e subir de nível?</h3>
+        <p>Material direto ao ponto para quem quer entender o jogo de verdade — do primeiro movimento ao estilo dos campeões.</p>
+        <div class="bonus-item"><span class="bi">♚</span><div><h4>Jogue como Bobby Fischer</h4><p>Lições e partidas do lendário campeão mundial para inspirar seu estilo de jogo.</p></div></div>
+        <div class="bonus-item"><span class="bi">✍️</span><div><h4>Guia de Notação Algébrica</h4><p>Aprenda a anotar e reler suas partidas — o primeiro passo de quem estuda xadrez a sério.</p></div></div>
+        <div class="bonus-item"><span class="bi">💻</span><div><h4>Aprenda Xadrez Online</h4><p>Guia das plataformas digitais para treinar, jogar e analisar partidas todos os dias.</p></div></div>
+        <div class="bonus-item"><span class="bi">📖</span><div><h4>Livro de Curiosidades do Xadrez</h4><p>Histórias, fatos e momentos marcantes que fazem você se apaixonar ainda mais pelo jogo.</p></div></div>
+      </div>
+
+      <!-- Professores -->
+      <div class="bonus-col reveal">
+        <span class="bc-kicker">🏫 Para professores</span>
+        <h3>Mais ferramentas para sua aula</h3>
+        <p>Além do pacote completo, bônus que ampliam seu repertório pedagógico e mantêm seu acervo sempre crescendo.</p>
+        <div class="bonus-item"><span class="bi">🃏</span><div><h4>Cartinhas Pedagógicas Extras</h4><p>Conjunto adicional de cartas para dinâmicas, missões e desafios em sala.</p></div></div>
+        <div class="bonus-item"><span class="bi">🏆</span><div><h4>Kit de Torneio Escolar</h4><p>Estrutura pronta para organizar campeonatos, murais de campanha e premiações.</p></div></div>
+        <div class="bonus-item"><span class="bi">🚀</span><div><h4>Atualizações Vitalícias</h4><p>Novos materiais e melhorias do sistema incluídos continuamente, sem custo adicional.</p></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PARA QUEM É -->
+<section class="section" style="background:var(--bg-2)">
+  <div class="wrap">
+    <div class="center">
+      <span class="eyebrow" style="justify-content:center">Para quem é</span>
+      <h2>Uma plataforma. <em>Dois caminhos.</em></h2>
+    </div>
+    <div class="aud-grid">
+      <div class="aud reveal">
+        <div class="ai">🏫</div>
+        <h3>Você ensina xadrez</h3>
+        <ul>
+          <li><span class="mk">✔</span><span><b>Professor em escola pública ou privada</b> que quer dar aos alunos uma razão real para se dedicar.</span></li>
+          <li><span class="mk">✔</span><span><b>Educador com múltiplas turmas</b> que precisa controlar o progresso de dezenas de alunos.</span></li>
+          <li><span class="mk">✔</span><span><b>Programas que precisam apresentar resultados</b> para justificar o xadrez na grade escolar.</span></li>
+          <li><span class="mk">✔</span><span><b>Clubes, projetos sociais, ONGs e secretarias</b> que querem profissionalizar o ensino.</span></li>
+          <li><span class="mk">✔</span><span><b>Iniciante sem acervo</b> ou experiente querendo renovar visual e metodologia.</span></li>
+        </ul>
+      </div>
+      <div class="aud reveal">
+        <div class="ai">♟</div>
+        <h3>Você joga (ou quer começar)</h3>
+        <ul>
+          <li><span class="mk">✔</span><span><b>Iniciante</b> que quer aprender o jogo do zero com material organizado e visual.</span></li>
+          <li><span class="mk">✔</span><span><b>Jogador casual</b> que quer entender notação, estudar partidas e evoluir de verdade.</span></li>
+          <li><span class="mk">✔</span><span><b>Pais e mães</b> que querem acompanhar e incentivar os filhos no xadrez.</span></li>
+          <li><span class="mk">✔</span><span><b>Apaixonados pelo jogo</b> que querem mergulhar na história e nas curiosidades do xadrez.</span></li>
+          <li><span class="mk">✔</span><span><b>Quem treina em casa</b> e quer um guia para aproveitar as plataformas online.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- OFERTA -->
+<section class="section" id="oferta">
+  <div class="wrap">
+    <div class="offer reveal">
+      <span class="ribbon">Oferta de lançamento · por tempo limitado</span>
+      <h2>Acesso completo à<br><em>Plataforma Xadrez com Z</em></h2>
+      <div class="stack">
+        <div class="stack-row"><span>⭐ Sistema de Gestão Z Play (rating, torneios, conquistas, relatórios)</span><span class="val">R$ 79,90</span></div>
+        <div class="stack-row"><span>📦 Pacote Didático completo + arquivos editáveis no Canva</span><span class="val">R$ 79,90</span></div>
+        <div class="stack-row"><span>🎁 Biblioteca de bônus para professores e jogadores</span><span class="val">R$ 49,90</span></div>
+        <div class="stack-row"><span>🚀 Atualizações vitalícias</span><span class="val">Incluso</span></div>
+        <div class="stack-row total"><span>Valor total</span><span class="val">R$ 209,70</span></div>
+      </div>
+      <div class="price-block">
+        <div class="price-now">R$ 79,90 <small>pagamento único</small></div>
+      </div>
+      <a class="btn btn-gold" href="https://pay.hotmart.com/C102839941U">♟ Garantir meu acesso agora</a>
+      <span class="btn-note">Sem mensalidade · Acesso vitalício · Funciona em qualquer dispositivo</span>
+      <div class="offer-safe">Pagamento 100% seguro via Hotmart · Acesso imediato após a compra</div>
+    </div>
+  </div>
+</section>
+
+<!-- GARANTIA -->
+<section class="section-tight">
+  <div class="wrap">
+    <div class="guarantee reveal">
+      <div class="seal"><b>15</b><small>dias</small></div>
+      <div>
+        <h3>Garantia incondicional de 15 dias</h3>
+        <p>Entre na plataforma, baixe os materiais, use o sistema de gestão nas suas aulas ou estude pelos bônus. Se não fizer sentido para você, peça reembolso em até 15 dias e devolvemos <strong style="color:var(--cream)">100% do valor, sem perguntas</strong>. O risco é todo nosso.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section-tight" style="background:var(--bg-2)">
+  <div class="wrap">
+    <div class="center">
+      <span class="eyebrow" style="justify-content:center">Dúvidas frequentes</span>
+      <h2>Perguntas <em>respondidas</em></h2>
+    </div>
+    <div class="faq">
+      <details>
+        <summary>Não sou professor, só quero aprender xadrez. Vale a pena?</summary>
+        <p>Sim! A biblioteca de bônus tem material pensado para jogadores: guia de notação algébrica, lições do Bobby Fischer, guia de plataformas online e o livro de curiosidades. E o material didático do pacote — atividades, exercícios e cartinhas — também funciona muito bem para autoestudo, do básico ao avançado.</p>
+      </details>
+      <details>
+        <summary>O sistema de gestão precisa de instalação ou mensalidade?</summary>
+        <p>Não. O Z Play abre direto no navegador — computador, tablet ou celular. Você paga uma vez e usa para sempre, sem assinatura.</p>
+      </details>
+      <details>
+        <summary>Recebo tudo na mesma compra?</summary>
+        <p>Sim. Com um único acesso você recebe imediatamente o sistema de gestão Z Play, o pacote didático completo e toda a biblioteca de bônus — tudo na mesma área de membros da Hotmart.</p>
+      </details>
+      <details>
+        <summary>Preciso de internet para usar?</summary>
+        <p>O sistema funciona no navegador e seus dados ficam salvos no seu dispositivo. Os materiais você baixa e imprime — depois disso, nada depende de conexão.</p>
+      </details>
+      <details>
+        <summary>Os materiais servem para qual faixa etária?</summary>
+        <p>O conteúdo é graduado do básico ao avançado — do Fundamental I em diante — e os arquivos são editáveis no Canva, então você adapta tudo à sua realidade, seja em sala de aula ou em casa.</p>
+      </details>
+      <details>
+        <summary>E se eu não gostar?</summary>
+        <p>Você tem 15 dias de garantia incondicional. Basta pedir o reembolso dentro do prazo e devolvemos todo o valor, sem perguntas.</p>
+      </details>
+      <details>
+        <summary>Vou receber atualizações?</summary>
+        <p>Sim. Novos materiais e melhorias do sistema de gestão são incluídos continuamente, sem custo adicional. Sua plataforma só cresce.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="section center">
+  <div class="wrap">
+    <h2>Seu xadrez merece <em>uma plataforma completa.</em></h2>
+    <p class="lead" style="margin:0 auto 32px">Para ensinar com sistema, dados e material profissional. Para aprender com conteúdo que faz você evoluir de verdade. Tudo começa com um clique.</p>
+    <a class="btn btn-gold" href="https://pay.hotmart.com/C102839941U">♟ Quero a Plataforma Xadrez com Z por R$ 79,90</a>
+    <span class="btn-note">Garantia de 15 dias · Acesso imediato e vitalício</span>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <a class="logo" href="#">Xadrez <span>com Z</span></a>
+    <p>Feito por quem vive o xadrez, para quem ensina e para quem joga.<br>
+    <a href="https://www.instagram.com/xadrezcomz/" target="_blank" rel="noopener">@xadrezcomz no Instagram</a></p>
+  </div>
+</footer>
+
+<script>
+// Reveal on scroll
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+},{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+</script>
+
+</body>
+</html>
