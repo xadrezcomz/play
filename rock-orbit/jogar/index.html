@@ -2,6 +2,21 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
+<!-- compartilhar: imagem e texto do link (colocado por ferramentas/prepara-jogo.py) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Jogos do @xadrezcomz">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:url" content="https://xadrezcomz.github.io/play/rock-orbit/jogar/">
+<meta property="og:title" content="Rock Orbit — jogue grátis no navegador">
+<meta property="og:description" content="Pilote um foguete, colete cristais e deixe o seu rastro por 6 planetas. Grátis, no celular ou no computador.">
+<meta property="og:image" content="https://xadrezcomz.github.io/play/rock-orbit/img/compartilhar-pt.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Rock Orbit: deixe o seu rastro pela galáxia">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://xadrezcomz.github.io/play/rock-orbit/img/compartilhar-pt.jpg">
+<!-- /compartilhar -->
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#05070F">
 <meta name="mobile-web-app-capable" content="yes">
@@ -11160,9 +11175,55 @@ var ARTE_ABERTURA = {
     preparaHiper(atual.cfg);
   }
 
+  // =================================================================
+  //  EVENTOS DE USO (só no site, onde o GoatCounter está carregado)
+  //  Contagens anônimas, sem cookies e sem nada que identifique alguém,
+  //  para saber onde as pessoas param: fase tentada e vencida, planeta
+  //  alcançado, tempo de jogo e se voltam em outro dia. No app de celular,
+  //  no computador e no arquivo avulso, evento() não faz nada.
+  // =================================================================
+  var evFila = [], evSessao = { decolou:false, tempo:0, marco:0 }, EV_MINUTOS = [5, 15, 30];
+  function evento(nome){
+    var gc = window.goatcounter;
+    if (!gc) return;
+    if (!gc.count){ evFila.push(nome); return; }     // o contador ainda está carregando
+    try { gc.count({ path:'ro/' + nome, title:'Rock Orbit', event:true }); } catch (e){}
+  }
+  (function esvazia(n){
+    var gc = window.goatcounter;
+    if (!gc || n > 30) return;
+    if (gc.count && evFila.length){ evFila.splice(0).forEach(evento); return; }
+    setTimeout(function(){ esvazia(n + 1); }, 1000);
+  })(0);
+  function evSlug(t){ return String(t).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
+  function evFase(){ return evSlug(PLANETAS[atual.p].nome) + '-' + (atual.f + 1); }
+  function evDecolou(){
+    if (!window.goatcounter) return;
+    if (!evSessao.decolou){ evSessao.decolou = true; evento('decolou'); }
+    evento('tentou/' + evFase());
+    var pl = PLANETAS[atual.p], vistos = le('rastro.evPlanetas', {});
+    if (!vistos[pl.id]){ vistos[pl.id] = 1; grava('rastro.evPlanetas', vistos); evento('planeta/' + evSlug(pl.nome)); }
+  }
+  function evTempo(dt){
+    if (evSessao.marco >= EV_MINUTOS.length) return;
+    evSessao.tempo += dt;
+    if (evSessao.tempo >= EV_MINUTOS[evSessao.marco] * 60) evento('tempo/' + EV_MINUTOS[evSessao.marco++] + '-min');
+  }
+  // voltou em outro dia: a data fica só neste aparelho; vai só o aviso "voltou"
+  (function(){
+    if (!window.goatcounter) return;
+    var hoje = new Date().toISOString().slice(0, 10), d = le('rastro.evDias', null);
+    if (!d){ grava('rastro.evDias', { primeiro:hoje, ultimo:hoje }); return; }
+    if (d.ultimo === hoje) return;
+    evento('voltou');
+    if (!d.semana && Date.parse(hoje) - Date.parse(d.primeiro) >= 7 * 864e5){ d.semana = 1; evento('voltou-depois-de-7-dias'); }
+    d.ultimo = hoje; grava('rastro.evDias', d);
+  })();
+
   function decola(){
     if (dicaModoAberta) return;   // primeiro o jogador lê a dica do desafio novo
     metaDecolou();
+    evDecolou();
     fase = 'jogando';
     dica.hidden = true;
     tAviso = Math.min(tAviso, 1.2);
@@ -11222,6 +11283,7 @@ var ARTE_ABERTURA = {
     if (objFeito && !jaConcluida){ concluidas[chaveC] = 1; grava('rastro.concluidas.v' + VERSAO_REGRAS, concluidas); }
     var c = atual.cfg, metas = metasDe(c);
     var ganhas = (motivo === 'morreu' && PERDE_AO_MORRER) ? 0 : estrelas;
+    if (objFeito) evento('venceu/' + evFase());
     var chave = chaveFase(atual.p, atual.f), antes = melhores[chave] || 0;
     if (ganhas > antes){ melhores[chave] = ganhas; grava('rastro.estrelas.v' + VERSAO_REGRAS, melhores); }
     var rAntes = recorde(atual.p, atual.f);
@@ -12350,7 +12412,7 @@ var ARTE_ABERTURA = {
     if (tutorial.passo === 0){ tutorial.passo = 1; tutorial.t = 0; mostraBalao(); }
   }
   function acabaTutorial(){
-    if (tutorial){ tutorialFeito = true; grava('rastro.tutorial', 1); }
+    if (tutorial){ tutorialFeito = true; grava('rastro.tutorial', 1); evento('tutorial'); }
     tutorial = null; balao.hidden = true;
   }
   var telaAnc = new THREE.Vector3();
@@ -14111,6 +14173,7 @@ var ARTE_ABERTURA = {
     if (fase === 'pausa') dt = 0;
 
     if (fase === 'jogando'){
+      evTempo(dt);
       // Em sub-passos: a 64 por segundo, num quadro lento o foguete
       // andaria 3 unidades de uma vez e poderia atravessar o próprio rastro
       // sem encostar. Assim ele nunca anda mais que PASSO_FISICA sem checar.

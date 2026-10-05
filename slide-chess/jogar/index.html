@@ -2,6 +2,21 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
+<!-- compartilhar: imagem e texto do link (colocado por ferramentas/prepara-jogo.py) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Jogos do @xadrezcomz">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:url" content="https://xadrezcomz.github.io/play/slide-chess/jogar/">
+<meta property="og:title" content="Slide Chess — jogue grátis no navegador">
+<meta property="og:description" content="Abra caminho, coroe o peão e leve a dama para casa. Um quebra-cabeça de xadrez grátis, no celular ou no computador.">
+<meta property="og:image" content="https://xadrezcomz.github.io/play/img/capa-slide-chess.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Slide Chess: abra caminho, coroe o peão, leve a dama para casa">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://xadrezcomz.github.io/play/img/capa-slide-chess.jpg">
+<!-- /compartilhar -->
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#12161f">
   <meta name="mobile-web-app-capable" content="yes">
@@ -2490,9 +2505,65 @@ window.SlideSom = (() => {
     gravar();
   }
 
+  /* =====================================================================
+     EVENTOS DE USO (site xadrezcomz.github.io/play, GoatCounter)
+     Contagens anônimas, sem cookies e sem nada que identifique alguém:
+     nível tentado e vencido, desafio do dia, modo livre, tempo de jogo e se
+     a pessoa volta em outro dia. Fora do site, evento() não faz nada.
+     (Colocado por ferramentas/eventos-slide-chess.py.)
+     ===================================================================== */
+  const evFila = [], evSessao = { comecou: false, tempo: 0, marco: 0 }, EV_MINUTOS = [5, 15, 30];
+  function evento(nome) {
+    const gc = window.goatcounter;
+    if (!gc) return;
+    if (!gc.count) { evFila.push(nome); return; }
+    try { gc.count({ path: 'sc/' + nome, title: 'Slide Chess', event: true }); } catch { /* sem contagem */ }
+  }
+  (function esvazia(n) {
+    const gc = window.goatcounter;
+    if (!gc || n > 30) return;
+    if (gc.count && evFila.length) { evFila.splice(0).forEach(evento); return; }
+    setTimeout(() => esvazia(n + 1), 1000);
+  })(0);
+  const evNome = { campanha: 'nivel', diario: 'desafio-do-dia', livre: 'modo-livre', desafio: 'desafio-de-amigo' };
+  function evOnde(p) {
+    return p.tipo === 'campanha' ? 'mundo-' + (p.nivel.mundo + 1) + '/nivel-' + p.nivel.id : (evNome[p.tipo] || p.tipo);
+  }
+  function evComecou(p) {
+    if (!window.goatcounter) return;
+    if (!evSessao.comecou) { evSessao.comecou = true; evento('comecou'); }
+    evento('tentou/' + evOnde(p));
+  }
+  function evVenceu(p, completouMundo, zerou) {
+    evento('venceu/' + evOnde(p));
+    if (completouMundo) evento('mundo-completo/' + (p.nivel.mundo + 1));
+    if (zerou) evento('zerou');
+  }
+  // tempo de jogo nesta visita: conta só com uma partida aberta e a página visível
+  setInterval(() => {
+    if (!window.goatcounter || evSessao.marco >= EV_MINUTOS.length) return;
+    if (document.visibilityState !== 'visible' || !partida || acabou) return;
+    evSessao.tempo += 5;
+    if (evSessao.tempo >= EV_MINUTOS[evSessao.marco] * 60) evento('tempo/' + EV_MINUTOS[evSessao.marco++] + '-min');
+  }, 5000);
+  // voltou em outro dia: a data fica só neste aparelho; vai só o aviso "voltou"
+  (function () {
+    if (!window.goatcounter) return;
+    const hoje = new Date().toISOString().slice(0, 10);
+    let d = null;
+    try { d = JSON.parse(localStorage.getItem('slide.evDias')); } catch { /* começa agora */ }
+    const grava = v => { try { localStorage.setItem('slide.evDias', JSON.stringify(v)); } catch { /* navegação privada */ } };
+    if (!d) { grava({ primeiro: hoje, ultimo: hoje }); return; }
+    if (d.ultimo === hoje) return;
+    evento('voltou');
+    if (!d.semana && Date.parse(hoje) - Date.parse(d.primeiro) >= 7 * 864e5) { d.semana = 1; evento('voltou-depois-de-7-dias'); }
+    d.ultimo = hoje; grava(d);
+  })();
+
   function comecar(p) {
     pararPartida();
     partida = p;
+    evComecou(p);
     nivel = p.nivel;
     estado = M.criar(nivel);
     historico = [];
@@ -2940,6 +3011,7 @@ window.SlideSom = (() => {
     const completouMundo = naCampanha && !mundoEstavaCompleto && feitosNoMundo(nivel.mundo) === POR_MUNDO;
     const abriu = MUNDOS.findIndex((_, m) => !abertosAntes[m] && mundoAberto(m));
     const zerou = naCampanha && primeiraVez && nivel.id <= NA_CAMPANHA && resumo().campanha === NA_CAMPANHA;
+    evVenceu(p, completouMundo, zerou);
     visuaisLiberados().filter(v => !visuaisAntes.includes(v)).forEach((v, i) =>
       setTimeout(() => avisar('🎨 ' + t('temaAviso', { nome: t(v) })), 2600 + i * 1200));
     return { estrelas, recorde, completouMundo, abriu, zerou };
