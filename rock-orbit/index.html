@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Rock Orbit — Deixe o seu rastro pela galáxia</title>
+<meta name="description" content="Pilote um foguete, colete cristais e deixe o seu rastro por 6 planetas. 50 fases, mais de 80 itens no Hangar, funciona sem internet.">
+<meta name="theme-color" content="#05070f">
+<link rel="icon" href="img/favicon-64.png">
+<link rel="apple-touch-icon" href="img/icone-192.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Rock Orbit — Deixe o seu rastro pela galáxia">
+<meta property="og:description" content="Pilote um foguete, colete cristais e deixe o seu rastro por 6 planetas.">
+<meta property="og:image" content="https://xadrezcomz.github.io/play/rock-orbit/img/compartilhar-pt.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../fontes/fontes.css">
+<style>
+  :root{
+    --fundo:#05070f;--fundo2:#0b1028;--painel:#121a3c;--linha:rgba(140,160,255,.18);
+    --texto:#e8eaf6;--suave:#a9b0d6;--ouro:#ffd36b;--laranja:#ff9a3d;--ciano:#2ee6ff;--roxo:#a06bff;
+    --titulo:"Chakra Petch","Exo 2",system-ui,sans-serif;--corpo:"Exo 2",system-ui,sans-serif;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--fundo);color:var(--texto);font:17px/1.6 var(--corpo);overflow-x:hidden}
+  a{color:var(--ciano)}
+  img,video{max-width:100%;display:block}
+  .larg{width:min(1180px,100% - 32px);margin:0 auto}
+
+  /* topo */
+  .topo{position:fixed;inset:0 0 auto;z-index:10;display:flex;align-items:center;gap:14px;padding:12px max(16px,calc((100% - 1180px)/2));
+    background:linear-gradient(180deg,rgba(5,7,15,.85),rgba(5,7,15,0))}
+  .topo .marca{display:flex;align-items:center;gap:10px;font:700 20px var(--titulo);letter-spacing:.06em;text-transform:uppercase;color:#fff;text-decoration:none}
+  .topo .marca img{width:36px;height:36px;border-radius:9px}
+  .topo .marca .volta{font-size:30px;line-height:1;color:var(--ouro);margin-right:-2px}
+  .contagem{margin:22px 0 0;color:var(--ciano);font-weight:600}
+  .contagem b{font:700 26px var(--titulo);color:#fff;font-variant-numeric:tabular-nums}
+  .idiomas{margin-left:auto;display:flex;gap:4px;padding:4px;border-radius:12px;background:rgba(18,26,60,.8);border:1px solid var(--linha)}
+  .idiomas button{border:0;background:none;color:var(--suave);font:700 13px var(--titulo);letter-spacing:.08em;padding:6px 10px;border-radius:8px;cursor:pointer}
+  .idiomas button[aria-pressed="true"]{background:var(--ciano);color:#05121a}
+
+  /* capa */
+  .capa{position:relative;min-height:100svh;display:grid;align-items:end;isolation:isolate}
+  .capa picture,.capa picture img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}
+  .capa::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(5,7,15,.1) 0%,rgba(5,7,15,0) 55%,rgba(5,7,15,.9) 88%,var(--fundo) 100%)}
+  .capa .conteudo{padding:0 0 56px;text-align:center}
+  .capa h1{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  .botoes{display:flex;flex-wrap:wrap;justify-content:center;gap:14px}
+  .btn{display:inline-flex;align-items:center;gap:14px;padding:14px 28px 14px 22px;border-radius:16px;text-decoration:none;color:#fff;
+    background:linear-gradient(180deg,#151c3e,#0a0e22);border:2px solid var(--ouro);box-shadow:0 0 32px rgba(255,180,70,.35),inset 0 1px 0 rgba(255,255,255,.15);
+    transition:transform .15s,box-shadow .15s}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 0 44px rgba(255,180,70,.55)}
+  .btn svg{width:40px;height:40px;flex:none}
+  .btn small{display:block;font:600 12px/1.1 var(--corpo);letter-spacing:.08em;text-transform:uppercase;color:var(--suave)}
+  .btn b{display:block;font:700 24px/1.1 var(--titulo)}
+  .btn.cinza{border-color:rgba(169,176,214,.45);box-shadow:none}
+  .btn.cinza svg{opacity:.8}
+  .nota{margin:14px 0 0;color:var(--suave);font-size:15px}
+
+  section{padding:72px 0}
+  h2{margin:0 0 10px;font:700 clamp(30px,4vw,44px)/1.1 var(--titulo);text-transform:uppercase;letter-spacing:.04em;text-align:center;
+    background:linear-gradient(180deg,#fffbe8,#ffe08a 45%,#f0a028);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{margin:0 auto 36px;max-width:640px;text-align:center;color:var(--suave)}
+
+  /* trailer */
+  .video{position:relative;border-radius:20px;overflow:hidden;border:1px solid var(--linha);box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 60px rgba(46,230,255,.12);background:#000;aspect-ratio:16/9}
+  .video video{width:100%;height:100%;object-fit:cover}
+
+  /* recursos */
+  .grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px}
+  .card{padding:24px 22px;border-radius:18px;background:linear-gradient(180deg,var(--painel),var(--fundo2));border:1px solid var(--linha)}
+  .card .ic{font-size:34px;line-height:1}
+  .card h3{margin:12px 0 6px;font:700 22px/1.2 var(--titulo);text-transform:uppercase;letter-spacing:.04em;color:#fff}
+  .card p{margin:0;color:var(--suave);font-size:16px}
+
+  /* galeria */
+  .galeria{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:14px}
+  .galeria img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:14px;border:1px solid var(--linha)}
+
+  /* baixar */
+  .baixar{text-align:center;background:radial-gradient(ellipse at 50% 0%,rgba(160,107,255,.22),transparent 60%),radial-gradient(ellipse at 50% 100%,rgba(46,230,255,.12),transparent 60%)}
+  .selos{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:28px 0 0;padding:0;list-style:none}
+  .selos li{padding:8px 14px;border-radius:999px;border:1px solid var(--linha);background:rgba(18,26,60,.6);font-weight:600;font-size:15px}
+
+  footer{padding:36px 0 48px;border-top:1px solid var(--linha);color:var(--suave);font-size:15px}
+  footer .larg{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;justify-content:space-between}
+  footer nav{display:flex;flex-wrap:wrap;gap:18px}
+
+  @media (max-width:700px){
+    body{font-size:16px}
+    section{padding:52px 0}
+    .capa .conteudo{padding-bottom:36px}
+    .btn{width:100%;justify-content:center}
+  }
+  @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} .btn{transition:none} }
+</style>
+</head>
+<body>
+
+<header class="topo">
+  <a class="marca" href="../"><span class="volta" aria-hidden="true">‹</span><img src="img/icone-192.png" alt=""><span data-t="voltar">Todos os jogos</span></a>
+  <div class="idiomas" role="group" aria-label="Idioma">
+    <button type="button" data-lang="pt">PT</button>
+    <button type="button" data-lang="en">EN</button>
+    <button type="button" data-lang="es">ES</button>
+  </div>
+</header>
+
+<main>
+  <div class="capa">
+    <picture>
+      <source id="arteV" media="(max-aspect-ratio: 4/5)" srcset="img/arte-v-pt.webp">
+      <img id="arteH" src="img/arte-h-pt.webp" alt="Rock Orbit — Deixe o seu rastro pela galáxia">
+    </picture>
+    <div class="conteudo larg">
+      <h1 data-t="titulo">Rock Orbit — Deixe o seu rastro pela galáxia</h1>
+      <div class="botoes">
+        <a class="btn" href="jogar/">
+          <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="29" fill="#ffd36b"/><path d="M25 18l22 14-22 14z" fill="#2a1500"/></svg>
+          <span><small data-t="gratis">Grátis no navegador</small><b data-t="jogarAgora">Jogar agora</b></span>
+        </a>
+        <a class="btn cinza" href="#trailer">
+          <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="28" fill="none" stroke="#e8eaf6" stroke-width="4"/><path d="M26 20l18 12-18 12z" fill="#e8eaf6"/></svg>
+          <span><small data-t="veja">Veja o</small><b data-t="trailer">Trailer</b></span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <section id="trailer">
+    <div class="larg">
+      <h2 data-t="tTrailer">Trailer</h2>
+      <p class="sub" data-t="sTrailer">Partidas rápidas, cenários únicos e um rastro que só cresce.</p>
+      <div class="video"><video id="video" controls preload="none" playsinline poster="img/compartilhar-pt.jpg"><source id="videoSrc" src="video/trailer-pt.mp4" type="video/mp4"></video></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="larg">
+      <h2 data-t="tJogo">O jogo</h2>
+      <p class="sub" data-t="sJogo">Pilote um foguete pela galáxia e colete cristais. A cada cristal, o seu rastro cresce. Só não bata nele.</p>
+      <div class="grade">
+        <div class="card"><div class="ic">🚀</div><h3 data-t="r1t">6 planetas, 50 fases</h3><p data-t="r1">Gênese, Terra, Neon, Pixel, Primal e Devaneio. Voe sobre o Rio, o Egito, Paris, um fliperama neon, um castelo de pixels e um reino de doces.</p></div>
+        <div class="card"><div class="ic">⭐</div><h3 data-t="r2t">144 estrelas</h3><p data-t="r2">Cada fase tem um desafio: pegar cristais, fazer sequências, correr contra o relógio, voar uma distância ou sobreviver numa arena que encolhe.</p></div>
+        <div class="card"><div class="ic">🛠️</div><h3 data-t="r3t">Mais de 80 itens</h3><p data-t="r3">13 foguetes, 17 pinturas, 15 cores, 15 rastros, 14 propulsões e 13 músicas para liberar no Hangar.</p></div>
+        <div class="card"><div class="ic">🌌</div><h3 data-t="r4t">Mundo secreto</h3><p data-t="r4">Junte estrelas para abrir um planeta secreto com o Hiperespaço e o Duelo de Rastros contra naves rivais.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="larg">
+      <h2 data-t="tGaleria">Imagens</h2>
+      <p class="sub" data-t="sGaleria">Cada cenário foi feito para ser único.</p>
+      <div class="galeria" id="galeria"></div>
+    </div>
+  </section>
+
+  <section class="baixar">
+    <div class="larg">
+      <h2 data-t="tBaixar">Decole agora</h2>
+      <p class="sub" data-t="sBaixar">Jogue grátis no navegador, no celular ou no computador. Sem instalar nada.</p>
+      <div class="botoes">
+        <a class="btn" href="jogar/">
+          <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="29" fill="#ffd36b"/><path d="M25 18l22 14-22 14z" fill="#2a1500"/></svg>
+          <span><small data-t="gratis">Grátis no navegador</small><b data-t="jogarAgora">Jogar agora</b></span>
+        </a>
+      </div>
+      <p class="contagem" data-contagem="/jogo/rock-orbit" hidden>▶ <b></b> <span data-t="jogadas">jogadas</span></p>
+      <ul class="selos">
+        <li data-t="b1">Celular e computador</li>
+        <li data-t="b2">Sem anúncios</li>
+        <li data-t="b3">Sem cadastro</li>
+        <li data-t="b4">Português, inglês e espanhol</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="larg">
+    <span>© Rock Orbit · @xadrezcomz</span>
+    <nav>
+      <a href="../privacidade.html" data-t="priv">Política de privacidade</a>
+      <a href="https://www.instagram.com/xadrezcomz/">Instagram</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var T = {
+    pt:{ titulo:'Rock Orbit — Deixe o seu rastro pela galáxia', naPlay:'Disponível no', veja:'Veja o', trailer:'Trailer',
+      tTrailer:'Trailer', sTrailer:'Partidas rápidas, cenários únicos e um rastro que só cresce.',
+      tJogo:'O jogo', sJogo:'Pilote um foguete pela galáxia e colete cristais. A cada cristal, o seu rastro cresce. Só não bata nele.',
+      r1t:'6 planetas, 50 fases', r1:'Gênese, Terra, Neon, Pixel, Primal e Devaneio. Voe sobre o Rio, o Egito, Paris, um fliperama neon, um castelo de pixels e um reino de doces.',
+      r2t:'144 estrelas', r2:'Cada fase tem um desafio: pegar cristais, fazer sequências, correr contra o relógio, voar uma distância ou sobreviver numa arena que encolhe.',
+      r3t:'Mais de 80 itens', r3:'13 foguetes, 17 pinturas, 15 cores, 15 rastros, 14 propulsões e 13 músicas para liberar no Hangar.',
+      r4t:'Mundo secreto', r4:'Junte estrelas para abrir um planeta secreto com o Hiperespaço e o Duelo de Rastros contra naves rivais.',
+      tGaleria:'Imagens', sGaleria:'Cada cenário foi feito para ser único.',
+      tBaixar:'Decole agora', sBaixar:'Jogue grátis no navegador, no celular ou no computador. Sem instalar nada.', gratis:'Grátis no navegador', jogarAgora:'Jogar agora', voltar:'Todos os jogos',
+      b1:'Celular e computador', b2:'Sem anúncios', b3:'Sem cadastro', b4:'Português, inglês e espanhol', jogadas:'jogadas', priv:'Política de privacidade' },
+    en:{ titulo:'Rock Orbit — Leave your mark across the galaxy', naPlay:'Get it on', veja:'Watch the', trailer:'Trailer',
+      tTrailer:'Trailer', sTrailer:'Quick rounds, one-of-a-kind scenes and a trail that keeps growing.',
+      tJogo:'The game', sJogo:'Fly a rocket across the galaxy and grab crystals. Every crystal makes your trail longer. Just don’t crash into it.',
+      r1t:'6 planets, 50 stages', r1:'Genesis, Earth, Neon, Pixel, Primal and Daydream. Fly over Rio, Egypt, Paris, a neon arcade, a pixel castle and a candy kingdom.',
+      r2t:'144 stars', r2:'Every stage has a challenge: grab crystals, build combos, race the clock, fly a distance or survive in a shrinking arena.',
+      r3t:'80+ items', r3:'13 rockets, 17 paint jobs, 15 colors, 15 trails, 14 boosters and 13 songs to unlock in the Hangar.',
+      r4t:'Secret world', r4:'Collect stars to open a secret planet with the Hyperspace run and the Trail Duel against rival ships.',
+      tGaleria:'Screenshots', sGaleria:'Every scene was made to be unique.',
+      tBaixar:'Take off now', sBaixar:'Play free in your browser, on your phone or computer. Nothing to install.', gratis:'Free in your browser', jogarAgora:'Play now', voltar:'All games',
+      b1:'Phone and computer', b2:'No ads', b3:'No account needed', b4:'English, Portuguese and Spanish', jogadas:'plays', priv:'Privacy policy' },
+    es:{ titulo:'Rock Orbit — Deja tu estela por la galaxia', naPlay:'Disponible en', veja:'Mira el', trailer:'Tráiler',
+      tTrailer:'Tráiler', sTrailer:'Partidas rápidas, escenarios únicos y una estela que no para de crecer.',
+      tJogo:'El juego', sJogo:'Pilota un cohete por la galaxia y atrapa cristales. Con cada cristal, tu estela crece. Solo no choques con ella.',
+      r1t:'6 planetas, 50 fases', r1:'Génesis, Tierra, Neón, Píxel, Primal y Ensueño. Vuela sobre Río, Egipto, París, un arcade de neón, un castillo de píxeles y un reino de dulces.',
+      r2t:'144 estrellas', r2:'Cada fase tiene un desafío: atrapar cristales, hacer secuencias, correr contra el reloj, volar una distancia o sobrevivir en una arena que se encoge.',
+      r3t:'Más de 80 objetos', r3:'13 cohetes, 17 pinturas, 15 colores, 15 estelas, 14 propulsores y 13 canciones para desbloquear en el Hangar.',
+      r4t:'Mundo secreto', r4:'Junta estrellas para abrir un planeta secreto con el Hiperespacio y el Duelo de Estelas contra naves rivales.',
+      tGaleria:'Imágenes', sGaleria:'Cada escenario fue hecho para ser único.',
+      tBaixar:'Despega ahora', sBaixar:'Juega gratis en el navegador, en el teléfono o la computadora. Sin instalar nada.', gratis:'Gratis en el navegador', jogarAgora:'Jugar ahora', voltar:'Todos los juegos',
+      b1:'Teléfono y computadora', b2:'Sin anuncios', b3:'Sin registro', b4:'Español, portugués e inglés', jogadas:'partidas', priv:'Política de privacidad' }
+  };
+  var HTML_LANG = { pt:'pt-BR', en:'en', es:'es' };
+  var N_CAPTURAS = 8;
+
+  function escolhido(){
+    var q = (location.search.match(/[?&]lang=(pt|en|es)/) || [])[1];
+    if (q) return q;
+    try { var s = localStorage.getItem('ro.site.lang'); if (T[s]) return s; } catch (e){}
+    var n = (navigator.language || 'pt').slice(0, 2).toLowerCase();
+    return T[n] ? n : (n === 'pt' ? 'pt' : 'en');
+  }
+  function aplica(l){
+    var t = T[l];
+    document.documentElement.lang = HTML_LANG[l];
+    document.title = t.titulo;
+    document.querySelectorAll('[data-t]').forEach(function(e){ var k = e.getAttribute('data-t'); if (t[k]) e.textContent = t[k]; });
+    document.querySelectorAll('.idiomas button').forEach(function(b){ b.setAttribute('aria-pressed', b.getAttribute('data-lang') === l ? 'true' : 'false'); });
+    document.getElementById('arteH').src = 'img/arte-h-' + l + '.webp';
+    document.getElementById('arteH').alt = t.titulo;
+    document.getElementById('arteV').srcset = 'img/arte-v-' + l + '.webp';
+    var v = document.getElementById('video'), src = 'video/trailer-' + l + '.mp4';
+    if (document.getElementById('videoSrc').getAttribute('src') !== src){ document.getElementById('videoSrc').setAttribute('src', src); v.poster = 'img/compartilhar-' + l + '.jpg'; v.load(); }
+    var g = document.getElementById('galeria'); g.innerHTML = '';
+    for (var i = 1; i <= N_CAPTURAS; i++){
+      var img = document.createElement('img');
+      img.loading = 'lazy'; img.decoding = 'async'; img.alt = '';
+      img.src = 'img/captura-' + i + '-' + l + '.jpg';
+      g.appendChild(img);
+    }
+    try { localStorage.setItem('ro.site.lang', l); } catch (e){}
+  }
+  document.querySelectorAll('.idiomas button').forEach(function(b){ b.addEventListener('click', function(){ aplica(b.getAttribute('data-lang')); }); });
+  aplica(escolhido());
+})();
+</script>
+<script>window.CONTAGEM = '/rock-orbit';</script>
+<script src="../contador.js"></script>
+<script>window.mostraContagens();</script>
+</body>
+</html>

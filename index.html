@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Jogos do @xadrezcomz</title>
+<meta name="description" content="Jogos criados por @xadrezcomz para jogar direto no navegador, no celular ou no computador. Sem instalar nada.">
+<meta name="theme-color" content="#06081a">
+<link rel="icon" href="img/favicon-64.png">
+<link rel="apple-touch-icon" href="img/icone-192.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Jogos do @xadrezcomz">
+<meta property="og:description" content="Jogue grátis no navegador, no celular ou no computador. Sem instalar nada.">
+<meta property="og:image" content="https://xadrezcomz.github.io/play/img/capa-rock-orbit.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="fontes/fontes.css">
+<style>
+  /* Vitrine de fliperama: um cabeçalho curto e os jogos como cartuchos grandes, um embaixo do outro no celular */
+  :root{
+    --fundo:#06081a; --fundo2:#0c1130; --painel:#111a42; --linha:rgba(140,160,255,.2);
+    --texto:#e9ebf8; --suave:#a6aed6; --ouro:#ffd36b; --laranja:#ff9a3d; --ciano:#2ee6ff; --roxo:#a06bff;
+    --titulo:"Chakra Petch","Exo 2",system-ui,sans-serif; --corpo:"Exo 2",system-ui,sans-serif;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;min-height:100vh;background:var(--fundo);color:var(--texto);font:17px/1.55 var(--corpo);
+    background-image:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(160,107,255,.28),transparent 70%),radial-gradient(ellipse 60% 40% at 100% 100%,rgba(46,230,255,.12),transparent 70%)}
+  a{color:var(--ciano)}
+  .larg{width:min(1100px,100% - 32px);margin:0 auto}
+  .estrelas{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.7;
+    background-image:radial-gradient(1.5px 1.5px at 12% 18%,#fff,transparent),radial-gradient(1px 1px at 72% 12%,#fff,transparent),radial-gradient(1.5px 1.5px at 38% 62%,#cfe,transparent),radial-gradient(1px 1px at 86% 48%,#fff,transparent),radial-gradient(1px 1px at 22% 84%,#fff,transparent),radial-gradient(1.5px 1.5px at 58% 34%,#fde,transparent),radial-gradient(1px 1px at 92% 82%,#fff,transparent),radial-gradient(1px 1px at 6% 52%,#fff,transparent);
+    background-size:600px 600px}
+
+  header{padding-block:calc(40px + env(safe-area-inset-top,0px)) 12px}
+  .marca{display:flex;align-items:center;gap:12px;margin:0;font:700 15px var(--titulo);letter-spacing:.18em;text-transform:uppercase;color:var(--ouro)}
+  .marca span{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--ouro),var(--laranja));color:#2a1500;font-size:18px;letter-spacing:0}
+  h1{margin:14px 0 10px;font:700 clamp(36px,7vw,64px)/1.02 var(--titulo);text-transform:uppercase;letter-spacing:.02em;text-wrap:balance;
+    background:linear-gradient(180deg,#fff 0%,#cfe9ff 55%,#7fd4ff 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .intro{margin:0;max-width:56ch;color:var(--suave);font-size:18px}
+
+  main{padding-block:28px 56px}
+  .jogos{display:grid;gap:22px}
+  .jogo{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);border-radius:20px;overflow:hidden;
+    background:linear-gradient(160deg,var(--painel),var(--fundo2));border:1px solid var(--linha);box-shadow:0 24px 60px rgba(0,0,0,.45)}
+  .jogo .capa{position:relative;display:block;min-height:260px;background:#000}
+  .jogo .capa img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .4s}
+  .jogo .capa:hover img{transform:scale(1.03)}
+  .jogo .info{display:flex;flex-direction:column;gap:12px;padding:26px 26px 24px;min-width:0}
+  .jogo h2{margin:0;font:700 34px/1.05 var(--titulo);text-transform:uppercase;letter-spacing:.03em}
+  .jogo p{margin:0;color:var(--suave)}
+  .selos{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+  .selos li{padding:4px 11px;border-radius:999px;border:1px solid var(--linha);background:rgba(10,14,40,.6);font-size:14px;font-weight:600}
+  .contagem{display:inline-flex;align-items:center;gap:8px;font:600 15px var(--corpo);color:var(--ciano)}
+  .contagem b{font:700 22px var(--titulo);color:#fff;font-variant-numeric:tabular-nums}
+  .acoes{display:flex;flex-wrap:wrap;gap:12px;margin-top:auto;padding-top:6px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:12px 26px;border-radius:14px;text-decoration:none;
+    font:700 18px var(--titulo);letter-spacing:.1em;text-transform:uppercase;transition:transform .15s,box-shadow .15s,filter .15s}
+  .btn.jogar{color:#2a1500;background:linear-gradient(180deg,#fff2c4 0%,#ffd45e 40%,#ff9f2e 100%);
+    box-shadow:inset 0 2px 0 rgba(255,255,255,.7),inset 0 -3px 0 rgba(150,60,0,.4),0 4px 0 #8a4a0e,0 0 26px rgba(255,170,60,.45)}
+  .btn.jogar:hover{transform:translateY(-2px);filter:brightness(1.07)}
+  .btn.jogar svg{width:20px;height:20px;fill:currentColor}
+  .btn.mais{color:var(--texto);border:2px solid rgba(46,230,255,.45);background:rgba(10,14,40,.5)}
+  .btn.mais:hover{border-color:var(--ciano)}
+  .btn:focus-visible{outline:3px solid var(--ciano);outline-offset:3px}
+
+  .jogo.breve{grid-template-columns:1fr;border-style:dashed}
+  .jogo.breve .info{flex-direction:row;align-items:center;gap:22px;padding:24px 26px}
+  .jogo.breve .ic{flex:none;display:grid;place-items:center;width:72px;height:72px;border-radius:18px;background:rgba(160,107,255,.18);border:1px solid rgba(160,107,255,.4);font:700 34px var(--titulo);color:var(--roxo)}
+  .jogo.breve h2{font-size:26px}
+  .jogo.breve .etiqueta{display:inline-block;margin-bottom:6px;font:700 12px var(--titulo);letter-spacing:.16em;text-transform:uppercase;color:var(--roxo)}
+
+  footer{padding-block:28px calc(36px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--linha);color:var(--suave);font-size:15px}
+  footer .larg{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;justify-content:space-between}
+  footer nav{display:flex;flex-wrap:wrap;gap:18px}
+
+  @media (max-width:760px){
+    .jogo{grid-template-columns:1fr}
+    .jogo .capa{min-height:0;aspect-ratio:1200/630}
+    .jogo .info{padding:20px 18px 20px}
+    .jogo h2{font-size:28px}
+    .btn{flex:1 1 auto}
+    .jogo.breve .info{flex-direction:column;align-items:flex-start;gap:14px}
+  }
+  @media (prefers-reduced-motion:reduce){ .btn,.jogo .capa img{transition:none} }
+</style>
+</head>
+<body>
+<div class="estrelas" aria-hidden="true"></div>
+<header class="larg">
+  <p class="marca"><span>▶</span>@xadrezcomz · play</p>
+  <h1>Jogos para jogar agora</h1>
+  <p class="intro">Projetos que eu crio e publico aqui primeiro. Abra no celular ou no computador e jogue direto no navegador, de graça e sem instalar nada.</p>
+</header>
+
+<main class="larg">
+  <div class="jogos" id="jogos"></div>
+</main>
+
+<footer>
+  <div class="larg">
+    <span>© @xadrezcomz</span>
+    <nav>
+      <a href="https://www.instagram.com/xadrezcomz/">Instagram</a>
+      <a href="privacidade.html">Privacidade</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="jogos.js"></script>
+<script>
+(function(){
+  var caixa = document.getElementById('jogos');
+  var PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg>';
+  function esc(t){ return String(t).replace(/[&<>"]/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]; }); }
+  window.JOGOS.forEach(function(j){
+    var el = document.createElement('article');
+    if (j.emBreve){
+      el.className = 'jogo breve';
+      el.innerHTML = '<div class="info"><div class="ic" aria-hidden="true">?</div><div><span class="etiqueta">Em breve</span><h2>' + esc(j.nome) + '</h2><p>' + esc(j.desc) + '</p></div></div>';
+    } else {
+      el.className = 'jogo';
+      el.innerHTML =
+        '<a class="capa" href="' + j.saiba + '"><img src="' + j.capa + '" alt="' + esc(j.nome) + '" loading="lazy"></a>' +
+        '<div class="info">' +
+          '<h2>' + esc(j.nome) + '</h2>' +
+          '<p>' + esc(j.desc) + '</p>' +
+          (j.selos ? '<ul class="selos">' + j.selos.map(function(s){ return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>' : '') +
+          (j.contagem ? '<span class="contagem" data-contagem="' + j.contagem + '" hidden>▶ <b></b> jogadas</span>' : '') +
+          '<div class="acoes"><a class="btn jogar" href="' + j.jogar + '">' + PLAY + 'Jogar</a>' +
+          (j.saiba ? '<a class="btn mais" href="' + j.saiba + '">Saiba mais</a>' : '') + '</div>' +
+        '</div>';
+    }
+    caixa.appendChild(el);
+  });
+})();
+</script>
+<script>window.CONTAGEM = '/inicio';</script>
+<script src="contador.js"></script>
+<script>window.mostraContagens();</script>
+</body>
+</html>
