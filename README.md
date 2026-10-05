@@ -8,13 +8,14 @@ celular ou no computador: **https://xadrezcomz.github.io/play/**
 | `index.html` | Página inicial com os jogos (a lista fica em `jogos.js`) |
 | `rock-orbit/` | Página do Rock Orbit: trailer, imagens e recursos (pt, en, es) |
 | `rock-orbit/jogar/` | O Rock Orbit em si, jogável no navegador |
+| `slide-chess/jogar/` | O Slide Chess, jogável no navegador (com ícone e manifesto para instalar como app) |
 | `privacidade.html` | Política de privacidade do site e dos jogos |
 | `contador.js` | Contagem de visitas e jogadas pelo GoatCounter (sem cookies) |
 
 ## Contagens
 
 As visitas e jogadas vão para **https://xadrezcomz.goatcounter.com**. Cada abertura
-de `rock-orbit/jogar/` conta como uma jogada (caminho `/jogo/rock-orbit`). Para os
+de `<jogo>/jogar/` conta como uma jogada (caminhos `/jogo/rock-orbit` e `/jogo/slide-chess`). Para os
 números aparecerem nos cartões do site, a opção **"Allow adding visitor counts on
 your website"** precisa estar ligada nas configurações do GoatCounter.
 

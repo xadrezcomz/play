@@ -121,7 +121,7 @@
     } else {
       el.className = 'jogo';
       el.innerHTML =
-        '<a class="capa" href="' + j.saiba + '"><img src="' + j.capa + '" alt="' + esc(j.nome) + '" loading="lazy"></a>' +
+        '<a class="capa" href="' + (j.saiba || j.jogar) + '"' + (j.fundoCapa ? ' style="background:' + j.fundoCapa + '"' : '') + '><img src="' + j.capa + '" alt="' + esc(j.nome) + '" loading="lazy"' + (j.encaixe ? ' style="object-fit:' + j.encaixe + '"' : '') + '></a>' +
         '<div class="info">' +
           '<h2>' + esc(j.nome) + '</h2>' +
           '<p>' + esc(j.desc) + '</p>' +

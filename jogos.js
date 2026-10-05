@@ -13,8 +13,12 @@ window.JOGOS = [
     selos: ['Arcade', 'Celular e computador', 'Português, inglês e espanhol']
   },
   {
-    nome: 'Novo jogo',
-    desc: 'Um projeto novo está em produção. Fique de olho no Instagram @xadrezcomz para ser o primeiro a jogar.',
-    emBreve: true
+    nome: 'Slide Chess',
+    desc: 'Abra caminho, coroe o peão e leve a dama para casa. Um quebra-cabeça de xadrez com peças que deslizam, desafio do dia e níveis sem fim.',
+    capa: 'img/capa-slide-chess.jpg',
+    encaixe: 'contain', fundoCapa: '#12161f',   // capa inteira, sem cortar as laterais
+    jogar: 'slide-chess/jogar/',
+    contagem: '/jogo/slide-chess',
+    selos: ['Quebra-cabeça', 'Xadrez', 'Celular e computador', 'Português, inglês e espanhol']
   }
 ];
