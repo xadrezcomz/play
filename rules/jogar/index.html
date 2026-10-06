@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#FFF7EC">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="RULES">
+  <meta name="description" content="RULES: um puzzle minimalista em que cada fase tem uma instrução simples. O difícil é descobrir como interpretá-la.">
+  <title>RULES</title>
+  <link rel="icon" href="assets/ui/icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles/main.css">
+<!-- cada abertura do jogo conta como uma jogada (GoatCounter, sem cookies) -->
+<script>window.CONTAGEM = '/jogo/rules';</script>
+<script src="../../contador.js"></script>
+</head>
+<body>
+<div id="app" class="ch1">
+
+  <!-- MENU -->
+  <section id="scr-menu" class="screen">
+    <div class="menu-top">
+      <h1 class="logo" aria-label="RULES"><span>R</span><span>U</span><span>L</span><span>E</span><span>S</span></h1>
+      <p class="tagline" data-i18n="UI_TAGLINE"></p>
+    </div>
+    <button id="menu-ruli" class="menu-ruli" aria-label="Ruli"></button>
+    <div class="menu-buttons">
+      <button class="btn btn-primary" data-act="play" id="btn-play"></button>
+      <button class="btn" data-act="map" data-i18n="UI_LEVELS"></button>
+      <button class="btn" data-act="settings" data-i18n="UI_SETTINGS"></button>
+    </div>
+    <p class="menu-foot"><a href="../../" data-i18n="UI_MORE_GAMES"></a> · <span data-i18n="UI_BY"></span></p>
+  </section>
+
+  <!-- MAPA -->
+  <section id="scr-map" class="screen" hidden>
+    <header class="bar">
+      <button class="icon-btn" data-act="menu" data-i18n-aria="UI_BACK"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <h2 data-i18n="UI_LEVELS"></h2>
+      <span class="bar-gap"></span>
+    </header>
+    <div class="scroll"><ol id="map-list" class="map"></ol></div>
+  </section>
+
+  <!-- AJUSTES -->
+  <section id="scr-settings" class="screen" hidden>
+    <header class="bar">
+      <button class="icon-btn" data-act="menu" data-i18n-aria="UI_BACK"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <h2 data-i18n="UI_SETTINGS"></h2>
+      <span class="bar-gap"></span>
+    </header>
+    <div class="scroll">
+      <div class="settings">
+        <button class="row" role="switch" data-setting="music"><span data-i18n="UI_MUSIC"></span><i class="sw"></i></button>
+        <button class="row" role="switch" data-setting="sfx"><span data-i18n="UI_SFX"></span><i class="sw"></i></button>
+        <button class="row" role="switch" data-setting="vibration"><span data-i18n="UI_VIBRATION"></span><i class="sw"></i></button>
+        <button class="row" role="switch" data-setting="reduceMotion"><span data-i18n="UI_REDUCE_MOTION"></span><i class="sw"></i></button>
+        <div class="row row-lang"><span data-i18n="UI_LANGUAGE"></span><div id="lang-list" class="langs"></div></div>
+        <button class="row row-danger" id="btn-reset"><span data-i18n="UI_RESET"></span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- JOGO -->
+  <section id="scr-play" class="screen" hidden>
+    <div id="board-area"></div>
+    <header id="topbar" data-ui>
+      <button class="icon-btn" id="btn-menu" data-act="leave" data-i18n-aria="UI_MENU"><svg viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button>
+      <span id="level-label" class="level-label"></span>
+    </header>
+    <div id="instruction" class="instruction"><div id="instr-text" class="instr-text"></div></div>
+    <div id="layer" class="layer"></div>
+    <div id="toast" class="toast" aria-live="polite"></div>
+    <div id="celebrate" class="celebrate" aria-live="polite"></div>
+    <div id="mascot" class="mascot" aria-hidden="true"></div>
+    <footer id="bottombar" data-ui>
+      <button class="pill" data-act="hint"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg><span data-i18n="UI_HINT"></span></button>
+      <button class="pill" data-act="restart"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4.5h4.5"/></svg><span data-i18n="UI_RESTART"></span></button>
+    </footer>
+    <div id="hint-sheet" class="sheet" data-ui hidden>
+      <div class="sheet-card" role="dialog" aria-modal="true">
+        <h3 data-i18n="UI_HINTS_TITLE"></h3>
+        <ol class="hint-list"></ol>
+        <div class="sheet-actions">
+          <button class="btn btn-primary" data-act="hint-more"></button>
+          <button class="btn" data-act="hint-close" data-i18n="UI_CLOSE"></button>
+        </div>
+      </div>
+    </div>
+    <div id="chapter-card" class="chapter-card" data-ui hidden>
+      <span class="card-k"></span>
+      <strong class="card-t"></strong>
+      <small data-i18n="UI_SKIP"></small>
+    </div>
+  </section>
+
+  <!-- FIM DO MVP -->
+  <section id="scr-end" class="screen" hidden>
+    <div class="end-ruli" id="end-ruli"></div>
+    <h2 class="end-title" data-i18n="UI_DEMO_END_TITLE"></h2>
+    <p class="end-text" data-i18n="UI_DEMO_END_TEXT"></p>
+    <div class="menu-buttons">
+      <button class="btn btn-primary" data-act="map" data-i18n="UI_LEVELS"></button>
+      <button class="btn" data-act="menu" data-i18n="UI_MENU"></button>
+    </div>
+  </section>
+
+  <canvas id="fx" class="fx-canvas" aria-hidden="true"></canvas>
+</div>
+
+<!-- Engine -->
+<script src="scripts/core/util.js"></script>
+<script src="scripts/managers/localization.js"></script>
+<script src="localization/pt-BR.js"></script>
+<script src="localization/en-US.js"></script>
+<script src="localization/es-ES.js"></script>
+<script src="scripts/managers/save.js"></script>
+<script src="scripts/managers/audio.js"></script>
+<script src="scripts/managers/analytics.js"></script>
+<script src="scripts/managers/monetization.js"></script>
+<script src="scripts/core/stage.js"></script>
+<script src="scripts/core/ruli.js"></script>
+<script src="scripts/core/renderers.js"></script>
+<script src="scripts/core/objects.js"></script>
+<script src="scripts/puzzles/behaviors.js"></script>
+<script src="scripts/puzzles/conditions.js"></script>
+<script src="scripts/core/input.js"></script>
+<script src="scripts/core/effects.js"></script>
+<script src="scripts/core/engine.js"></script>
+<script src="scripts/managers/level-manager.js"></script>
+<script src="scripts/managers/hints.js"></script>
+<script src="scripts/managers/transition.js"></script>
+<!-- Fases (só dados) -->
+<script src="data/levels/index.js"></script>
+<script src="data/levels/Level001.js"></script>
+<script src="data/levels/Level002.js"></script>
+<script src="data/levels/Level003.js"></script>
+<script src="data/levels/Level005.js"></script>
+<script src="data/levels/Level009.js"></script>
+<script src="data/levels/Level010.js"></script>
+<script src="data/levels/Level011.js"></script>
+<script src="data/levels/Level012.js"></script>
+<script src="data/levels/Level016.js"></script>
+<script src="data/levels/Level020.js"></script>
+<!-- Telas -->
+<script src="scripts/ui/game.js"></script>
+<script>RULES.Game.init();</script>
+</body>
+</html>
