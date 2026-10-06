@@ -388,7 +388,7 @@
         var lx = o.x, ly = o.y;
         E.on('dragstart', function (e) { if (e.obj === o) { lx = o.x; ly = o.y; } });
         E.on('dragmove', function (e) {
-          if (e.obj !== o) return;
+          if (e.obj !== o || cfg.onlySwap) return;
           var dx = o.x - lx, dy = o.y - ly;
           lx = o.x; ly = o.y;
           (cfg.ids || []).forEach(function (id) {
@@ -708,7 +708,7 @@
           var sum = 0;
           cfg.ids.forEach(function (id) {
             var x = E.get(id);
-            if (x && !x.hidden && E.isInside(x, pan)) sum += (x.def.props && x.def.props.weight) || 1;
+            if (x && !x.hidden && E.isInside(x, pan)) sum += (x.def.props && x.def.props.weight != null) ? x.def.props.weight : 1;
           });
           return sum;
         }

@@ -96,7 +96,7 @@
         if (!p) return NaN;
         c.ids.forEach(function (id) {
           var o = E.get(id);
-          if (o && !o.hidden && E.isInside(o, p)) sum += (o.def.props && o.def.props.weight) || 1;
+          if (o && !o.hidden && E.isInside(o, p)) sum += (o.def.props && o.def.props.weight != null) ? o.def.props.weight : 1;
         });
         return sum;
       };

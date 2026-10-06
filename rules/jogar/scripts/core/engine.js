@@ -366,6 +366,7 @@
       if (a.offset) { x += a.offset[0]; y += a.offset[1]; }
       if (a.by) { x += a.by[0]; y += a.by[1]; }
       if (a.z) { o.z = a.z; }
+      if (a.rot != null) o.rot = a.rot;
       return o.moveTo(x, y, a.ms != null ? a.ms : 300, a.ease);
     },
     reset: function (a, e, E) {
