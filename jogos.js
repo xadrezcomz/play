@@ -20,5 +20,13 @@ window.JOGOS = [
     jogar: 'slide-chess/jogar/',
     contagem: '/jogo/slide-chess',
     selos: ['Quebra-cabeça', 'Xadrez', 'Celular e computador', 'Português, inglês e espanhol']
+  },
+  {
+    nome: 'Endless Pace',
+    desc: 'Crie seu corredor e encontre o seu ritmo numa corrida que nunca termina. Toque no compasso, entre no FLOW, ultrapasse quem estiver pela frente e escolha o caminho.',
+    capa: 'img/capa-endless-pace.jpg',
+    jogar: 'endless-pace/jogar/',
+    contagem: '/jogo/endless-pace',
+    selos: ['Novo', 'Corrida e ritmo', 'Celular e computador', 'Português, inglês e espanhol']
   }
 ];

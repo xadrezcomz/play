@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<!-- compartilhar: imagem e texto do link (colocado por ferramentas/prepara-jogo.py) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Jogos do @xadrezcomz">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:url" content="https://xadrezcomz.github.io/play/endless-pace/jogar/">
+<meta property="og:title" content="Endless Pace — jogue grátis no navegador">
+<meta property="og:description" content="Crie seu corredor e encontre o seu ritmo numa corrida que nunca termina. Grátis, no celular ou no computador.">
+<meta property="og:image" content="https://xadrezcomz.github.io/play/img/capa-endless-pace.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Endless Pace: até onde você consegue correr?">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://xadrezcomz.github.io/play/img/capa-endless-pace.jpg">
+<!-- /compartilhar -->
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Endless Pace</title>
+<meta name="description" content="Crie seu corredor e encontre o seu ritmo numa corrida que nunca termina. Grátis, no celular ou no computador.">
+<meta name="theme-color" content="#0f1d2e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Endless Pace">
+<link rel="icon" href="icone.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../../fontes/fontes.css">
+<link rel="stylesheet" href="estilo.css">
+<!-- cada abertura do jogo conta como uma jogada (GoatCounter, sem cookies) -->
+<script>window.CONTAGEM = '/jogo/endless-pace';</script>
+<script src="../../contador.js"></script>
+</head>
+<body>
+<div id="app">
+  <canvas id="cena" aria-hidden="true"></canvas>
+  <div id="toque" aria-hidden="true"></div>
+  <div id="flow-fx" aria-hidden="true"></div>
+
+  <!-- HUD da corrida (GDD §65–66): pouco espaço, cenário sempre à vista -->
+  <div id="hud" hidden>
+    <div class="hud-topo">
+      <div class="marcador esq">
+        <span class="rot" data-t="hud.distance"></span>
+        <b id="h-dist">0 m</b>
+      </div>
+      <button id="h-pausa" class="btn-pausa" type="button" data-t-aria="hud.pause"><span></span><span></span></button>
+      <div class="marcador dir">
+        <span class="rot" data-t="hud.speed"></span>
+        <b id="h-vel">4,0</b>
+      </div>
+    </div>
+    <div class="hud-linha">
+      <span id="h-moedas" class="moedas"><i class="moeda"></i><b id="h-moedas-b">0</b></span>
+      <span class="ultra"><span data-t="hud.overtakes"></span> <b id="h-ultra">0</b></span>
+    </div>
+    <div id="h-rota" class="rota" hidden></div>
+    <div id="h-desafio" class="desafio" hidden>
+      <div class="d-topo"><span class="d-rot" data-t="ch.label"></span><span id="h-d-tit"></span><span id="h-d-prog" class="d-prog"></span></div>
+      <div id="h-d-desc" class="d-desc"></div>
+      <div class="d-tempo"><i id="h-d-tempo"></i></div>
+    </div>
+    <div class="hud-centro">
+      <div id="h-aval" class="aval"></div>
+      <div id="h-flow" class="flow" hidden><span id="h-flow-n"></span><i><s id="h-flow-bar"></s></i></div>
+      <div id="h-combo" class="combo" hidden></div>
+    </div>
+    <div id="h-dica" class="dica" hidden><strong id="h-dica-t"></strong><span id="h-dica-s"></span></div>
+    <div id="h-bif" class="bif" hidden>
+      <div class="bif-tit" data-t="fork.title"></div>
+      <div class="bif-cartoes">
+        <div id="h-bif-e" class="cartao"></div>
+        <div id="h-bif-d" class="cartao"></div>
+      </div>
+      <div class="bif-dica" data-t="fork.hint"></div>
+    </div>
+    <div id="h-aviso" class="aviso" aria-live="polite"></div>
+    <div class="hud-base">
+      <div id="h-batida" class="batida"><i></i></div>
+      <div id="h-zona" class="zona"></div>
+      <div class="energia">
+        <span class="rot" data-t="hud.energy"></span>
+        <div class="barra"><i id="h-energia"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- carregando -->
+  <section id="tela-carregando" class="tela centro">
+    <div class="logo grande"><span>ENDLESS</span><span>PACE</span></div>
+    <p class="slogan" data-t="app.tagline"></p>
+    <div class="carregando"><i></i></div>
+    <p id="erro" class="erro" hidden></p>
+  </section>
+
+  <!-- criação do corredor (GDD §4) -->
+  <section id="tela-criar" class="tela painel-lateral" hidden>
+    <div class="painel">
+      <div class="passos"><span id="c-passo"></span><div class="pontos"><i></i><i></i><i></i><i></i></div></div>
+      <h1 class="tit" data-t="create.title"></h1>
+      <div class="etapa" data-etapa="1">
+        <h2 data-t="create.who"></h2>
+        <div class="escolha-genero">
+          <button type="button" class="opcao grande" data-genero="m" data-t="gender.m"></button>
+          <button type="button" class="opcao grande" data-genero="f" data-t="gender.f"></button>
+        </div>
+      </div>
+      <div class="etapa" data-etapa="2">
+        <h2 data-t="create.nameTitle"></h2>
+        <input id="c-nome" class="campo" type="text" maxlength="15" autocomplete="off" autocapitalize="characters" spellcheck="false" data-t-ph="create.namePh">
+        <p class="nota" data-t="create.nameHint"></p>
+      </div>
+      <div class="etapa" data-etapa="3">
+        <h2 data-t="create.looks"></h2>
+        <div class="grupo"><span class="rot" data-t="create.skin"></span><div class="cores" id="c-pele"></div></div>
+        <div class="grupo"><span class="rot" data-t="create.hairStyle"></span><div class="chips" id="c-cabelo"></div></div>
+        <div class="grupo"><span class="rot" data-t="create.hairColor"></span><div class="cores" id="c-cor-cabelo"></div></div>
+      </div>
+      <div class="etapa" data-etapa="4">
+        <h2 data-t="create.outfit"></h2>
+        <p class="nota" data-t="create.outfitHint"></p>
+        <div class="grupo"><span class="rot" data-t="create.shirt"></span><div class="cores" id="c-camiseta"></div></div>
+        <div class="grupo"><span class="rot" data-t="create.shorts"></span><div class="cores" id="c-short"></div></div>
+        <div class="grupo"><span class="rot" data-t="create.shoes"></span><div class="cores" id="c-tenis"></div></div>
+      </div>
+      <div class="acoes">
+        <button type="button" id="c-voltar" class="btn sec" data-t="ui.back"></button>
+        <button type="button" id="c-proximo" class="btn pri" data-t="ui.next"></button>
+      </div>
+    </div>
+    <p class="girar" data-t="create.rotate"></p>
+  </section>
+
+  <!-- tela inicial (GDD §91) -->
+  <section id="tela-inicio" class="tela" hidden>
+    <header class="inicio-topo">
+      <div class="logo"><span>ENDLESS</span><span>PACE</span></div>
+      <span class="moedas pilula"><i class="moeda"></i><b id="i-moedas">0</b></span>
+    </header>
+    <div class="inicio-base">
+      <div class="perfil">
+        <div id="i-nome" class="nome"></div>
+        <div class="total"><b id="i-total">0 km</b> <span data-t="home.total"></span></div>
+        <div id="i-melhor" class="melhor"></div>
+      </div>
+      <button type="button" id="i-correr" class="btn correr"><span data-t="home.run"></span></button>
+      <div class="menu">
+        <button type="button" class="btn sec" id="i-corredor" data-t="home.runner"></button>
+        <button type="button" class="btn sec" id="i-recordes" data-t="home.records"></button>
+        <button type="button" class="btn sec" id="i-opcoes" data-t="home.options"></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- pausa -->
+  <section id="tela-pausa" class="tela modal" hidden>
+    <div class="caixa">
+      <h1 class="tit" data-t="pause.title"></h1>
+      <button type="button" id="p-continuar" class="btn pri largo" data-t="pause.resume"></button>
+      <button type="button" id="p-opcoes" class="btn sec largo" data-t="pause.options"></button>
+      <button type="button" id="p-encerrar" class="btn sec largo" data-t="pause.finish"></button>
+      <p class="nota" data-t="pause.hint"></p>
+    </div>
+  </section>
+
+  <!-- resumo da corrida -->
+  <section id="tela-resumo" class="tela modal" hidden>
+    <div class="caixa">
+      <h1 class="tit" id="r-tit" data-t="sum.title"></h1>
+      <div class="destaque"><b id="r-dist"></b><span id="r-tempo"></span></div>
+      <dl id="r-lista" class="lista"></dl>
+      <div class="ganho"><span data-t="sum.coins"></span><b id="r-moedas"></b></div>
+      <p id="r-total" class="nota"></p>
+      <button type="button" id="r-continuar" class="btn pri largo" data-t="ui.continue"></button>
+    </div>
+  </section>
+
+  <!-- recordes (GDD §53–54) -->
+  <section id="tela-recordes" class="tela modal" hidden>
+    <div class="caixa">
+      <h1 class="tit" data-t="rec.title"></h1>
+      <div id="rec-nome" class="nome"></div>
+      <h2 data-t="rec.profile"></h2>
+      <dl id="rec-perfil" class="lista"></dl>
+      <h2 data-t="rec.best"></h2>
+      <dl id="rec-melhores" class="lista"></dl>
+      <button type="button" class="btn pri largo fechar" data-t="ui.close"></button>
+    </div>
+  </section>
+
+  <!-- opções (GDD §71) -->
+  <section id="tela-opcoes" class="tela modal" hidden>
+    <div class="caixa">
+      <h1 class="tit" data-t="opt.title"></h1>
+      <div class="grupo"><span class="rot" data-t="opt.lang"></span><div class="chips" id="o-idioma"></div></div>
+      <label class="alternar"><span data-t="opt.music"></span><input type="checkbox" id="o-musica"><i></i></label>
+      <label class="alternar"><span data-t="opt.sfx"></span><input type="checkbox" id="o-efeitos"><i></i></label>
+      <label class="alternar"><span data-t="opt.vibration"></span><input type="checkbox" id="o-vibracao"><i></i></label>
+      <label class="alternar"><span data-t="opt.reduceMotion"></span><input type="checkbox" id="o-movimento"><i></i></label>
+      <label class="alternar"><span data-t="opt.bigUi"></span><input type="checkbox" id="o-grande"><i></i></label>
+      <div class="grupo"><span class="rot" data-t="opt.quality"></span><div class="chips" id="o-qualidade"></div><p class="nota" data-t="opt.qualityNote"></p></div>
+      <div class="grupo"><span class="rot" data-t="opt.controls"></span><p class="nota" data-t="opt.controlsText"></p></div>
+      <button type="button" class="btn pri largo fechar" data-t="ui.close"></button>
+      <button type="button" id="o-apagar" class="btn perigo largo" data-t="opt.reset"></button>
+      <p class="nota rodape"><span id="o-versao"></span> · <a href="../../privacidade.html" data-t="opt.privacy"></a></p>
+    </div>
+  </section>
+
+  <!-- confirmação -->
+  <section id="tela-confirmar" class="tela modal topo" hidden>
+    <div class="caixa">
+      <p id="cf-texto"></p>
+      <div class="acoes">
+        <button type="button" id="cf-nao" class="btn sec" data-t="ui.cancel"></button>
+        <button type="button" id="cf-sim" class="btn perigo" data-t="ui.confirm"></button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- motor 3D -->
+<script src="vendor/three-0.128.0.min.js"></script>
+<!-- núcleo -->
+<script src="js/core/EP.js"></script>
+<!-- conteúdo (data-driven: editar aqui não exige mexer na lógica) -->
+<script src="dados/balanceamento.js"></script>
+<script src="dados/aparencia.js"></script>
+<script src="dados/npcs.js"></script>
+<script src="dados/biomas.js"></script>
+<script src="dados/modulos.js"></script>
+<script src="dados/desafios.js"></script>
+<script src="dados/textos/pt-BR.js"></script>
+<script src="dados/textos/en-US.js"></script>
+<script src="dados/textos/es.js"></script>
+<!-- sistemas -->
+<script src="js/core/SaveManager.js"></script>
+<script src="js/core/LocalizationManager.js"></script>
+<script src="js/core/Analytics.js"></script>
+<script src="js/systems/TapRhythmSystem.js"></script>
+<script src="js/systems/FlowSystem.js"></script>
+<script src="js/systems/EnergySystem.js"></script>
+<script src="js/systems/SpeedSystem.js"></script>
+<script src="js/systems/OvertakeSystem.js"></script>
+<script src="js/systems/EconomyManager.js"></script>
+<script src="js/systems/ChallengeManager.js"></script>
+<script src="js/systems/ProgressionManager.js"></script>
+<script src="js/audio/AudioManager.js"></script>
+<!-- mundo e corredores -->
+<script src="js/world/Materials.js"></script>
+<script src="js/world/GeoBuilder.js"></script>
+<script src="js/world/Assets.js"></script>
+<script src="js/world/RoadModules.js"></script>
+<script src="js/world/ProceduralWorldGenerator.js"></script>
+<script src="js/world/DayNightSystem.js"></script>
+<script src="js/world/ForkSigns.js"></script>
+<script src="js/runner/RunnerRig.js"></script>
+<script src="js/runner/RunnerController.js"></script>
+<script src="js/runner/NPCManager.js"></script>
+<!-- interface e jogo -->
+<script src="js/ui/Input.js"></script>
+<script src="js/ui/CharacterCreator.js"></script>
+<script src="js/ui/UIManager.js"></script>
+<script src="js/GameManager.js"></script>
+</body>
+</html>

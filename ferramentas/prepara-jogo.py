@@ -5,6 +5,7 @@
 #   python3 ferramentas/prepara-jogo.py rock-orbit  caminho/rock-orbit.html
 #   python3 ferramentas/prepara-jogo.py slide-chess caminho/slide-chess.html
 #   python3 ferramentas/eventos-slide-chess.py      (só no Slide Chess, depois)
+#   python3 ferramentas/prepara-jogo.py endless-pace  (o jogo já mora aqui: refaz no próprio arquivo)
 #
 # Sem o segundo argumento, refaz no próprio arquivo que já está no site.
 import html, re, sys
@@ -24,6 +25,13 @@ JOGOS = {
         'imagem': 'img/capa-slide-chess.jpg',
         'alt': 'Slide Chess: abra caminho, coroe o peão, leve a dama para casa',
         'contagem': '/jogo/slide-chess',
+    },
+    'endless-pace': {
+        'titulo': 'Endless Pace — jogue grátis no navegador',
+        'desc': 'Crie seu corredor e encontre o seu ritmo numa corrida que nunca termina. Grátis, no celular ou no computador.',
+        'imagem': 'img/capa-endless-pace.jpg',
+        'alt': 'Endless Pace: até onde você consegue correr?',
+        'contagem': '/jogo/endless-pace',
     },
 }
 
