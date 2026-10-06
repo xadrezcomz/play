@@ -25,6 +25,9 @@ window.APOIO = {
     { nome: 'Materiais de xadrez gratuitos', obs: 'para estudar, ensinar e jogar', feito: false }
   ],
   PLACAR: [
+    { ini: 'JPG', fichas: 3 },
+    { ini: 'LFS', fichas: 2 },
+    { ini: 'PAS', fichas: 2 }
   ]
 };
 
