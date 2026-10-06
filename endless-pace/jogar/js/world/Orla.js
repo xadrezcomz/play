@@ -10,8 +10,8 @@
 
   var C = {
     asphalt: '#56555a', line: '#efe9dc', gutter: '#9a958c', curb: '#ddd6c9',
-    promenade: '#d6cdbd', sidewalk: '#dbd3c6', bedEdge: '#c4b8a5', soil: '#5c4636', pit: '#6b5a48',
-    coping: '#d3c8b6', wall: '#a99f8f', water: '#3f87ad', lot: '#b3ab9c'
+    promenade: '#d6cdbd', sidewalk: '#dbd3c6', bedEdge: '#c4b8a5', soil: '#4a3a2e', pit: '#6b5a48',
+    coping: '#d3c8b6', wall: '#a99f8f', water: '#2c6a8c', lot: '#b3ab9c'
   };
   var R = 4.5, SW = 0.15, LEFT_EDGE = -12.6, RIGHT_EDGE = 10.6;
 
@@ -50,6 +50,10 @@
     });
     B.water.floor(LEFT_EDGE - 150, -1.2, -L / 2, 299, L, C.water);
     B.water.floor(LEFT_EDGE - 3, -1.19, -L / 2, 4.2, L, shade(C.water, 0.8));            // sombra do muro na água
+    // pontas do rio: muros de pedra fecham o canal (o trecho vizinho começa em terra)
+    K.det(B, 4, function () {
+      [0.3, L - 0.3].forEach(function (zz) { B.w.box(LEFT_EDGE - 150, -1.6, -zz, 299, 1.63, 0.6, C.wall); });
+    });
     // guarda-corpo de ferro sobre o cais
     var gx = LEFT_EDGE - 0.2;
     for (z = 0; z < L; z += 2.4) B.w.box(gx, 0.36, -z, 0.08, 1.02, 0.08, K.IRON);
@@ -69,9 +73,9 @@
       var zc = -(z + bedL / 2);
       K.det(B, 4, function () { B.w.box(bedX, SW, zc, bedW, 0.25, bedL, C.bedEdge); });
       B.w.floor(bedX, SW + 0.26, zc, bedW - 0.24, bedL - 0.24, C.soil);
-      K.grass(B, bedX, SW + 0.25, zc, bedW - 0.4, bedL - 0.6, 12, rnd, '#7fae58');
-      K.flowers(B, bedX - 0.45, SW + 0.25, zc, 0.8, bedL - 1.2, 10, rnd);
-      K.flowers(B, bedX + 0.55, SW + 0.25, zc, 0.6, bedL - 1.4, 7, rnd);
+      K.grass(B, bedX, SW + 0.25, zc, bedW - 0.3, bedL - 0.5, 22, rnd, '#7fae58');
+      K.flowers(B, bedX - 0.45, SW + 0.25, zc, 0.9, bedL - 1.0, 15, rnd);
+      K.flowers(B, bedX + 0.55, SW + 0.25, zc, 0.8, bedL - 1.2, 11, rnd);
       if (n % 2) K.bush(B, bedX, SW + 0.25, zc + bedL * 0.32, 0.42, U.pick(pal.leaves, rnd), rnd);
       B.frame(bedX + 0.1, SW + 0.3, zc, rnd() * 6);
       var tr = (n % 3 === 2 ? T.florida : T.copa)(B, rnd, pal, 1.05);

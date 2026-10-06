@@ -89,7 +89,7 @@
     if (g.light) { var lp = new THREE.Mesh(g.light, M.lightPool); lp.frustumCulled = false; lp.renderOrder = 2; mesh.add(lp); }
     if (g.leaf) { var lf = new THREE.Mesh(g.leaf, M.leaf); lf.frustumCulled = false; lf.receiveShadow = true; mesh.add(lf); }
     if (g.glass) { var gs = new THREE.Mesh(g.glass, M.glass); gs.frustumCulled = false; mesh.add(gs); }
-    if (g.sign) { var sg = new THREE.Mesh(g.sign, M.sign); sg.frustumCulled = false; mesh.add(sg); }
+    if (g.sign) { var sg = new THREE.Mesh(g.sign, M.banner); sg.frustumCulled = false; mesh.add(sg); }
     mesh.matrixAutoUpdate = false;
     mesh.userData = { busy: true, variant: variant, id: id };
     this.scene.add(mesh);

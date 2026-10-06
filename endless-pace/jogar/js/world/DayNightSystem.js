@@ -218,6 +218,8 @@
     u.uHaze.value.copy(c.haze).multiply(T.fog);
     var BEND = EP.Materials.BEND;
     BEND.uSunFog.value.copy(u.uHaze.value);
+    BEND.uSkyRefl.value.copy(c.fog).lerp(c.top, 0.35);
+    BEND.uTime.value += dt;
     BEND.uRim.value.copy(c.sun).multiplyScalar(c.rim * c.sunI * 0.5).add(_tmp.copy(c.hemiSky).multiplyScalar(0.12 * c.hemiI));
     u.uNight.value = U.smooth((c.glow - 0.6) / 0.4);
     // sol (ou lua) visível à frente: sobe e desce ao longo do dia

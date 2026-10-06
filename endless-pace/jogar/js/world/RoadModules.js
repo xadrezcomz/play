@@ -17,13 +17,17 @@
     ponte: function (B, def, L, pal, ctx) { ctx.noGround = true; return city(B, def, L, pal, ctx, false); },
     parque: function (B, def, L, pal, ctx) {
       var R = ctx.W.roadHalf, path = pal.path;
+      B.w.detail = 4;
       B.w.floor(0, 0.012, -L / 2, 2 * R - 0.3, L, path);
+      B.w.detail = 0;
       for (var z = 1; z < L; z += 5) B.w.floor(0, 0.016, -(z + 1), 0.1, 2, '#f6e9dc');
       for (z = 0; z < L; z += 3) B.w.floor(0, 0.014, -z, 2 * R - 0.3, 0.07, shade(path, 0.86));
       [-1, 1].forEach(function (s) {
         B.w.box(s * (R - 0.08), 0, -L / 2, 0.22, 0.07, L, pal.stone);
+        B.w.detail = 3;
         B.w.floor(s * (R + 40), 0, -L / 2, 80, L, pal.grass);
         for (var k = 0; k < L; k += 8) B.w.floor(s * (R + 13), 0.004, -(k + 2), 24, 4, pal.grassAlt);   // grama cortada em faixas
+        B.w.detail = 0;
       });
       ctx.outer = R; ctx.curbX = R + 0.55; ctx.innerX = R + 1.3; ctx.propY = 0;
       return R;
@@ -33,17 +37,20 @@
   function city(B, def, L, pal, ctx, wide) {
     var R = ctx.W.roadHalf, S = ctx.W.sidewalk + (wide ? 1.8 : 0), outer = R + 0.2 + S, z;
     var arnd = U.rng(Math.round(L * 131 + R * 7));
+    B.w.detail = 1;   // textura de asfalto
     for (z = 0; z < L; z += 6) {
       var zl = Math.min(6, L - z);
       for (var xs = -1; xs <= 1; xs++) B.w.floor(xs * R * 2 / 3, 0, -(z + zl / 2), R * 2 / 3, zl, shade(pal.asphalt, 0.95 + arnd() * 0.1));
     }
+    B.w.detail = 0;
     for (z = 1.5; z < L - 1; z += 6) B.w.floor(0, 0.012, -(z + 1.5), 0.16, 3, pal.line);
     [-1, 1].forEach(function (s) {
       B.w.floor(s * (R - 0.35), 0.012, -L / 2, 0.12, L, pal.line);
-      B.w.box(s * (R + 0.1), 0, -L / 2, 0.2, 0.17, L, pal.curb);
-      B.w.box(s * (R + 0.2 + S / 2), 0, -L / 2, S, 0.15, L, pal.sidewalk);
-      for (z = 1; z < L; z += 2) B.w.floor(s * (R + 0.2 + S / 2), 0.152, -z, S, 0.07, pal.sidewalkAlt);   // juntas: sensação de velocidade
+      B.w.detail = 4; B.w.box(s * (R + 0.1), 0, -L / 2, 0.2, 0.17, L, pal.curb);
+      B.w.detail = 2; B.w.box(s * (R + 0.2 + S / 2), 0, -L / 2, S, 0.15, L, pal.sidewalk);
+      B.w.detail = def.ground === 'lot' ? 4 : 3;
       if (!ctx.noGround) B.w.floor(s * (outer + 35), 0.03, -L / 2, 70, L, pal[def.ground] || pal.ground);
+      B.w.detail = 0;
     });
     ctx.outer = outer; ctx.wide = wide; ctx.curbX = R + 0.55; ctx.innerX = outer - 0.6; ctx.treeX = R + 1.1; ctx.propY = 0.15;
     return outer;
@@ -197,7 +204,7 @@
       [-1, 1].forEach(function (s) {
         for (var i = 0; i < 6; i++) {
           var x = s * (R + 3 + rnd() * 18), z = -rnd() * L, c = U.pick(pal.blossom, rnd);
-          for (var k = 0; k < 5; k++) B.w.add('ico', x + (rnd() - 0.5) * 1.6, 0.12, z + (rnd() - 0.5) * 1.6, 0.3, 0.25, 0.3, c);
+          EP.Kit.flowers(B, x, 0, z, 1.8, 1.8, 4, rnd);
         }
       });
     },
@@ -206,8 +213,10 @@
       [-1, 1].forEach(function (s) {
         for (var z = 12 + rnd() * 8; z < L - 6; z += 26 + rnd() * 10) {
           var x = s * (R + 2.2), c = U.pick(pal.blossom, rnd);
-          B.w.box(x, 0, -z, 1.4, 0.3, 4.2, pal.stone);
-          for (var k = 0; k < 8; k++) B.w.add('ico', x + (rnd() - 0.5) * 0.9, 0.42, -z + (rnd() - 0.5) * 3.6, 0.42, 0.35, 0.42, k % 3 ? c : '#ffffff');
+          B.w.detail = 4; B.w.box(x, 0, -z, 1.4, 0.3, 4.2, pal.stone); B.w.detail = 0;
+          B.w.floor(x, 0.31, -z, 1.2, 4.0, '#4a3a2e');
+          EP.Kit.flowers(B, x, 0.3, -z, 1.0, 3.6, 8, rnd);
+          EP.Kit.grass(B, x, 0.3, -z, 1.0, 3.6, 5, rnd, pal.grass);
         }
       });
     },
@@ -257,10 +266,10 @@
       B.w.add('cyl12', 0, 0.11, -dv.from, 2 * hw, 0.22, 2 * hw, pal.curb);
       B.w.add('cyl12', 0, 0.11, -dv.to, 2 * hw, 0.22, 2 * hw, pal.curb);
       // canteiro: arbustos redondos e flores (nada de muro de grama)
-      for (var z = dv.from + 1.5; z < dv.to - 1; z += 1.7) {
-        var leaf = shade(U.pick(pal.leaves, rnd), 0.8 + rnd() * 0.25), r = 0.55 + rnd() * 0.2;
-        B.w.add('icoS', (rnd() - 0.5) * 0.3, 0.22 + r * 0.7, -z, r * 2.1, r * 1.6, r * 2.1, leaf, rnd() * 6);
-        if (rnd() < 0.6) B.w.add('icoT', (rnd() - 0.5) * 0.8, 0.22 + r * 1.35, -z - 0.5, 0.3, 0.26, 0.3, U.pick(pal.blossom, rnd));
+      for (var z = dv.from + 1.5; z < dv.to - 1; z += 2.2) {
+        var leaf = shade(U.pick(pal.leaves, rnd), 0.85 + rnd() * 0.25), r = 0.42 + rnd() * 0.12;
+        EP.Kit.bush(B, (rnd() - 0.5) * 0.3, 0.22, -z, r, leaf, rnd);
+        EP.Kit.flowers(B, 0, 0.22, -z - 1.1, 1.2, 0.8, 2, rnd);
       }
       // setas no asfalto: uma para cada lado
       [-1, 1].forEach(function (s) {

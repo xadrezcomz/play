@@ -58,6 +58,31 @@
 
   BEND.uRim = { value: new THREE.Color(0.5, 0.4, 0.3) };
   BEND.tDetail = { value: null };
+  BEND.uTime = { value: 0 };
+  BEND.uSkyRefl = { value: new THREE.Color(0.6, 0.75, 0.9) };
+
+  // água: ondinhas animadas na normal (sem geometria) e reflexo do céu nas
+  // bordas (fresnel); o sol faz o brilho pelo especular do Phong
+  function watery(material) {
+    material.onBeforeCompile = function (shader) {
+      bend.call(material, shader);
+      shader.uniforms.uTime = BEND.uTime;
+      shader.uniforms.uSkyRefl = BEND.uSkyRefl;
+      shader.vertexShader = 'varying vec3 vWaterP;\n' + shader.vertexShader.replace('#include <worldpos_vertex>',
+        '#include <worldpos_vertex>\nvWaterP = ( modelMatrix * vec4( transformed, 1.0 ) ).xyz;');
+      shader.fragmentShader = 'uniform float uTime;\nuniform vec3 uSkyRefl;\nvarying vec3 vWaterP;\n' + shader.fragmentShader
+        .replace('#include <normal_fragment_begin>', [
+          '#include <normal_fragment_begin>',
+          'vec2 wp = vWaterP.xz; float wt = uTime;',
+          'vec3 wn = vec3( sin( wp.x * 0.8 + wt * 1.1 ) * 0.07 + sin( wp.y * 1.9 - wt * 1.3 ) * 0.05 + sin( ( wp.x + wp.y ) * 4.1 + wt * 2.3 ) * 0.025, 1.0,',
+          '  cos( wp.y * 1.2 + wt * 0.9 ) * 0.07 + sin( ( wp.x - wp.y ) * 2.7 - wt * 1.7 ) * 0.04 + cos( wp.x * 5.3 - wt * 2.0 ) * 0.02 );',
+          'normal = normalize( mat3( viewMatrix ) * normalize( wn ) );'
+        ].join('\n'))
+        .replace('#include <aomap_fragment>', '#include <aomap_fragment>\n  float wfr = pow( 1.0 - max( dot( normalize( vViewPosition ), normal ), 0.0 ), 4.0 );\n  reflectedLight.indirectDiffuse = mix( reflectedLight.indirectDiffuse, uSkyRefl, clamp( wfr * 1.3, 0.0, 0.85 ) );');
+    };
+    material.customProgramCacheKey = function () { return 'water'; };
+    return material;
+  }
 
   // textura de detalhe: canal escolhido pelo atributo "detail"; projeção pelo
   // plano mais alinhado à superfície (chão: xz; paredes: xy ou zy)
@@ -131,11 +156,12 @@
       M.glass = bent(lite ? new THREE.MeshLambertMaterial({ vertexColors: true })
         : new THREE.MeshPhongMaterial({ vertexColors: true, shininess: 70, specular: new THREE.Color('#9fb7c9') }));
       // faixas da marca nos postes
-      M.sign = bent(surface({ map: EP.Textures.banners(), side: THREE.DoubleSide }));
+      M.banner = bent(surface({ map: EP.Textures.banners(), side: THREE.DoubleSide }));
       // luzes: janelas e lâmpadas (acendem à noite pela cor do material)
       M.glow = bent(new THREE.MeshBasicMaterial({ vertexColors: true }));
       // água: brilhante
-      M.water = bent(new THREE.MeshPhongMaterial({ vertexColors: true, shininess: 90, specular: new THREE.Color('#bfe6ff') }));
+      M.water = lite ? bent(new THREE.MeshPhongMaterial({ vertexColors: true, shininess: 90, specular: new THREE.Color('#bfe6ff') }))
+        : watery(new THREE.MeshPhongMaterial({ vertexColors: true, shininess: 120, specular: new THREE.Color('#fff1d6') }));
       // corredores: pele e tecido com um brilho leve
       M.runner = bent(surface({ vertexColors: true, specular: new THREE.Color(0x161616), shininess: 22 }), !lite);
       M.runnerSkin = bent(surface({ vertexColors: true, skinning: true, specular: new THREE.Color(0x161616), shininess: 22 }), !lite);

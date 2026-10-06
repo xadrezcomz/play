@@ -272,18 +272,21 @@
   function shopFront(B, w, gh, st, rnd, pal) {
     var shop = U.pick(SHOPS, rnd), x0 = -w / 2 + 0.5, x1 = w / 2 - 0.5;
     B.w.box(0, 0, 0.02, w, 0.18, 0.12, st.base);
-    // vitrine em painéis com caixilho escuro
-    var panes = Math.max(2, Math.round((x1 - x0) / 1.6)), pw = (x1 - x0) / panes;
+    // vitrine em painéis com caixilho escuro: reflexo do céu em cima, interior quente e escuro embaixo
+    var panes = Math.max(2, Math.round((x1 - x0) / 1.3)), pw = (x1 - x0) / panes, gTop = gh * 0.84, gBot = 0.5;
+    B.w.boxF(0, 0.18, 0.04, x1 - x0, gBot - 0.18, 0.08, shade(st.base, 0.9));                 // mureta
     for (var i = 0; i < panes; i++) {
       var px = x0 + pw * (i + 0.5), door = i === Math.floor(panes / 2);
-      var g0 = B.glass.count();
-      B.glass.quad(px, gh * 0.47, 0.06, pw - 0.12, gh * 0.8, '#000');
-      B.glass.vGradient(g0, '#c9dbe8', door ? '#3c3226' : '#4a4036');
-      B.g.quad(px, gh * 0.4, 0.05, pw - 0.2, gh * 0.55, '#ffd9a0');
-      B.w.box(px - pw / 2, 0.18, 0.08, 0.08, gh * 0.85, 0.08, IRON);
+      var gb0 = door ? 0.18 : gBot, g0 = B.glass.count();
+      B.glass.quad(px, (gTop + gb0) / 2, 0.05, pw - 0.1, gTop - gb0, '#000');
+      B.glass.vGradient(g0, '#a7bfd2', door ? '#3a2e24' : '#2c2621');
+      B.w.quad(px, gTop * 0.72, 0.07, pw - 0.1, 0.06, IRON);                                  // travessa
+      if (door) B.w.quad(px + pw * 0.3, 1.1, 0.07, 0.04, 0.3, '#c9a24a');                     // puxador
+      B.g.quad(px, gb0 + 0.55, 0.055, pw * 0.7, 0.5, '#ffd9a0');                              // vitrine acesa (à noite)
+      B.w.boxF(px - pw / 2, 0.18, 0.06, 0.07, gTop - 0.18, 0.07, IRON);
     }
-    B.w.box(x1, 0.18, 0.08, 0.08, gh * 0.85, 0.08, IRON);
-    B.w.box(0, gh * 0.87, 0.08, x1 - x0 + 0.1, 0.08, 0.1, IRON);
+    B.w.boxF(x1, 0.18, 0.06, 0.07, gTop - 0.18, 0.07, IRON);
+    B.w.boxF(0, gTop, 0.06, x1 - x0 + 0.1, 0.08, 0.08, IRON);
     // placa
     B.w.box(0, gh * 0.9, 0.1, x1 - x0, 0.55, 0.12, shop.sign);
     for (var k = 0; k < 5; k++) B.w.box(-0.9 + k * 0.45, gh * 0.9 + 0.2, 0.17, 0.32, 0.14, 0.02, shop.text);
@@ -374,6 +377,93 @@
     return { h: H, shop: shop };
   }
 
+  // casa e sobrado: telhado de duas águas com beiral, janelas com venezianas e
+  // floreira, porta com degrau e jardim na frente
+  function house(B, rnd, pal, opts) {
+    var st = STYLES.colorido, w = opts.w, floors = opts.floors, d = 8, fh = 3.0, H = floors * fh + 0.4;
+    var wall = U.pick(st.walls, rnd), roof = U.pick(pal.roofs || ['#a8553f'], rnd);
+    det(B, 4, function () {
+      B.w.box(0, 0, -d / 2, w, H, d, wall);
+      B.w.box(0, 0, -d / 2 + 0.06, w + 0.12, 0.45, d, shade(wall, 0.8));                    // rodapé
+    });
+    B.w.add('prism', 0, H + 1.05, -d / 2, w + 0.9, 2.1, d + 1.0, roof);
+    B.w.boxF(0, H - 0.05, 0.42, w + 0.9, 0.16, 0.1, st.trim);                                // beiral
+    if (rnd() < 0.6) B.w.box(w * 0.28 * (rnd() < 0.5 ? -1 : 1), H + 0.6, -d * 0.35, 0.6, 1.9, 0.6, shade(roof, 0.75));
+    var door = rnd() < 0.5 ? -1 : 1, dx = door * w * 0.24;
+    B.w.boxF(dx, 0, 0.04, 1.3, 2.5, 0.1, st.trim);
+    B.w.boxF(dx, 0, 0.08, 1.02, 2.3, 0.08, U.pick(['#6f4a32', '#2f6d5a', '#1f4f7a', '#8c2f28'], rnd));
+    B.w.box(dx, 0, 0.6, 1.6, 0.16, 0.9, shade(wall, 0.72));                                     // degrau
+    B.g.quad(dx + 0.85, 2.2, 0.12, 0.16, 0.24, '#ffd9a0');                                     // arandela
+    for (var f = 0; f < floors; f++) {
+      var y = f * fh + fh * 0.55 + 0.2;
+      for (var i = 0; i < 2; i++) {
+        var x = f === 0 ? -door * w * 0.2 + (i ? -door * 1.6 : 0) : -w * 0.22 + i * w * 0.44;
+        if (f === 0 && i === 1 && w < 8) continue;
+        windowModule(B, x, y, 0, 1.15, 1.3, st, rnd);
+        if (rnd() < 0.45) { B.w.boxF(x, y - 1.05, 0.12, 1.4, 0.26, 0.28, '#8c6a4a'); flowers(B, x, y - 0.8, 0.26, 1.2, 0.18, 2, rnd); }
+      }
+    }
+    // jardim: cerca viva e flores (arbustos de cartões)
+    var leaf = U.pick(pal.leaves, rnd);
+    for (var gx = -w / 2 + 0.6; gx < w / 2 - 0.4; gx += 1.3) if (Math.abs(gx - dx) > 1.1) bush(B, gx, 0, 1.3, 0.42 + rnd() * 0.1, shade(leaf, 0.9 + rnd() * 0.2), rnd);
+    flowers(B, -dx * 0.6, 0, 0.8, w * 0.4, 0.4, 3, rnd);
+    B.shadow.blob(0, 0.02, 0.8, w * 0.55, 1.4);
+  }
+
+  // torre de escritórios: pele de vidro com faixas por andar, montantes e coroa recuada
+  function tower(B, rnd, pal, opts) {
+    var w = opts.w, floors = opts.floors, d = 14, fh = 3.4, gh = 4.6, H = gh + floors * fh;
+    var body = U.pick(['#c9d1d8', '#b9c3cc', '#d9d6cf', '#aeb8c2', '#cfc6ba'], rnd), hi = U.pick(['#b4cde3', '#a9c2d8', '#c2d5e2'], rnd), lo = '#34495c';
+    det(B, 4, function () { B.w.box(0, 0, -d / 2, w, H, d, body); });
+    var lobby = B.glass.count(); B.glass.quad(0, gh * 0.45, 0.06, w * 0.8, gh * 0.8, '#000'); B.glass.vGradient(lobby, '#b6c9d6', '#2b3540');
+    B.g.quad(0, gh * 0.4, 0.07, w * 0.7, gh * 0.5, '#ffe2b0');
+    B.w.boxF(0, gh - 0.1, 0.1, w + 0.6, 0.3, 1.6, shade(body, 0.85));                         // marquise
+    for (var f = 0; f < floors; f++) {
+      var y = gh + f * fh + fh * 0.5, t = f / Math.max(1, floors - 1);
+      var g0 = B.glass.count();
+      B.glass.quad(0, y, 0.05, w * 0.92, fh * 0.72, '#000');
+      B.glass.quad(w / 2 + 0.05, y, -d / 2, d * 0.9, fh * 0.72, '#000', Math.PI / 2);
+      B.glass.quad(-w / 2 - 0.05, y, -d / 2, d * 0.9, fh * 0.72, '#000', -Math.PI / 2);
+      B.glass.vGradient(g0, shade(hi, 0.9 + t * 0.2), shade(lo, 1 + t * 0.4));
+      if (rnd() < 0.3) B.g.quad((rnd() - 0.5) * w * 0.6, y, 0.07, w * 0.25, fh * 0.6, '#ffd59a');
+    }
+    for (var mx = -w * 0.46; mx <= w * 0.46 + 0.01; mx += w * 0.92 / 6) B.w.quad(mx, gh + floors * fh / 2, 0.08, 0.1, floors * fh, shade(body, 0.92));
+    B.w.boxF(0, H, -d / 2 + 0.1, w + 0.2, 0.4, d + 0.2, shade(body, 1.05));
+    B.w.box(0, H + 0.4, -d / 2, w * 0.66, 3.2, d * 0.66, shade(body, 0.95));
+    if (rnd() < 0.5) B.w.add('cyl6', w * 0.2, H + 6, -d / 2, 0.16, 5.5, 0.16, '#c9ced6');
+    B.shadow.blob(0, 0.02, 0.6, w * 0.55, 0.9);
+  }
+
+  // As outras ruas da cidade passam a usar as árvores e os objetos novos
+  // (mesmos nomes de antes; os prédios antigos continuam até a etapa de arquitetura)
+  var A = EP.Assets;
+  if (A) {
+    A.trees.redonda = function (B, rnd, pal) { TREES.copa(B, rnd, pal, 0.82); };
+    A.trees.pinheiro = function (B, rnd, pal) { TREES.pinheiro(B, rnd, pal, 0.9); };
+    A.trees.palmeira = function (B, rnd, pal) { TREES.palmeira(B, rnd, pal, 1); };
+    A.trees.florida = function (B, rnd, pal) { TREES.florida(B, rnd, pal, 0.9); };
+    A.trees.arbusto = function (B, rnd, pal) {
+      var c = U.pick(pal.leaves, rnd);
+      bush(B, 0, 0, 0, 0.6, c, rnd); bush(B, 0.7, 0, 0.3, 0.45, shade(c, 1.08), rnd);
+      flowers(B, 0.2, 0, 0.6, 1.2, 0.6, 3, rnd);
+    };
+    A.props.poste.draw = function (B, rnd, pal) { PROPS.poste(B, rnd, pal); };
+    A.props.banco.draw = function (B, rnd, pal) { PROPS.banco(B, rnd, pal); };
+    A.props.lixeira.draw = function (B, rnd, pal) { PROPS.lixeira(B, rnd, pal); };
+    // prédios: a mesma arquitetura modular do trecho-modelo
+    A.buildings.casa.draw = function (B, rnd, pal, w) { house(B, rnd, pal, { w: w, floors: 1 }); };
+    A.buildings.sobrado.draw = function (B, rnd, pal, w) { house(B, rnd, pal, { w: w, floors: 2 }); };
+    A.buildings['predio-baixo'].draw = function (B, rnd, pal, w) {
+      building(B, rnd, pal, { w: w, floors: 2 + Math.floor(rnd() * 3), style: rnd() < 0.6 ? 'colorido' : 'classico', shop: rnd() < 0.6 });
+    };
+    A.buildings.loja.size = function (rnd) { return 8 + rnd() * 3; };
+    A.buildings.loja.draw = function (B, rnd, pal, w) {
+      building(B, rnd, pal, { w: w, floors: 1 + Math.floor(rnd() * 2), style: 'colorido', shop: true });
+      if (rnd() < 0.5) cafeTables(B, w, rnd, pal);
+    };
+    A.buildings['predio-alto'].draw = function (B, rnd, pal, w) { tower(B, rnd, pal, { w: w, floors: 7 + Math.floor(rnd() * 7) }); };
+  }
+
   EP.Kit = { TREES: TREES, PROPS: PROPS, STYLES: STYLES, cluster: cluster, bush: bush, flowers: flowers, grass: grass, fallenLeaves: fallenLeaves,
-    building: building, cafeTables: cafeTables, det: det, limb: limb, IRON: IRON };
+    building: building, house: house, tower: tower, cafeTables: cafeTables, det: det, limb: limb, IRON: IRON };
 })(window.EP);

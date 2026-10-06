@@ -283,9 +283,24 @@
     },
 
     // ---------------------------------------------------------------- quadro
+    // Qualidade automática: mede o tempo de quadro e ajusta a resolução (30 fps
+    // estáveis como mínimo; volta a subir quando sobra folga)
+    _adapt: function (rawDt) {
+      if (this.save.settings.quality !== 'auto' || this.state !== 'run') return;
+      var a = this._perf || (this._perf = { t: 0, n: 0, sum: 0 });
+      a.t += rawDt; a.n++; a.sum += Math.min(rawDt, 0.2);
+      if (a.t < 2.5) return;
+      var avg = a.sum / a.n, sc = this.resScale || 1;
+      if (avg > 1 / 38 && sc > 0.6) sc = Math.max(0.6, sc - 0.12);
+      else if (avg < 1 / 56 && sc < 1) sc = Math.min(1, sc + 0.06);
+      a.t = 0; a.n = 0; a.sum = 0;
+      if (sc !== this.resScale) { this.resScale = sc; this._resize(); }
+    },
+
     _frame: function (now) {
-      var dt = Math.min(0.05, Math.max(0, (now - this.last) / 1000));
+      var raw = Math.max(0, (now - this.last) / 1000), dt = Math.min(0.05, raw);
       this.last = now;
+      this._adapt(raw);
       this.clock = now / 1000;
       if (this.state === 'run') this._updateRun(dt);
       else if (this.state === 'home' || this.state === 'create' || this.state === 'summary') this._updateIdle(dt);
@@ -457,6 +472,7 @@
 
     // ---------------------------------------------------------------- câmera (GDD §64)
     _updateCamera: function (dt) {
+      if (this.camMode === 'free') { this.camera.updateProjectionMatrix(); return; }   // ferramentas de inspeção posicionam a câmera
       var c = this.cam, B = this.B.camera, cam = this.camera, p = this.player, aspect = cam.aspect;
       var calm = this.save.settings.reduceMotion, k = U.smooth((0.85 - aspect) / 0.35);
       var theta, r, h, fov, lx, ly, lz, cx;
@@ -528,7 +544,8 @@
 
     _resize: function () {
       var w = window.innerWidth, h = window.innerHeight, q = this.save.settings.quality, dpr = window.devicePixelRatio || 1;
-      this.renderer.setPixelRatio(q === 'low' ? 1 : Math.min(dpr, q === 'high' ? 2 : 1.5));
+      var base = q === 'low' ? Math.min(dpr, 1) : Math.min(dpr, q === 'high' ? 2 : 1.5);
+      this.renderer.setPixelRatio(base * (q === 'auto' ? this.resScale || 1 : 1));
       this.renderer.setSize(w, h, false);
       this.camera.aspect = w / h;
       this.camera.updateProjectionMatrix();

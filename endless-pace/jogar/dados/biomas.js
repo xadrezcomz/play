@@ -11,9 +11,9 @@
       requiredDistance: 0,       // km acumulados para desbloquear
       startRoute: 'bairro',
       palette: {
-        asphalt: '#4d5260', asphaltAlt: '#555a68', line: '#f3efe2', curb: '#e6e1d6',
-        sidewalk: '#cfc8ba', sidewalkAlt: '#c4bdae', ground: '#8fbf6e', lot: '#b9b2a2',
-        grass: '#86c06a', grassAlt: '#7ab25f', path: '#96604c', water: '#4fb0d8', stone: '#a7a39a',
+        asphalt: '#56555a', asphaltAlt: '#5c5b60', line: '#efe9dc', curb: '#ddd6c9',
+        sidewalk: '#d6cfc2', sidewalkAlt: '#c9c1b2', ground: '#88b062', lot: '#b3ab9c',
+        grass: '#79a352', grassAlt: '#70994b', path: '#c2a27e', water: '#4fb0d8', stone: '#a7a39a',
         facades: ['#f3d9b1', '#eab48f', '#cfdde6', '#f7ecd6', '#b5dcc4', '#f5c2b0', '#dccdf0', '#ffe6b8', '#c8e6ec', '#f0d0d8'],
         towers: ['#9fb6cd', '#c7d3dd', '#7d93ab', '#e0d6c8', '#b8c4b0', '#d9c2b0'],
         roofs: ['#b5543c', '#9a4a36', '#5b6574', '#7a5a48'],
