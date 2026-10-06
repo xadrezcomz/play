@@ -31,6 +31,7 @@
     color-scheme:dark;
   }
   *{box-sizing:border-box}
+  [hidden]{display:none !important}
   html{-webkit-text-size-adjust:100%}
   body{margin:0;min-height:100vh;background:var(--fundo);color:var(--texto);font:17px/1.55 var(--corpo);
     background-image:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(160,107,255,.28),transparent 70%),radial-gradient(ellipse 60% 40% at 100% 100%,rgba(46,230,255,.12),transparent 70%)}
@@ -91,6 +92,92 @@
     .jogo.breve .info{flex-direction:column;align-items:flex-start;gap:14px}
   }
   @media (prefers-reduced-motion:reduce){ .btn,.jogo .capa img{transition:none} }
+  /* ---- Insira uma ficha (apoio ao criador) ---- */
+  .apoio{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:22px;margin-bottom:56px;padding:22px;border-radius:20px;
+    border:1px solid rgba(255,211,107,.28);background:linear-gradient(160deg,rgba(40,26,8,.55),rgba(12,17,48,.85))}
+  .tela{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;min-height:300px;padding:28px 18px;border-radius:14px;overflow:hidden;text-align:center;
+    background:radial-gradient(ellipse at 50% 40%,#16204f,#05071a 75%);border:3px solid #2a2f5a;box-shadow:inset 0 0 50px rgba(0,0,0,.8),0 0 0 6px #10142e}
+  .tela::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.22) 0 2px,transparent 2px 4px)}
+  .tela .cont{margin:0;font:700 clamp(40px,6vw,58px)/1 var(--titulo);letter-spacing:.06em;color:var(--ouro);text-shadow:0 0 18px rgba(255,190,70,.6),0 3px 0 #8a4a0e}
+  .tela .pisca{margin:0;font:700 16px var(--titulo);letter-spacing:.24em;color:#fff;animation:pisca 1.2s steps(1) infinite}
+  @keyframes pisca{50%{opacity:0}}
+  .tela .credito{margin:0;font:700 14px var(--titulo);letter-spacing:.2em;color:var(--suave)}
+  .tela .credito.tem{color:var(--ciano)}
+  .ranhura{display:inline-flex;align-items:center;gap:14px;min-height:56px;padding:10px 22px 10px 14px;border-radius:14px;cursor:pointer;
+    font:700 17px var(--titulo);letter-spacing:.12em;text-transform:uppercase;color:#2a1500;border:0;
+    background:linear-gradient(180deg,#fff2c4 0%,#ffd45e 40%,#ff9f2e 100%);box-shadow:inset 0 2px 0 rgba(255,255,255,.7),inset 0 -3px 0 rgba(150,60,0,.4),0 4px 0 #8a4a0e,0 0 26px rgba(255,170,60,.4);transition:transform .15s,filter .15s}
+  .ranhura:hover{transform:translateY(-2px);filter:brightness(1.07)}
+  .ranhura:focus-visible{outline:3px solid var(--ciano);outline-offset:3px}
+  .ranhura .fenda{display:grid;place-items:center;width:34px;height:34px;border-radius:8px;background:#2a1500}
+  .ranhura .fenda i{width:4px;height:20px;border-radius:2px;background:var(--ouro);box-shadow:0 0 8px var(--ouro)}
+  .apoio .texto{display:flex;flex-direction:column;gap:14px;min-width:0}
+  .apoio h2{margin:0;font:700 30px/1.1 var(--titulo);text-transform:uppercase;letter-spacing:.03em}
+  .apoio p{margin:0;color:var(--suave)}
+  .apoio p strong{color:var(--texto)}
+  .apoio h3{margin:6px 0 0;font:700 13px var(--titulo);letter-spacing:.18em;text-transform:uppercase;color:var(--ouro)}
+  .listas{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:18px}
+  #desbloqueios,#placar{display:grid;gap:8px;margin:8px 0 0;padding:0;list-style:none}
+  #desbloqueios li{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:rgba(10,14,40,.6);border:1px solid var(--linha);font-size:15px;line-height:1.3}
+  #desbloqueios small{display:block;color:var(--suave);font-size:13px}
+  #desbloqueios .ic{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:rgba(160,107,255,.18)}
+  #desbloqueios .ic svg{width:16px;height:16px;fill:var(--roxo)}
+  #desbloqueios em{font:700 11px var(--titulo);letter-spacing:.12em;text-transform:uppercase;font-style:normal;color:var(--suave)}
+  #desbloqueios li.feito{border-color:rgba(46,230,255,.5)}
+  #desbloqueios li.feito .ic{background:rgba(46,230,255,.18)} #desbloqueios li.feito .ic svg{fill:var(--ciano)} #desbloqueios li.feito em{color:var(--ciano)}
+  #placar{padding:10px 12px;border-radius:10px;background:#05071a;border:1px solid #2a2f5a;font:700 16px var(--titulo);letter-spacing:.1em}
+  #placar li{display:grid;grid-template-columns:2.4em 1fr auto;gap:8px;color:var(--ouro)}
+  #placar .ini{color:#fff;letter-spacing:.3em}
+  #placar .pts{color:var(--suave);font-size:13px;letter-spacing:.06em;align-self:center}
+  #placar li.vago .ini{color:#3d4378} #placar li.vago{color:#3d4378}
+  .apoio .nota{font-size:14px}
+
+  dialog.maquina{width:min(460px,100% - 24px);max-height:calc(100% - 24px);padding:0;border:1px solid rgba(255,211,107,.35);border-radius:20px;color:var(--texto);
+    background:linear-gradient(170deg,#141c4a,#070a20);box-shadow:0 30px 90px rgba(0,0,0,.7)}
+  dialog.maquina::backdrop{background:rgba(3,4,14,.75);backdrop-filter:blur(3px)}
+  .maquina .topo{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 0}
+  .maquina .topo b{font:700 14px var(--titulo);letter-spacing:.2em;text-transform:uppercase;color:var(--ouro)}
+  .maquina .x{width:40px;height:40px;border-radius:10px;border:1px solid var(--linha);background:transparent;color:var(--texto);font-size:22px;cursor:pointer}
+  .maquina section{padding:12px 18px 20px}
+  .maquina h3{margin:0 0 4px;font:700 26px var(--titulo);text-transform:uppercase}
+  .maquina p{margin:0 0 12px;color:var(--suave);font-size:15px}
+  #pacotes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .pacote{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:12px;border-radius:14px;border:2px solid var(--linha);background:rgba(10,14,40,.7);color:var(--texto);text-align:left;cursor:pointer;font:500 13px var(--corpo);transition:border-color .15s,transform .15s}
+  .pacote:hover,.pacote:focus-visible{border-color:var(--ouro);transform:translateY(-2px);outline:none}
+  .pacote .moedas{color:var(--ouro);letter-spacing:.15em;font-size:15px;text-shadow:0 0 8px rgba(255,190,70,.6)}
+  .pacote b{font:700 19px var(--titulo);text-transform:uppercase}
+  .pacote span:not(.moedas){color:var(--suave)}
+  .pacote em{margin-top:6px;font:700 17px var(--titulo);font-style:normal;color:var(--ouro)}
+  .pagar{display:flex;flex-direction:column;gap:12px}
+  #resumo{font-size:16px;color:var(--suave)} #resumo b{color:var(--ouro);font-family:var(--titulo);text-transform:uppercase;letter-spacing:.06em}
+  #qr{width:210px;max-width:70%;align-self:center;padding:8px;border-radius:12px;background:#fff;aspect-ratio:1}
+  #qr svg{display:block;width:100%;height:100%}
+  .maquina .bt{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:10px 18px;border-radius:12px;cursor:pointer;font:700 15px var(--titulo);letter-spacing:.1em;text-transform:uppercase}
+  .maquina .bt.forte{border:0;color:#2a1500;background:linear-gradient(180deg,#fff2c4 0%,#ffd45e 40%,#ff9f2e 100%);box-shadow:0 3px 0 #8a4a0e}
+  .maquina .bt.leve{border:2px solid rgba(46,230,255,.45);background:transparent;color:var(--texto)}
+  .maquina .bt.ok{color:#04232a;background:var(--ciano);border-color:var(--ciano)}
+  .chave{display:flex;align-items:center;gap:10px;padding:8px 8px 8px 12px;border-radius:12px;border:1px solid var(--linha);font-size:14px;overflow-wrap:anywhere}
+  .chave span{flex:1}
+  .chave .bt{min-height:38px;padding:6px 12px;font-size:13px}
+  .dica{padding:10px 12px;border-radius:12px;background:rgba(255,211,107,.08);border:1px dashed rgba(255,211,107,.35);font-size:14px;color:var(--suave)}
+  .dica b{color:var(--ouro)}
+  .linha2{display:flex;gap:10px} .linha2 .bt{flex:1}
+  @media (pointer:coarse){ #qr{width:150px} .pagar #copiaPix{order:-1} }
+  .valeu{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding-top:6px}
+  .poco{position:relative;width:120px;height:120px}
+  .poco .fenda2{position:absolute;left:50%;bottom:18px;width:64px;height:10px;margin-left:-32px;border-radius:5px;background:#000;box-shadow:0 0 0 4px #2a2f5a,0 0 18px rgba(255,211,107,.5)}
+  .poco .moeda{position:absolute;left:50%;top:0;width:54px;height:54px;margin-left:-27px;border-radius:50%;display:grid;place-items:center;font:700 22px var(--titulo);color:#7a4300;
+    background:radial-gradient(circle at 35% 30%,#fff6c8,#ffd45e 45%,#e08a1c);box-shadow:inset 0 0 0 4px rgba(150,80,0,.35),0 0 20px rgba(255,190,70,.6)}
+  .poco .moeda.cai{animation:cai .9s cubic-bezier(.5,0,.8,.4) forwards}
+  @keyframes cai{0%{transform:translateY(-10px) scaleX(1)}60%{transform:translateY(40px) scaleX(.25)}100%{transform:translateY(62px) scaleX(.15);opacity:0}}
+  .valeu .cred{font:700 20px var(--titulo);letter-spacing:.22em;color:var(--ciano);text-shadow:0 0 12px rgba(46,230,255,.6)}
+  .valeu h3{font-size:24px}
+
+  @media (max-width:760px){
+    .apoio{grid-template-columns:1fr;padding:16px}
+    .tela{min-height:240px}
+    .listas{grid-template-columns:1fr}
+  }
+  @media (prefers-reduced-motion:reduce){ .tela .pisca{animation:none} .poco .moeda.cai{animation:none;opacity:0} .ranhura,.pacote{transition:none} }
 </style>
 </head>
 <body>
@@ -105,11 +192,61 @@
   <div class="jogos" id="jogos"></div>
 </main>
 
+<section class="larg apoio" id="apoiar" aria-labelledby="apoioTitulo">
+  <div class="tela">
+    <p class="cont" aria-hidden="true">CONTINUE?</p>
+    <p class="pisca" aria-hidden="true">INSIRA UMA FICHA</p>
+    <button type="button" class="ranhura" data-abre-maquina><span class="fenda"><i></i></span>Inserir ficha</button>
+    <p class="credito" id="credito">CRÉDITO 00</p>
+  </div>
+  <div class="texto">
+    <h2 id="apoioTitulo">Mais uma vida para os jogos</h2>
+    <p>Nos fliperamas, uma ficha dava mais uma vida. Aqui os jogos são <strong>de graça, sem anúncio e sem cadastro</strong>, e vão continuar assim. Se algum deles te divertiu, você pode inserir uma ficha: ela vira tempo para criar fases novas, corrigir o que precisa e tirar o próximo jogo do papel.</p>
+    <div class="listas">
+      <div>
+        <h3>O que as fichas destravam</h3>
+        <ul id="desbloqueios"></ul>
+      </div>
+      <div>
+        <h3>Placar das fichas</h3>
+        <ol id="placar"></ol>
+      </div>
+    </div>
+    <p class="nota">Não destrava nada dentro dos jogos e ninguém joga menos por não inserir. Escreva 3 letras na mensagem do Pix e elas entram no placar.</p>
+  </div>
+</section>
+
+<dialog class="maquina" id="maquina" aria-labelledby="maquinaTitulo">
+  <div class="topo"><b id="maquinaTitulo">Máquina de fichas</b><button type="button" class="x" id="fechaMaquina" aria-label="Fechar">×</button></div>
+  <section id="passo-escolha">
+    <h3>Quantas fichas?</h3>
+    <p>Cada ficha vale R$ 5. O pagamento é por Pix, no app do seu banco.</p>
+    <div id="pacotes"></div>
+  </section>
+  <section id="passo-pagar" class="pagar" hidden>
+    <div id="resumo"></div>
+    <div id="qr" role="img" aria-label="QR Code do Pix"></div>
+    <button type="button" class="bt forte" id="copiaPix">Copiar Pix copia e cola</button>
+    <textarea id="copiaCola" hidden readonly></textarea>
+    <div class="chave"><span>Ou use a chave Pix: <b>xadrezcomzdoc@gmail.com</b></span><button type="button" class="bt leve" id="copiaChave">Copiar</button></div>
+    <div class="dica">Quer entrar no <b>placar</b>? Escreva <b>3 letras</b> na mensagem do Pix, como nos fliperamas (ex.: <b>ABC</b>).</div>
+    <div class="linha2"><button type="button" class="bt leve" id="voltaEscolha">Voltar</button><button type="button" class="bt forte" id="inseri">Pronto, inseri!</button></div>
+  </section>
+  <section id="passo-valeu" class="valeu" hidden>
+    <div class="poco" aria-hidden="true"><div class="moeda" id="moedaCai">$</div><div class="fenda2"></div></div>
+    <p class="cred" id="valeuCredito">CRÉDITO 01</p>
+    <h3>Valeu, jogador!</h3>
+    <p>A sua ficha virou mais uma vida para os jogos. Se escreveu as 3 letras no Pix, logo elas aparecem no placar.</p>
+    <button type="button" class="bt forte" id="voltaJogar">Voltar a jogar</button>
+  </section>
+</dialog>
+
 <footer>
   <div class="larg">
     <span>© @xadrezcomz</span>
     <nav>
       <a href="https://www.instagram.com/xadrezcomz/">Instagram</a>
+      <a href="#apoiar">Insira uma ficha</a>
       <a href="privacidade.html">Privacidade</a>
     </nav>
   </div>
@@ -146,5 +283,6 @@
 <script>window.CONTAGEM = '/inicio';</script>
 <script src="contador.js"></script>
 <script>window.mostraContagens();</script>
+<script src="apoio.js"></script>
 </body>
 </html>

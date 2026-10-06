@@ -38,6 +38,23 @@ Comparar `tentou` com `venceu` mostra as fases difíceis demais. A data da últi
 visita fica só no aparelho (localStorage); nada que identifique a pessoa é enviado.
 Fora do site (apps, arquivo baixado) os eventos não fazem nada.
 
+## Insira uma ficha (apoio por Pix)
+
+A seção "Continue? Insira uma ficha" da página inicial gera o Pix (QR Code e
+"copia e cola", com o valor já preenchido) direto no navegador, sem servidor.
+Tudo o que muda fica no começo de `apoio.js`:
+
+- **DESBLOQUEIOS**: as metas que as fichas ajudam a destravar. Quando uma
+  acontecer, troque `feito: false` por `feito: true`.
+- **PLACAR**: quando alguém mandar um Pix com 3 letras na mensagem, coloque no
+  topo da lista, por exemplo `{ ini: 'ABC', fichas: 3 }` (1 ficha = R$ 5).
+- **pacotes** e **ficha**: quantidades e valor de cada ficha.
+
+No GoatCounter aparecem `site/apoio/abriu`, `site/apoio/escolheu/<n>-fichas`,
+`site/apoio/copiou` e `site/apoio/inseriu` (este último é só o clique em
+"Pronto, inseri!", não confirma pagamento). O QR Code usa `lib/qrcode.js`
+(qrcode-generator, licença MIT).
+
 ## Imagem ao compartilhar o link
 
 Cada página tem as tags `og:` com uma imagem 1200×630 (abaixo de 300 KB, que é
