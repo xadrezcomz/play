@@ -14,6 +14,8 @@
   var P = FlowSystem.prototype;
 
   P.reset = function () {
+    this.gainMult = this.gainMult || 1;     // boné, rota da orla, chuva: FLOW sobe mais rápido
+    this.decayMult = this.decayMult || 1;   // e escorre mais devagar
     this.points = 0;
     this.level = 0;
     this.peak = 0;
@@ -44,11 +46,12 @@
 
   P.onRating = function (rating) {
     if (!rating) return false;
-    return this._set(this.points + (this.cfg.gain[rating] || 0));
+    var g = this.cfg.gain[rating] || 0;
+    return this._set(this.points + (g > 0 ? g * this.gainMult : g));
   };
 
   P.update = function (dt, idle) {
-    if (idle && this.points > 0) this._set(this.points - this.cfg.idleDecay * dt);
+    if (idle && this.points > 0) this._set(this.points - this.cfg.idleDecay * this.decayMult * dt);
     if (this.level > 0) this.timeInFlow += dt;
   };
 

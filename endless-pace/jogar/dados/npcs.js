@@ -13,10 +13,10 @@
       { id: 'elite', speed: [17, 19.5], weight: [0.05, 0.5] }
     ],
     warmupDistance: 1200,    // no começo há mais gente devagar: a primeira ultrapassagem vem cedo
-    spawnAhead: [125, 150],  // aparecem lá na frente, dentro da neblina
+    spawnAhead: [150, 172],  // aparecem lá na frente, dentro da neblina
     spawnBehind: [-34, -26], // os mais rápidos que você chegam por trás
     despawnBehind: -40,
-    despawnAhead: 165,
+    despawnAhead: 185,
     group: { chance: 0.16, size: [3, 5], speed: [10.5, 11.5] },  // grupos de corrida
     wobble: 0.6,             // variação lenta de velocidade (km/h): uns cansam, outros apertam
     spawnInterval: 0.35      // segundos entre um corredor novo e outro

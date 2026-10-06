@@ -68,8 +68,8 @@
 
     camera: {
       // por velocidade: distância atrás, altura, campo de visão (graus)
-      walk: { dist: 3.4, height: 1.95, fov: 60 },
-      sprint: { dist: 4.6, height: 2.25, fov: 70 },
+      walk: { dist: 3.8, height: 2.1, fov: 60 },
+      sprint: { dist: 4.9, height: 2.35, fov: 70 },
       flowFov: 1.2,          // graus extras por nível de FLOW (até ×4)
       portraitFovBoost: 12   // celular em pé: mais campo de visão
     },

@@ -27,11 +27,13 @@
     return this.cfg.maxBase * (1 + this.bonus(flowLevel)) * (statSpeed || 1);
   };
 
-  // freq: toques por segundo · ctx: { flowLevel, exhausted, statSpeed }
+  // freq: toques por segundo · ctx: { flowLevel, exhausted, statSpeed (tênis: multiplica alvo e teto),
+  //   speedBonus (km/h somados: descida, rota, vácuo) }
   P.update = function (dt, freq, ctx) {
-    var c = this.cfg, lvl = (ctx && ctx.flowLevel) || 0;
-    var target = U.table(c.tapCurve, freq) * (1 + this.bonus(lvl));
-    target = Math.min(target, this.maxSpeed(lvl, ctx && ctx.statSpeed));
+    var c = this.cfg, lvl = (ctx && ctx.flowLevel) || 0, stat = (ctx && ctx.statSpeed) || 1, add = (ctx && ctx.speedBonus) || 0;
+    var target = U.table(c.tapCurve, freq) * (1 + this.bonus(lvl)) * stat;
+    target = Math.min(target, this.maxSpeed(lvl, stat));
+    if (add && freq > 0) target += add;
     if (ctx && ctx.exhausted) target = Math.min(target, c.lowEnergyCap);
     target = Math.max(target, c.min);
     this.target = target;

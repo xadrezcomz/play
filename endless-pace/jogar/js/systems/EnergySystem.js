@@ -14,24 +14,27 @@
   }
   var P = EnergySystem.prototype;
 
+  P.max = function () { return this.cfg.max + (this.maxBonus || 0); };   // camisetas aumentam a energia total
+
   P.reset = function () {
-    this.value = this.cfg.max;
+    this.value = this.max();
     this.exhausted = false;
     this.rate = 0;
   };
 
-  // mods: { flowLevel, energy (rota: 1.1 = +10%), efficiency, recovery (equipamentos, futuro) }
+  // mods: { flowLevel, energy (rota: 1.1 = +10%), consumption (equipamentos, vácuo, subida: multiplica o gasto),
+  //         recovery (equipamentos, clima, subida: multiplica a recuperação) }
   P.update = function (dt, speedKmh, mods) {
     var c = this.cfg, r = U.table(c.rate, speedKmh);
     var routeMul = (mods && mods.energy) || 1;
     if (r < 0) {
       var lvl = Math.min((mods && mods.flowLevel) || 0, c.flowSavingMaxLevel);
-      r *= (1 - lvl * c.flowSavingPerLevel) / routeMul / ((mods && mods.efficiency) || 1);
+      r *= (1 - lvl * c.flowSavingPerLevel) / routeMul * ((mods && mods.consumption) || 1);
     } else {
       r *= routeMul * ((mods && mods.recovery) || 1);
     }
     this.rate = r;
-    this.value = U.clamp(this.value + r * dt, 0, c.max);
+    this.value = U.clamp(this.value + r * dt, 0, this.max());
     if (this.value <= 0.01) this.exhausted = true;
     else if (this.exhausted && this.value >= this.speedCfg.lowEnergyUntil) this.exhausted = false;
   };
@@ -41,7 +44,7 @@
     if (this.value <= 0.01) this.exhausted = true;
   };
 
-  P.fraction = function () { return this.value / this.cfg.max; };
+  P.fraction = function () { return this.value / this.max(); };
 
   EP.EnergySystem = EnergySystem;
 })(window.EP);

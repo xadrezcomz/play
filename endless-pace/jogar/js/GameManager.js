@@ -35,16 +35,21 @@
       var B = EP.data.balance, save = this.save, self = this;
       this.B = B;
       this.renderer = new THREE.WebGLRenderer({ canvas: $('cena'), antialias: save.settings.quality !== 'low', powerPreference: 'high-performance' });
+      // cor correta: luz calculada em espaço linear e curva de tons de cinema na saída
+      this.renderer.outputEncoding = THREE.sRGBEncoding;
+      this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      this.renderer.toneMappingExposure = 0.9;
+      this.renderer.autoClear = false;
       this.scene = new THREE.Scene();
       this.camera = new THREE.PerspectiveCamera(60, 1, 0.3, 700);
       this._resize();
-      EP.Materials.init();
-      this.biome = EP.data.biomes[0];
+      EP.Materials.init(save.settings.quality);
       this.daynight = new EP.DayNightSystem(this.scene, EP.data.dayNight);
       this.daynight.phase = this.daynight.startPhaseFor(save.world.timeOfDay);
-      this.world = new EP.ProceduralWorldGenerator(this.scene, this.biome);
-      this.forkSigns = EP.ForkSigns.create(EP.data.forks[0]);
-      this.world.setSigns(this.forkSigns);
+      this.world = new EP.ProceduralWorldGenerator(this.scene);
+      this.world.signFactory = function (fork) { return EP.ForkSigns.get(fork); };
+      this.world.regionSignFactory = function (biome) { return EP.RegionSign.get(biome); };
+      this.biome = this.world.biomeById(save.world.region || EP.data.biomes[0].id);
 
       this.rig = new EP.RunnerRig();
       this.rig.setAppearance(EP.RunnerRig.resolve(save.profile));
@@ -75,7 +80,7 @@
         else if (self.state !== 'paused') AU.resume();
       });
       window.addEventListener('pagehide', function () { self._persist(); });
-      if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { EP.ForkSigns.refresh(self.forkSigns); });
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { EP.ForkSigns.refreshAll(); });
       if (!this.saveMgr.available) setTimeout(function () { UI.toast(t('boot.noSave'), 4000); }, 500);
 
       UI.hide('tela-carregando');
@@ -89,7 +94,8 @@
 
     // ---------------------------------------------------------------- estados
     _homeScene: function () {
-      this.world.reset({ firstRun: !this.save.stats.runs });
+      this.world.reset({ biome: this.biome.id, firstRun: !this.save.stats.runs });
+      this.daynight.setBiome(this.biome);
       this.player.reset(0);
       this.npcs.reset(this.player, this._npcCtx(true));
       this.snapCam = true;
@@ -272,7 +278,14 @@
       else if (this.state === 'home' || this.state === 'create' || this.state === 'summary') this._updateIdle(dt);
       this._updateCamera(dt);
       this.daynight.update(dt, this.camera.position, this.state === 'run');
-      this.renderer.render(this.scene, this.camera);
+      // duas camadas: céu e paisagem distante, depois o mundo (que termina na neblina)
+      var cam = this.camera, r = this.renderer;
+      r.clear();
+      cam.far = 1400; cam.updateProjectionMatrix();
+      r.render(this.daynight.back, cam);
+      r.clearDepth();
+      cam.far = this.daynight.fog.far + 15; cam.updateProjectionMatrix();
+      r.render(this.scene, cam);
     },
 
     _npcCtx: function (idle) {
@@ -434,7 +447,7 @@
         r = U.lerp(B.walk.dist, B.sprint.dist, it) + k * 0.5;
         h = U.lerp(B.walk.height, B.sprint.height, it) + k * 0.45;
         fov = U.lerp(B.walk.fov, B.sprint.fov, it) + lvl * B.flowFov + k * B.portraitFovBoost + (calm ? 0 : this.fovKick);
-        cx = p.x * 0.6; lx = p.x * 0.75; ly = 1.15 - k * 0.15; lz = p.z - 6;
+        cx = p.x * 0.6; lx = p.x * 0.75; ly = 1.35 - k * 0.1; lz = p.z - 9;
         if (!calm) h += Math.sin(this.rig.phase * 2) * 0.025 * U.smooth((this.speed.value - 6) / 4);
       } else {
         var create = this.camMode === 'create';
@@ -552,7 +565,7 @@
         EP.i18n.set(value);
         EP.i18n.apply();
         UI.resetCache();
-        EP.ForkSigns.refresh(this.forkSigns);
+        EP.ForkSigns.refreshAll();
         if (this.state === 'home') UI.home(this.save);
         if (this.state === 'run' || this.state === 'paused') UI.route(this.routeId);
       }
@@ -573,6 +586,35 @@
       if (!this.save) return;
       if (this.daynight) this.save.world.timeOfDay = this.daynight.phase;
       this.saveMgr.save();
+    },
+
+    // Inspeção visual (ferramentas de teste): coloca um módulo à frente do
+    // corredor, sem HUD nem corredores da rua. opts: { phase, dist (0–1 do módulo) }
+    debugShowModule: function (moduleId, opts) {
+      opts = opts || {};
+      var W = this.world, def = W.defs[moduleId];
+      if (!def) throw new Error('módulo não existe: ' + moduleId);
+      this.biome = W.biomeById(def.biome);
+      W.reset({ biome: def.biome, startZ: 10 });
+      W.segments.forEach(function (sg) { W._release(sg); });
+      W.segments = []; W.pending = null; W.zEnd = 10;
+      var fork = def.fork ? (EP.data.forks.filter(function (f) { return f.module === moduleId; })[0] || null) : null;
+      W._append(def, fork, !!opts.sign);
+      W.pending = null;
+      var start = W.routes[W.biome.startRoute].modules.filter(function (id) { return id !== moduleId; });
+      W._append(W.defs[start[0] || moduleId]); W._append(W.defs[start[1] || start[0] || moduleId]);
+      this.state = 'debug';
+      this.camMode = 'run';
+      ['tela-criar', 'tela-inicio', 'tela-pausa', 'tela-resumo'].forEach(UI.hide);
+      UI.hud(false);
+      this.player.reset(0);
+      this.player.z = 10 - def.length * (opts.dist === undefined ? 0.3 : opts.dist);
+      this.player.update(0, 4, [-3.3, 3.3]);
+      this.npcs.hideAll();
+      if (opts.phase !== undefined) this.daynight.phase = opts.phase;
+      this.daynight.setBiome(this.biome);
+      this.snapCam = true;
+      return { biome: def.biome, length: def.length };
     },
 
     // números de desempenho (para testes)

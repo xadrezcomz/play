@@ -5,6 +5,8 @@
   'use strict';
   var UNIT = {};
 
+  function ni(g) { return g.index ? g.toNonIndexed() : g; }
+
   function flat(g) {
     g = g.index ? g.toNonIndexed() : g;
     g.computeVertexNormals();   // geometria sem índice: normal por face (visual low poly)
@@ -35,7 +37,15 @@
       case 'cone8': return flat(new THREE.ConeGeometry(0.5, 1, 8));
       case 'ico': return flat(new THREE.IcosahedronGeometry(0.5, 0));
       case 'ico1': return flat(new THREE.IcosahedronGeometry(0.5, 1));
+      case 'icoT': return ni(new THREE.IcosahedronGeometry(0.5, 0));      // bolinha leve (flores, frutos)
+      case 'icoS': return ni(new THREE.IcosahedronGeometry(0.5, 1));      // bola leve com sombreado liso (copas)
+      case 'icoS2': return ni(new THREE.IcosahedronGeometry(0.5, 2));     // mais redonda (nuvens, morros)
       case 'sph': return new THREE.SphereGeometry(0.5, 12, 9).toNonIndexed();
+      case 'sph8': return new THREE.SphereGeometry(0.5, 9, 7).toNonIndexed();          // juntas pequenas
+      case 'sph16': return new THREE.SphereGeometry(0.5, 18, 14).toNonIndexed();       // cabeça, copas lisas
+      case 'cyl10': return new THREE.CylinderGeometry(0.5, 0.5, 1, 10).toNonIndexed();
+      case 'taper10': return new THREE.CylinderGeometry(0.4, 0.5, 1, 10).toNonIndexed();
+      case 'cone12': return new THREE.ConeGeometry(0.5, 1, 12).toNonIndexed();         // cone liso (pinheiro)
       case 'plane': return new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2).toNonIndexed();
       case 'quad': return new THREE.PlaneGeometry(1, 1).toNonIndexed();
       case 'disc': return new THREE.CircleGeometry(0.5, 20).rotateX(-Math.PI / 2).toNonIndexed();
@@ -48,23 +58,32 @@
   function unit(name) {
     if (!UNIT[name]) {
       var g = make(name);
-      UNIT[name] = { pos: g.attributes.position.array, nor: g.attributes.normal.array };
+      if (name === 'icoT') {   // normais lisas (apontam para fora do centro)
+        var pa = g.attributes.position, na = g.attributes.normal;
+        for (var q = 0; q < pa.count; q++) { var v = new THREE.Vector3(pa.getX(q), pa.getY(q), pa.getZ(q)).normalize(); na.setXYZ(q, v.x, v.y, v.z); }
+      }
+      UNIT[name] = { pos: g.attributes.position.array, nor: g.attributes.normal.array, uv: g.attributes.uv ? g.attributes.uv.array : null };
     }
     return UNIT[name];
   }
 
   var _m = new THREE.Matrix4(), _n = new THREE.Matrix3(), _q = new THREE.Quaternion(), _e = new THREE.Euler();
   var _v = new THREE.Vector3(), _s = new THREE.Vector3();
+  // As cores dos dados são escritas como no CSS (sRGB). O renderizador
+  // trabalha em espaço linear (iluminação correta) e converte na saída.
   var colors = {};
   function color(c) {
     if (typeof c !== 'string') return c;
-    return colors[c] || (colors[c] = new THREE.Color(c));
+    return colors[c] || (colors[c] = new THREE.Color(c).convertSRGBToLinear());
   }
 
-  function GeoBuilder() {
-    this.pos = []; this.nor = []; this.col = []; this.part = [];
+  // opts: { ao: escurece a base das paredes (oclusão de ambiente barata), uv: guarda UV }
+  function GeoBuilder(opts) {
+    this.pos = []; this.nor = []; this.col = []; this.part = []; this.uv = [];
     this.frameM = new THREE.Matrix4();
     this.partId = 0;
+    this.ao = !!(opts && opts.ao);
+    this.withUv = !!(opts && opts.uv);
   }
   var P = GeoBuilder.prototype;
 
@@ -79,19 +98,27 @@
     _q.setFromEuler(_e);
     _m.compose(_v.set(x, y, z), _q, _s.set(sx, sy, sz)).premultiply(this.frameM);
     _n.getNormalMatrix(_m);
-    var col = color(c), p = u.pos, n = u.nor, e = _m.elements, ne = _n.elements;
+    var col = color(c), p = u.pos, n = u.nor, e = _m.elements, ne = _n.elements, uv = u.uv;
     for (var i = 0; i < p.length; i += 3) {
       var px = p[i], py = p[i + 1], pz = p[i + 2];
-      this.pos.push(e[0] * px + e[4] * py + e[8] * pz + e[12], e[1] * px + e[5] * py + e[9] * pz + e[13], e[2] * px + e[6] * py + e[10] * pz + e[14]);
+      var wy = e[1] * px + e[5] * py + e[9] * pz + e[13];
+      this.pos.push(e[0] * px + e[4] * py + e[8] * pz + e[12], wy, e[2] * px + e[6] * py + e[10] * pz + e[14]);
       var nx = n[i], ny = n[i + 1], nz = n[i + 2];
       var ox = ne[0] * nx + ne[3] * ny + ne[6] * nz, oy = ne[1] * nx + ne[4] * ny + ne[7] * nz, oz = ne[2] * nx + ne[5] * ny + ne[8] * nz;
       var l = Math.sqrt(ox * ox + oy * oy + oz * oz) || 1;
       this.nor.push(ox / l, oy / l, oz / l);
-      this.col.push(col.r, col.g, col.b);
+      // paredes ficam um pouco mais escuras perto do chão (dá peso e profundidade)
+      var k = 1;
+      if (this.ao && Math.abs(oy / l) < 0.7) { var t = Math.max(0, Math.min(1, wy / 3.2)); k = 0.68 + 0.32 * t * t * (3 - 2 * t); }
+      this.col.push(col.r * k, col.g * k, col.b * k);
       this.part.push(this.partId);
+      if (this.withUv) { var j = i / 3 * 2; this.uv.push(uv ? uv[j] : 0.5, uv ? uv[j + 1] : 0.5); }
     }
     return this;
   };
+
+  // sombra suave no chão (disco com degradê): só no construtor de sombras
+  P.blob = function (x, y, z, rx, rz) { return this.add('plane', x, y, z, rx * 2, 1, rz * 2, '#000000'); };
 
   // A curvatura do mundo (Materials.js) mexe nos vértices: uma peça muito
   // comprida em z, com vértices só nas pontas, "afunda" no meio. Pisos e
@@ -117,6 +144,7 @@
     g.setAttribute('position', new THREE.Float32BufferAttribute(this.pos, 3));
     g.setAttribute('normal', new THREE.Float32BufferAttribute(this.nor, 3));
     g.setAttribute('color', new THREE.Float32BufferAttribute(this.col, 3));
+    if (this.withUv) g.setAttribute('uv', new THREE.Float32BufferAttribute(this.uv, 2));
     g.computeBoundingSphere();
     return g;
   };
@@ -129,10 +157,16 @@
   };
   GeoBuilder.color = color;
 
-  // três construtores juntos (cenário, luzes e água) com o mesmo referencial
-  function Batch() { this.w = new GeoBuilder(); this.g = new GeoBuilder(); this.water = new GeoBuilder(); }
-  Batch.prototype.frame = function (x, y, z, rotY) { this.w.frame(x, y, z, rotY); this.g.frame(x, y, z, rotY); this.water.frame(x, y, z, rotY); return this; };
-  Batch.prototype.noFrame = function () { this.w.noFrame(); this.g.noFrame(); this.water.noFrame(); return this; };
+  // quatro construtores juntos com o mesmo referencial:
+  // w = cenário (com oclusão nas paredes), g = luzes (janelas, lâmpadas),
+  // water = água (brilho), shadow = sombras suaves no chão (B.shadow.blob)
+  function Batch() {
+    this.w = new GeoBuilder({ ao: true }); this.g = new GeoBuilder(); this.water = new GeoBuilder(); this.shadow = new GeoBuilder({ uv: true });
+    this.light = new GeoBuilder({ uv: true });   // poças de luz no chão à noite (B.light.blob)
+    this.all = [this.w, this.g, this.water, this.shadow, this.light];
+  }
+  Batch.prototype.frame = function (x, y, z, rotY) { this.all.forEach(function (b) { b.frame(x, y, z, rotY); }); return this; };
+  Batch.prototype.noFrame = function () { this.all.forEach(function (b) { b.noFrame(); }); return this; };
 
   EP.GeoBuilder = GeoBuilder;
   EP.Batch = Batch;

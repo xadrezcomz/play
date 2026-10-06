@@ -22,6 +22,9 @@
     'hair.curto': 'Short',
     'hair.cacheado': 'Curly',
     'hair.rabo': 'Ponytail',
+    'hair.coque': 'Bun',
+    'hair.longo': 'Long',
+    'hair.raspado': 'Buzz cut',
     'create.outfit': 'Starting outfit',
     'create.outfitHint': 'T-shirt, shorts and sneakers. Pick the colors.',
     'create.shirt': 'T-shirt',
@@ -156,6 +159,7 @@
     'opt.version': 'Version {v}',
     'opt.privacy': 'Privacy',
 
+    'region.welcome': 'WELCOME TO',
     'biome.cidade': 'City',
     'sign.choose': 'CHOOSE'
   };

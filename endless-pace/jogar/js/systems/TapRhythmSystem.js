@@ -15,6 +15,7 @@
   var P = TapRhythmSystem.prototype;
 
   P.reset = function () {
+    this.windowMult = this.windowMult || 1;   // óculos (FLOW WINDOW) alargam as janelas
     this.lastTap = -1e9;   // segundos
     this.interval = 0;     // seu ritmo: intervalo médio entre toques
     this.count = 0;        // toques na sequência atual
@@ -25,7 +26,7 @@
 
   P.windowFor = function (name, interval) {
     var w = this.cfg[name];
-    return Math.max(w.rel * interval, w.abs);
+    return Math.max(w.rel * interval, w.abs) * this.windowMult;
   };
 
   // t: momento do toque, em segundos. Devolve null se o toque foi ignorado.

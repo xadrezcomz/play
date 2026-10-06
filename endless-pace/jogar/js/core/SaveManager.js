@@ -8,14 +8,14 @@
   'use strict';
   var U = EP.util;
   var KEY = 'endlesspace.save';
-  var VERSION = 1;
+  var VERSION = 2;
 
   function defaults() {
     var app = EP.data.appearance;
     return {
       version: VERSION,
       createdAt: 0,
-      lastSeenAt: 0,            // carimbo de quando o jogo fechou (progresso offline, versão 0.2)
+      lastSeenAt: 0,            // carimbo da última vez que o jogo esteve aberto (progresso offline)
       // RunnerProfile (GDD §73)
       profile: {
         created: false,
@@ -23,26 +23,32 @@
         gender: app.defaults.gender,
         appearance: { skin: app.defaults.skin, hairStyle: app.defaults.hairStyle, hairColor: app.defaults.hairColor,
           shirt: app.defaults.shirt, shorts: app.defaults.shorts, shoes: app.defaults.shoes },
-        level: 1, xp: 0          // nível do corredor (versão futura)
+        level: 1, xp: 0          // nível do corredor (GDD §55)
       },
       coins: 0,
-      stats: { totalDistance: 0, totalTime: 0, overtakes: 0, perfects: 0, runs: 0, challengesCompleted: 0, challenges: {}, flowTime: 0, forks: {} },
+      stats: { totalDistance: 0, totalTime: 0, overtakes: 0, perfects: 0, runs: 0, challengesCompleted: 0, challenges: {}, flowTime: 0, forks: {},
+        pacersCompleted: 0, draftTime: 0, daysPlayed: 0, lastDay: '', itemsBought: 0, biomesVisited: ['cidade'], challengeRecords: {}, offlineDistance: 0 },
       records: { topSpeed: 0, maxFlow: 0, maxCombo: 0, longestRun: 0, mostOvertakes: 0 },
-      inventory: [],             // equipamentos (versão 0.2)
-      equipped: {},
-      achievements: [],
+      inventory: [],             // itens comprados (ids)
+      equipped: {},              // espaço → id do item
+      achievements: {},          // id → quando foi conquistada
+      missions: { date: '', list: [] },
+      unseen: { achievements: [] },   // conquistas ainda não vistas (selo no botão)
       unlockedBiomes: ['cidade'],
       tutorialDone: false,
-      world: { timeOfDay: EP.data.dayNight.startPhase },
+      world: { timeOfDay: EP.data.dayNight.startPhase, region: 'cidade' },
       settings: { lang: '', music: true, sfx: true, vibration: true, reduceMotion: false, bigUi: false, quality: 'auto' }
     };
   }
 
   function migrate(d) {
     if (!d || typeof d !== 'object') return null;
-    // versão 1 é a primeira; as próximas mudanças de formato entram aqui:
-    // if (d.version < 2) { ...; d.version = 2; }
+    // versão 2: conquistas viram objeto (id → data) e entram itens, missões e regiões
+    if ((d.version || 1) < 2) {
+      if (Array.isArray(d.achievements)) d.achievements = {};
+    }
     U.fill(d, defaults());
+    if (!Array.isArray(d.stats.biomesVisited)) d.stats.biomesVisited = ['cidade'];
     d.version = VERSION;
     return d;
   }

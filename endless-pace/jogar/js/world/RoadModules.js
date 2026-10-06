@@ -32,7 +32,11 @@
 
   function city(B, def, L, pal, ctx, wide) {
     var R = ctx.W.roadHalf, S = ctx.W.sidewalk + (wide ? 1.8 : 0), outer = R + 0.2 + S, z;
-    B.w.floor(0, 0, -L / 2, 2 * R, L, pal.asphalt);
+    var arnd = U.rng(Math.round(L * 131 + R * 7));
+    for (z = 0; z < L; z += 6) {
+      var zl = Math.min(6, L - z);
+      for (var xs = -1; xs <= 1; xs++) B.w.floor(xs * R * 2 / 3, 0, -(z + zl / 2), R * 2 / 3, zl, shade(pal.asphalt, 0.95 + arnd() * 0.1));
+    }
     for (z = 1.5; z < L - 1; z += 6) B.w.floor(0, 0.012, -(z + 1.5), 0.16, 3, pal.line);
     [-1, 1].forEach(function (s) {
       B.w.floor(s * (R - 0.35), 0.012, -L / 2, 0.12, L, pal.line);
@@ -72,6 +76,7 @@
           var x = U.range(bands[b], rnd), d = Math.min(L - 0.5, dl + rnd() * 2);
           if (rnd() < 0.85 && ctx.free(s, d, d, 'trees', x)) {
             B.frame(s * x, 0, -d, rnd() * 6);
+            B.shadow.blob(0, 0.03, 0, 1.7, 1.7);
             A.trees[U.pick(list, rnd)](B, rnd, pal);
             if (b === 0) ctx.mark(s, d);
           }
@@ -79,6 +84,8 @@
       } else if (ctx.free(s, dl, dl, 'trees')) {
         B.frame(s * ctx.treeX, 0.15, -dl, rnd() * 6);
         B.w.floor(0, 0.006, 0, 1.2, 1.2, '#6d5b49');
+        B.shadow.blob(0.3, 0.012, 0.3, 1.8, 1.8);
+        B.noFrame(); B.shadow.blob(s * (ctx.treeX - 1.6), 0.02, -dl + 0.6, 2.2, 1.9); B.frame(s * ctx.treeX, 0.15, -dl, 0);
         A.trees[U.pick(list, rnd)](B, rnd, pal);
         ctx.mark(s, dl);
       }
@@ -246,11 +253,14 @@
     bifurcacao: function (B, def, L, pal, rnd, ctx) {
       var dv = def.divider, R = ctx.W.roadHalf, o = ctx.outer, len = dv.to - dv.from, mid = (dv.from + dv.to) / 2, hw = dv.halfWidth;
       B.w.box(0, 0, -mid, 2 * hw, 0.22, len, pal.curb);
-      B.w.box(0, 0.22, -mid, 2 * hw - 0.5, 0.8, len - 1, shade(pal.leaves[2], 0.72));
+      B.w.floor(0, 0.225, -mid, 2 * hw - 0.25, len - 0.5, pal.grass);
       B.w.add('cyl12', 0, 0.11, -dv.from, 2 * hw, 0.22, 2 * hw, pal.curb);
       B.w.add('cyl12', 0, 0.11, -dv.to, 2 * hw, 0.22, 2 * hw, pal.curb);
-      for (var z = dv.from + 2; z < dv.to - 1; z += 3) {
-        B.w.add('ico', (rnd() - 0.5) * 0.6, 1.08, -z, 0.5, 0.4, 0.5, U.pick(pal.blossom, rnd));
+      // canteiro: arbustos redondos e flores (nada de muro de grama)
+      for (var z = dv.from + 1.5; z < dv.to - 1; z += 1.7) {
+        var leaf = shade(U.pick(pal.leaves, rnd), 0.8 + rnd() * 0.25), r = 0.55 + rnd() * 0.2;
+        B.w.add('icoS', (rnd() - 0.5) * 0.3, 0.22 + r * 0.7, -z, r * 2.1, r * 1.6, r * 2.1, leaf, rnd() * 6);
+        if (rnd() < 0.6) B.w.add('icoT', (rnd() - 0.5) * 0.8, 0.22 + r * 1.35, -z - 0.5, 0.3, 0.26, 0.3, U.pick(pal.blossom, rnd));
       }
       // setas no asfalto: uma para cada lado
       [-1, 1].forEach(function (s) {
@@ -296,13 +306,23 @@
     return this.trees[s].some(function (t) { return Math.abs(t - dl) < gap; });
   };
 
+  // Registros abertos: cada região pode acrescentar pisos e partes especiais
+  // no seu arquivo (js/world/biomas/<id>.js) sem mexer neste:
+  //   EP.RoadModules.floors.areia = function (B, def, L, pal, ctx) { ... }
+  //   EP.RoadModules.extras.farol = function (B, def, L, pal, rnd, ctx) { ... }
+  // As funções de laterais ficam em EP.RoadModules.helpers para reaproveitar.
   EP.RoadModules = {
+    floors: floors,
+    extras: extras,
+    helpers: { city: city, placeBuildings: placeBuildings, placeTrees: placeTrees, placeProps: placeProps, skyline: skyline, FACE: FACE, Ctx: Ctx },
     build: function (def, seed, biome, W) {
       var rnd = U.rng(seed), pal = biome.palette, L = def.length;
       var B = new EP.Batch(), ctx = new Ctx(W);
+      ctx.biome = biome;
+      if (!floors[def.floor]) throw new Error('piso desconhecido: ' + def.floor + ' (módulo ' + def.id + ')');
       floors[def.floor](B, def, L, pal, ctx);
       (def.extras || []).forEach(function (e) {
-        if (!extras[e]) throw new Error('parte especial desconhecida: ' + e);
+        if (!extras[e]) throw new Error('parte especial desconhecida: ' + e + ' (módulo ' + def.id + ')');
         extras[e](B, def, L, pal, rnd, ctx);
       });
       var park = def.floor === 'parque';
@@ -312,11 +332,13 @@
         placeProps(B, def.sides, s, L, pal, rnd, ctx);
       });
       var tall = (def.extras || []).indexOf('skyline') >= 0;
-      skyline(B, L, pal, rnd, tall ? 7 : park ? 2 : 4, tall, park ? 75 : 55);
+      if (def.skyline !== false && biome.skyline !== false) skyline(B, L, pal, rnd, tall ? 7 : park ? 2 : 4, tall, park ? 75 : 55);
       return {
         world: B.w.build(),
         glow: B.g.count() ? B.g.build() : null,
-        water: B.water.count() ? B.water.build() : null
+        water: B.water.count() ? B.water.build() : null,
+        shadow: B.shadow.count() ? B.shadow.build() : null,
+        light: B.light.count() ? B.light.build() : null
       };
     }
   };

@@ -22,6 +22,9 @@
     'hair.curto': 'Corto',
     'hair.cacheado': 'Rizado',
     'hair.rabo': 'Coleta',
+    'hair.coque': 'Moño',
+    'hair.longo': 'Largo',
+    'hair.raspado': 'Rapado',
     'create.outfit': 'Ropa inicial',
     'create.outfitHint': 'Camiseta, pantalón corto y zapatillas. Elige los colores.',
     'create.shirt': 'Camiseta',
@@ -156,6 +159,7 @@
     'opt.version': 'Versión {v}',
     'opt.privacy': 'Privacidad',
 
+    'region.welcome': 'BIENVENIDO A',
     'biome.cidade': 'Ciudad',
     'sign.choose': 'ELIGE'
   };

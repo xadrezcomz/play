@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 const JOGO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'jogar');
 const ARQUIVOS = [
   'js/core/EP.js',
-  'dados/balanceamento.js', 'dados/aparencia.js', 'dados/npcs.js', 'dados/biomas.js', 'dados/modulos.js', 'dados/desafios.js',
+  'dados/balanceamento.js', 'dados/aparencia.js', 'dados/npcs.js', 'dados/biomas.js', 'dados/modulos.js', 'dados/desafios.js', 'dados/ceu.js',
   'dados/textos/pt-BR.js', 'dados/textos/en-US.js', 'dados/textos/es.js',
   'js/core/SaveManager.js', 'js/core/LocalizationManager.js',
   'js/systems/TapRhythmSystem.js', 'js/systems/FlowSystem.js', 'js/systems/EnergySystem.js', 'js/systems/SpeedSystem.js',

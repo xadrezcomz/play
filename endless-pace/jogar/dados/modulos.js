@@ -3,7 +3,7 @@
 // o que vai nas laterais (slots de prédios, árvores e objetos) e as peças
 // especiais. O desenho de cada peça fica em js/world/Assets.js.
 (function (EP) {
-  EP.data.roadModules = [
+  EP.data.roadModules = (EP.data.roadModules || []).concat([
     {
       id: 'residencial', biome: 'cidade', ground: 'ground', length: 90, curvature: 0.35, slope: 0,
       entrance: 'rua', exit: 'rua', floor: 'rua', npcDensity: 1,
@@ -106,11 +106,11 @@
       extras: ['bifurcacao'],
       fork: true
     }
-  ];
+  ]);
 
   // Rotas: conjuntos de módulos com pequenos modificadores (GDD §20–21).
   // modifiers.energy: 1.10 = recupera 10% mais e gasta 10% menos.
-  EP.data.routes = {
+  EP.data.routes = Object.assign(EP.data.routes || {}, {
     bairro: { text: 'route.bairro', icon: '🏘️', modules: ['residencial', 'comercial', 'praca', 'ponte', 'tunel'], modifiers: {} },
     parque: {
       text: 'route.parque', icon: '🌳', modules: ['parque', 'parque-lago', 'quadra'], length: [4, 6],
@@ -120,11 +120,11 @@
       text: 'route.centro', icon: '🏙️', modules: ['avenida', 'comercial', 'praca'], length: [4, 6],
       modifiers: { coins: 1.20, npcDensity: 1.5 }, perks: ['perk.coins20', 'perk.moreRunners']
     }
-  };
+  });
 
-  EP.data.forks = [
-    { id: 'parque-centro', module: 'bifurcacao', left: 'parque', right: 'centro' }
-  ];
+  EP.data.forks = (EP.data.forks || []).concat([
+    { id: 'parque-centro', biome: 'cidade', module: 'bifurcacao', left: 'parque', right: 'centro' }
+  ]);
 
   EP.data.world = {
     ahead: 5, behind: 2,         // GDD §62: 5 módulos à frente, 2 atrás

@@ -16,6 +16,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--noite);color:var
 #app{position:fixed;inset:0;overflow:hidden}
 #cena{position:absolute;inset:0;width:100%;height:100%;display:block}
 #toque{position:absolute;inset:0;touch-action:none;z-index:1}
+#vinheta{position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse 85% 75% at 50% 45%,transparent 60%,rgba(20,24,40,.32) 100%),linear-gradient(180deg,rgba(255,226,190,.07),transparent 40%)}
 button{font:inherit;color:inherit;cursor:pointer}
 input{font:inherit}
 a{color:var(--ciano)}

@@ -12,7 +12,10 @@
     hairStyles: [
       { id: 'curto', text: 'hair.curto' },
       { id: 'cacheado', text: 'hair.cacheado' },
-      { id: 'rabo', text: 'hair.rabo' }
+      { id: 'rabo', text: 'hair.rabo' },
+      { id: 'coque', text: 'hair.coque' },
+      { id: 'longo', text: 'hair.longo' },
+      { id: 'raspado', text: 'hair.raspado' }
     ],
     hairColors: ['#1e1814', '#4b2f1c', '#8b5a32', '#d8b26a', '#a9452b'],
     // roupa inicial: camiseta, short e tênis básicos (as cores são a escolha)
