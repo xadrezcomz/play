@@ -32,8 +32,8 @@ function checkCond(c, lv, where) {
   if (Array.isArray(c)) return c.forEach(x => checkCond(x, lv, where));
   if (!R.Conditions.types[c.type]) errs.push(`fase ${lv.id}: condição desconhecida "${c.type}" em ${where}`);
   if (c.of) [].concat(c.of).forEach(x => checkCond(x, lv, where));
-  ['target', 'container', 'a', 'b'].forEach(k => { if (c[k] && !ids(lv).includes(c[k])) errs.push(`fase ${lv.id}: ${where} cita "${c[k]}", que não existe`); });
-  (c.objects || []).forEach(id => { if (!ids(lv).includes(id)) errs.push(`fase ${lv.id}: ${where} cita "${id}", que não existe`); });
+  ['target', 'container', 'a', 'b', 'divider', 'left', 'right'].forEach(k => { if (c[k] && !ids(lv).includes(c[k])) errs.push(`fase ${lv.id}: ${where} cita "${c[k]}", que não existe`); });
+  (c.objects || c.ids || []).forEach(id => { if (!ids(lv).includes(id)) errs.push(`fase ${lv.id}: ${where} cita "${id}", que não existe`); });
 }
 function checkActions(list, lv, where) {
   (list || []).forEach(a => {
@@ -52,7 +52,8 @@ Object.values(R.Levels.all()).forEach(lv => {
     if (o.inText) {
       langs.forEach(l => { if (!(strings(l)[lv.instruction] || '').includes('[[' + o.id + '|')) errs.push(`fase ${lv.id}: [${l}] a instrução não tem a palavra [[${o.id}|...]]`); });
     } else if (!R.Renderers.types[o.type] && o.type !== 'word') errs.push(`fase ${lv.id}: tipo de objeto desconhecido "${o.type}" (${o.id})`);
-    Object.keys(o.behaviors || {}).forEach(b => { if (!R.Behaviors[b]) errs.push(`fase ${lv.id}: comportamento desconhecido "${b}" (${o.id})`); });
+    Object.keys(o.behaviors || {}).forEach(b => { if (!R.Behaviors[b.split('#')[0]]) errs.push(`fase ${lv.id}: comportamento desconhecido "${b}" (${o.id})`); });
+    if (o.textKey) langs.forEach(l => { if (!(o.textKey in strings(l))) errs.push(`fase ${lv.id}: [${l}] falta o texto ${o.textKey}`); });
   });
   checkCond(lv.win, lv, 'win');
   (lv.triggers || []).forEach((t, i) => { checkCond(t.when, lv, 'trigger ' + i); checkActions(t.do, lv, 'trigger ' + i); });

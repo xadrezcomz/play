@@ -1,5 +1,5 @@
 // Ruli: o personagem. Um SVG simples com expressões trocáveis.
-// Expressões: normal, thinking, surprised, happy, confused, serious.
+// Expressões: normal, thinking, surprised, happy, confused, serious, sleepy.
 // Cores: teal (o Ruli), pink, yellow, purple (amigos).
 (function () {
   'use strict';
@@ -30,6 +30,9 @@
                  mouth: '<path d="M42 75 L58 75" fill="none" stroke="' + INK + '" stroke-width="3.6" stroke-linecap="round"/>',
                  brows: '<path d="M27 36 L45 38 M55 38 L73 36" fill="none" stroke="' + INK + '" stroke-width="3.4" stroke-linecap="round"/>',
                  arms: 'down' },
+    sleepy:    { eyes: 'closed',
+                 mouth: '<ellipse cx="50" cy="76" rx="3.5" ry="2.5" fill="' + INK + '"/>',
+                 brows: '', arms: 'down' },
     confused:  { pl: [-3, 3], pr: [3, -3], r: 5.5,
                  mouth: '<path d="M39 75 q5.5 -5 11 0 t11 0" fill="none" stroke="' + INK + '" stroke-width="3.4" stroke-linecap="round"/>',
                  brows: '<path d="M27 37 L44 33 M56 31 L73 36" fill="none" stroke="' + INK + '" stroke-width="3.2" stroke-linecap="round"/>',
@@ -58,9 +61,10 @@
 
   R.Ruli = {
     EXPRESSIONS: Object.keys(EXPR),
-    svg: function (expr, color) {
+    svg: function (expr, color, balloon) {
       var e = EXPR[expr] || EXPR.normal, c = COLORS[color] || COLORS.teal, BODY = c[0], DARK = c[1];
-      return '<svg class="ruli-svg" viewBox="0 0 100 112" aria-hidden="true">' +
+      return '<svg class="ruli-svg" viewBox="0 0 100 112" aria-hidden="true" overflow="visible">' +
+        (balloon ? '<path d="M76 54 Q84 20 76 -20" fill="none" stroke="' + INK + '" stroke-width="1.6"/><ellipse cx="76" cy="-44" rx="18" ry="24" fill="#FF6B6B"/>' : '') +
         '<ellipse cx="50" cy="108" rx="30" ry="3.5" fill="#000" opacity=".08"/>' +
         '<g class="ruli-legs"><ellipse cx="37" cy="101" rx="10" ry="6.5" fill="' + DARK + '"/><ellipse cx="63" cy="101" rx="10" ry="6.5" fill="' + DARK + '"/></g>' +
         '<path d="' + ARMS[e.arms] + '" fill="none" stroke="' + DARK + '" stroke-width="7" stroke-linecap="round"/>' +

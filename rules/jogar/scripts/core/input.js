@@ -55,7 +55,7 @@
     },
 
     down: function (e) {
-      if (e.target.closest('[data-ui]')) return;
+      if (e.target.closest('[data-ui]') && !e.target.closest('[data-obj]')) return;
       var E = this.E;
       if (!E.level) return;
       e.preventDefault();
@@ -112,10 +112,18 @@
       }
       if (p.mode === 'pending' && Math.hypot(p.cx - p.sx, p.cy - p.sy) > MOVE_PX) {
         clearTimeout(p.holdTimer);
-        if (p.obj && p.obj.has('draggable') && !p.obj._falling && !this.E.locked) this.startDrag(p);
+        var o = p.obj;
+        if (o && o.has('rotatable') && !this.E.locked) this.startRotate(p);
+        else if (o && o.has('draggable') && !o._falling && !this.E.locked) {
+          if (this.canDrag(o)) this.startDrag(p);
+          else { p.mode = 'swipe'; o.fx('shake'); this.E.emit('locked', { obj: o }); }
+        }
+        else if (!o && this.E.level.draw) this.startDraw(p);
         else p.mode = 'swipe';
       }
       if (p.mode === 'drag') this.updateDrag(p);
+      else if (p.mode === 'rotate') this.updateRotate(p);
+      else if (p.mode === 'draw') this.updateDraw(p);
       else if (p.mode === 'swipe') {
         var dy = e.clientY - (p.py != null ? p.py : p.sy);
         this.rub(p, dx, 'lastDir');
@@ -140,6 +148,10 @@
         if (U.now() - p.t0 < TAP_MS) E.tap(p.obj, p.cx, p.cy);
       } else if (p.mode === 'drag') {
         this.endDrag(p, true);
+      } else if (p.mode === 'rotate') {
+        this.endRotate(p);
+      } else if (p.mode === 'draw') {
+        this.endDraw(p);
       } else if (p.mode === 'swipe') {
         var dx = p.cx - p.sx, dy = p.cy - p.sy;
         if (Math.hypot(dx, dy) > 40 && U.now() - p.t0 < 600) {
@@ -159,6 +171,79 @@
         if (o) this.E.emit('rub', { obj: o, count: p.revs });
       }
       p[key] = dir;
+    },
+
+    // draggable { requires: { estado: valor } } → só arrasta depois de destravado
+    canDrag: function (o) {
+      var req = o.behaviors.draggable.requires;
+      return !req || Object.keys(req).every(function (k) { return o.state[k] === req[k]; });
+    },
+
+    // ---- girar (rotatable { snap }) ----
+    angleTo: function (o, p) {
+      var b = R.Stage.fromClient(p.cx, p.cy), c = o.center();
+      return Math.atan2(b[1] - c[1], b[0] - c[0]) * 180 / Math.PI;
+    },
+    startRotate: function (p) {
+      var o = p.obj;
+      p.mode = 'rotate';
+      p.lastA = this.angleTo(o, p);
+      o.el.classList.add('dragging');
+      o.el.style.transition = '';
+      R.Audio.play('drag');
+      this.E.emit('rotatestart', { obj: o });
+    },
+    updateRotate: function (p) {
+      var o = p.obj, a = this.angleTo(o, p), d = a - p.lastA;
+      if (d > 180) d -= 360;
+      if (d < -180) d += 360;
+      p.lastA = a;
+      o.rot += d;
+      o.state.turns = (o.state.turns || 0) + Math.abs(d) / 360;
+      o.layout();
+      this.E.emit('rotate', { obj: o, delta: d });
+    },
+    endRotate: function (p) {
+      var o = p.obj, cfg = o.behaviors.rotatable;
+      o.el.classList.remove('dragging');
+      if (cfg.snap) o.rot = Math.round(o.rot / cfg.snap) * cfg.snap;
+      var ang = Math.round(((o.rot % 360) + 360) % 360);
+      if (ang === 360) ang = 0;
+      o.animate(function () { o.layout(); }, 120);
+      o.setState('angle', ang);
+      R.Audio.play('click');
+      this.E.emit('rotated', { obj: o, angle: ang });
+    },
+
+    // ---- desenhar com o dedo (fase com draw: true) ----
+    startDraw: function (p) {
+      var E = this.E;
+      p.mode = 'draw';
+      p.pts = [R.Stage.fromClient(p.sx, p.sy)];
+      if (!E.drawEl) {
+        E.drawEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        E.drawEl.setAttribute('class', 'draw-layer');
+        E.layer.appendChild(E.drawEl);
+      }
+      p.line = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+      p.line.setAttribute('class', 'draw-line');
+      E.drawEl.appendChild(p.line);
+      this.updateDraw(p);
+    },
+    updateDraw: function (p) {
+      var b = R.Stage.fromClient(p.cx, p.cy), l = R.Stage.layerRect;
+      p.pts.push(b);
+      p.line.setAttribute('points', p.pts.map(function (q) {
+        var px = R.Stage.toPx(q[0], q[1]);
+        return px[0].toFixed(1) + ',' + px[1].toFixed(1);
+      }).join(' '));
+      p.line.style.strokeWidth = Math.max(4, R.Stage.s * 2.2) + 'px';
+    },
+    endDraw: function (p) {
+      var line = p.line, ev = { points: p.pts, handled: false };
+      this.E.emit('drawn', ev);
+      line.classList.add(ev.handled ? 'ok' : 'fade');
+      setTimeout(function () { line.remove(); }, ev.handled ? 900 : 500);
     },
 
     startDrag: function (p) {
@@ -242,7 +327,7 @@
         return;
       }
       if (target.inText) E.detachWord(target);
-      this.pinch = { obj: target, a: a, b: b, d0: Math.max(20, Math.hypot(a.cx - b.cx, a.cy - b.cy)), s0: target.scale, snd: 0 };
+      this.pinch = { obj: target, a: a, b: b, d0: Math.max(20, Math.hypot(a.cx - b.cx, a.cy - b.cy)), s0: E.getScale(target), snd: 0 };
       E.emit('scalestart', { obj: target });
     },
 
@@ -273,7 +358,7 @@
       var k = Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0015));
       if (!this.wheelObj) E.emit('scalestart', { obj: o });
       this.wheelObj = o;
-      E.setScale(o, U.clamp(o.scale * k, cfg.min || 0.3, cfg.max || 3));
+      E.setScale(o, U.clamp(E.getScale(o) * k, cfg.min || 0.3, cfg.max || 3));
       R.Audio.play('scale', 0.5);
       var self = this;
       clearTimeout(this._wheelT);

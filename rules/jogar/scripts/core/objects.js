@@ -18,9 +18,9 @@
     this.z = this.z0 = def.z != null ? def.z : 10;
     this.state = Object.assign({}, def.state);
     this.behaviors = def.behaviors || {};
-    this.text = def.text || '';
+    this.text = def.text || (def.textKey ? R.i18n.plain(def.textKey) : '');
     this.inText = !!def.inText;   // palavra ainda presa na instrução
-    this.fontU = 0;               // tamanho da fonte (unidades) quando solta
+    this.fontU = def.fontU || 0;  // tamanho da fonte (unidades) quando solta
     this.hidden = !!def.hidden;
 
     var el = this.el = U.el(this.inText ? 'span' : 'div', 'obj obj-' + this.type);
@@ -29,6 +29,11 @@
     if (this.behaviors.clickable) el.classList.add('is-clickable');
     if (def.passive) el.classList.add('is-passive');
     if (def.cls) def.cls.split(' ').forEach(function (c) { el.classList.add(c); });
+    if (this.type === 'word' && !this.inText) {
+      el.classList.add('detached');
+      if (!this.fontU) this.fontU = 6;
+      if (!this.text) this.hidden = true;
+    }
     if (this.hidden) el.style.visibility = 'hidden';
     this.inner = U.el('span', 'obj-inner', el);
     R.Renderers.draw(this);

@@ -340,6 +340,43 @@ button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-c
 .fx-enter { animation: fx-enter .35s ease-in forwards; }
 @keyframes fx-enter { to { transform: scale(.1); opacity: 0; } }
 
+/* rótulo "FASE NN" com peças */
+.level-label .obj.in-text { position: relative; display: inline; }
+.level-label .obj.in-text .obj-inner { display: inline-block; width: auto; height: auto; }
+
+/* palavras soltas no cenário */
+.obj-word.sign .obj-inner { background: #FFFDF5; border: .12em solid var(--ink); border-radius: .25em; padding: .15em .4em; }
+.obj-word.card .obj-inner { background: #fff; border-radius: .3em; padding: .1em .45em; box-shadow: 0 .12em 0 var(--shadow); }
+.obj-word.small-word .obj-inner { color: rgba(43, 45, 66, .65); }
+.obj-word.broken .obj-inner { text-decoration: line-through; text-decoration-thickness: .14em; color: var(--coral-dark); }
+.huge .obj-inner { font-size: 2.1em; line-height: .9; }
+
+/* desenhar com o dedo */
+.draw-layer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 600; }
+.draw-line { fill: none; stroke: var(--ink); stroke-linecap: round; stroke-linejoin: round; opacity: .75; transition: opacity .4s; }
+.draw-line.ok { stroke: var(--teal); opacity: 1; }
+.draw-line.fade { opacity: 0; }
+
+/* escuro com lanterna */
+.obj-dark .obj-inner { background: radial-gradient(circle at var(--lx, 50%) var(--ly, 50%), rgba(20, 20, 40, 0) 0, rgba(20, 20, 40, 0) var(--lr, 16%), rgba(20, 20, 40, .97) calc(var(--lr, 16%) + 7%)); border-radius: .4em; }
+.mirror svg { transform: scaleX(-1); }
+.silhouette svg { filter: brightness(0); opacity: .22; }
+.obj svg .notes { animation: notes .8s ease-in-out infinite; }
+@keyframes notes { 50% { transform: translateY(-4px); } }
+
+/* final da fase 50 */
+.finale { position: absolute; inset: 0; z-index: 75; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--W) * .05); padding: 0 10%; text-align: center; opacity: 0; transition: opacity .3s; }
+.finale.show { opacity: 1; }
+.finale-line { margin: 0; font-weight: 900; font-size: calc(var(--W) * .075); line-height: 1.15; }
+.finale-word { border: 0; background: none; padding: 0; font: inherit; color: var(--coral); display: inline-block; }
+.finale.shake .finale-word { animation: fx-wiggle .6s ease-in-out infinite; }
+.finale.dropped .finale-word { animation: drop-word .7s cubic-bezier(.5, 0, .9, .4) forwards; }
+@keyframes drop-word { 30% { transform: rotate(-14deg); } to { transform: translateY(60vh) rotate(40deg); opacity: 0; } }
+.finale-b { margin: 0; font-weight: 900; font-size: calc(var(--W) * .09); color: var(--purple); opacity: 0; transition: opacity .4s .6s; }
+.finale.dropped .finale-b { opacity: 1; }
+.finale-go { width: 70%; opacity: 0; pointer-events: none; transition: opacity .3s 1.2s; }
+.finale.dropped .finale-go { opacity: 1; pointer-events: auto; }
+
 /* animações que fazem parte de puzzles (continuam com "reduzir animações") */
 .breathe svg { animation: breathe 2.4s ease-in-out infinite; transform-origin: 50% 50%; }
 .breathe-odd svg { animation-delay: -1.2s; }

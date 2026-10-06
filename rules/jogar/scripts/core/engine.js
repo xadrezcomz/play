@@ -13,7 +13,10 @@
 //   { say:'CHAVE' } { fail:true|'CHAVE' } { expr:'happy', target } { mascot:'happy' }
 //   { move:'id', to:[x,y] | toObj:'id', offset:[dx,dy] | by:[dx,dy], ms, await:true }
 //   { reset:'id' } { hide:'id' } { show:'id' } { state:'id', key, value } { toggle:'id', key }
-//   { vibrate:ms }
+//   { vibrate:ms } { forget:'id' } { swap:['a','b'], ms } { cls:'id', add, remove }
+// Extras de fase: label (rótulo "FASE NN" com palavras-objeto), draw:true
+// (desenhar com o dedo), objetos com minAttempt (só aparecem ao tentar de
+// novo) e finale:'mid'|'end' (finais especiais).
 (function () {
   'use strict';
   var R = window.RULES, U = R.util;
@@ -23,6 +26,7 @@
     R.Emitter.call(this);
     this.layer = opts.layer;
     this.instrEl = opts.instruction;
+    this.labelEl = opts.label;
     this.hooks = opts.hooks || {};
     this.objects = new Map();
     this.level = null;
@@ -36,11 +40,13 @@
 
   var P = Engine.prototype;
 
-  P.load = function (def) {
+  P.load = function (def, opts) {
     var self = this;
+    opts = opts || {};
     this.unload();
     this.level = def;
-    this.memory = { tapped: {} };
+    this.attempt = opts.attempt || 1;
+    this.memory = { tapped: {}, hint: false };
     this.fired = {};
     this.cool = {};
     this.completed = false;
@@ -52,17 +58,19 @@
     R.Stage.update();
 
     (def.objects || []).forEach(function (d) {
-      if (d.inText) return;
+      if (d.inText || d.inLabel) return;
+      if (d.minAttempt && self.attempt < d.minAttempt) return;
       var o = new R.GameObject(d, self);
       self.objects.set(o.id, o);
       self.layer.appendChild(o.el);
     });
     this.buildInstruction();
+    if (def.label && this.labelEl) this.buildRich(this.labelEl, def.label);
 
     this.objects.forEach(function (o) {
       Object.keys(o.behaviors).forEach(function (k) {
         if (o.behaviors[k] === true) o.behaviors[k] = {};
-        var b = R.Behaviors[k];
+        var b = R.Behaviors[k.split('#')[0]];   // 'receives#2' = segundo do mesmo tipo
         if (b && b.init) b.init(o, o.behaviors[k], self);
       });
     });
@@ -70,7 +78,22 @@
       self.on(r.on, function (e) { self.react(r, i, e || {}); });
     });
     this.layout();
+    this.measureWords();
     this._tick = setInterval(function () { self.check(); }, 100);
+  };
+
+  // Palavras soltas no cenário (textKey): mede o tamanho real do texto.
+  P.measureWords = function () {
+    var s = R.Stage.s;
+    this.objects.forEach(function (o) {
+      if (o.type !== 'word' || o.inText || o.def.w) return;
+      o.el.style.width = 'auto'; o.el.style.height = 'auto';
+      o.el.style.fontSize = o.fontU * s + 'px';
+      var r = o.inner.getBoundingClientRect();
+      o.w = r.width / s + (o.def.padU || 2);
+      o.h = r.height / s + (o.def.padU || 1);
+      o.layout();
+    });
   };
 
   P.unload = function () {
@@ -81,19 +104,22 @@
     this.objects.clear();
     this.clearListeners();
     if (this.instrEl) this.instrEl.innerHTML = '';
+    if (this.drawEl) { this.drawEl.remove(); this.drawEl = null; }
     this.level = null;
     this.locked = true;
   };
 
   // Instrução: texto + palavras que são objetos ([[id|TEXTO]]).
-  P.buildInstruction = function () {
-    var self = this, def = this.level, el = this.instrEl;
+  P.buildInstruction = function () { this.buildRich(this.instrEl, this.level.instruction); };
+
+  P.buildRich = function (el, key) {
+    var self = this, def = this.level;
     el.innerHTML = '';
     // Cada palavra fica num bloco que não quebra, mesmo quando só uma letra
     // dela é um objeto (CÍRCUL + [[O]]).
     var word = null;
     function wordEl() { return word || (word = U.el('span', 'instr-word', el)); }
-    R.i18n.parseRich(R.i18n.t(def.instruction)).forEach(function (part) {
+    R.i18n.parseRich(R.i18n.t(key)).forEach(function (part) {
       if (!part.id) {
         part.text.split(/(\s+)/).forEach(function (piece) {
           if (!piece) return;
@@ -167,6 +193,14 @@
     this.emit('tap', { obj: obj });
   };
 
+  // Retângulo (em unidades) da instrução: usado por "cubra o texto" etc.
+  P.textRect = function () {
+    var t = this.instrEl.getBoundingClientRect();
+    return R.Stage.rectFromClient(t);
+  };
+
+  P.hintOpened = function () { this.memory.hint = true; this.emit('hint', {}); };
+
   P.pause = function () { this.paused = true; this.input.reset(); };
   P.resume = function () { this.paused = false; this.idleT0 = U.now(); };
 
@@ -193,9 +227,12 @@
     if (this.completed) return;
     if ('target' in r) {
       if (r.target === null) { if (e.obj) return; }
+      else if (r.target === '+') { if (!e.obj) return; }          // qualquer objeto
       else if (r.target !== '*' && !(e.obj && e.obj.id === r.target)) return;
     }
     if (r.unhandled && e.handled) return;
+    if (r.when && !R.Conditions.test(r.when, this)) return;
+    if (r.unless && R.Conditions.test(r.unless, this)) return;
     var now = U.now();
     if (r.cooldown && this.cool[i] && now - this.cool[i] < r.cooldown) return;
     this.cool[i] = now;
@@ -274,9 +311,17 @@
     return { x1: o.sw / 2 + m, y1: o.sh / 2 + m, x2: R.Stage.W - o.sw / 2 - m, y2: R.Stage.H - o.sh / 2 - m };
   };
 
+  P.getScale = function (o) {
+    var cfg = o.behaviors.scalable || {};
+    return cfg.axis === 'x' ? (o.stretch || 1) : o.scale;
+  };
+
   P.setScale = function (o, s) {
-    var cfg = o.behaviors.scalable || {}, bottom = o.y + o.sh / 2;
-    o.scale = s;
+    var cfg = o.behaviors.scalable || {}, bottom = o.y + o.sh / 2, left = o.x - o.sw / 2;
+    if (cfg.axis === 'x') {
+      o.stretch = s; o.w = (o.def.w || 20) * s;
+      if (cfg.anchor === 'left') o.x = left + o.sw / 2;
+    } else o.scale = s;
     if (cfg.anchor === 'bottom') o.y = bottom - o.sh / 2;
     o.layout();
     this.emit('scale', { obj: o });
@@ -328,7 +373,29 @@
     hide: function (a, e, E) { var o = E.get(a.hide); if (o) o.setHidden(true); },
     show: function (a, e, E) { var o = E.get(a.show); if (o) { o.setHidden(false); o.fx('pop'); } },
     state: function (a, e, E) { var o = E.get(a.state); if (o) o.setState(a.key, a.value); },
-    toggle: function (a, e, E) { var o = E.get(a.toggle), k = a.key || 'on'; if (o) o.setState(k, !o.state[k]); }
+    toggle: function (a, e, E) { var o = E.get(a.toggle), k = a.key || 'on'; if (o) o.setState(k, !o.state[k]); },
+    forget: function (a, e, E) { delete E.memory.tapped[a.forget]; },
+    cls: function (a, e, E) {
+      var o = E.get(a.cls);
+      if (!o) return;
+      if (a.add) o.el.classList.add(a.add);
+      if (a.remove) o.el.classList.remove(a.remove);
+    },
+    // troca dois objetos de lugar (e o que cada um carrega junto)
+    swap: function (a, e, E) {
+      var A = E.get(a.swap[0]), B = E.get(a.swap[1]);
+      if (!A || !B) return;
+      var ax = A.x, ay = A.y, bx = B.x, by = B.y, ms = a.ms || 350;
+      [[A, bx - ax, by - ay], [B, ax - bx, ay - by]].forEach(function (m) {
+        var c = m[0].behaviors.carries;
+        ((c && c.ids) || []).forEach(function (id) {
+          var k = E.get(id);
+          if (k) k.moveTo(k.x + m[1], k.y + m[2], ms);
+        });
+      });
+      A.moveTo(bx, by, ms);
+      return B.moveTo(ax, ay, ms);
+    }
   };
 
   R.PuzzleEngine = Engine;

@@ -30,6 +30,7 @@
       this.engine = new R.PuzzleEngine({
         layer: $('#layer'),
         instruction: $('#instr-text'),
+        label: $('#level-label'),
         inputRoot: this.screens.play,
         hooks: {
           onWin: function (lv, done) { self.onWin(lv, done); },
@@ -65,9 +66,10 @@
 
     setTheme: function (chapter) {
       var app = this.app;
-      [1, 2, 3, 4, 5].forEach(function (n) { app.classList.toggle('ch' + n, n === chapter); });
+      var t = ((chapter - 1) % 5) + 1;   // os capítulos 6–10 reaproveitam as 5 cores
+      [1, 2, 3, 4, 5].forEach(function (n) { app.classList.toggle('ch' + n, n === t); });
       var meta = document.querySelector('meta[name="theme-color"]');
-      if (meta) meta.setAttribute('content', THEME_COLOR[chapter] || THEME_COLOR[1]);
+      if (meta) meta.setAttribute('content', THEME_COLOR[t] || THEME_COLOR[1]);
     },
 
     // ---------- telas ----------
@@ -240,8 +242,11 @@
       R.Save.setLast(id);
       this.setTheme(def.chapter);
       this.clearFeedback();
-      this.engine.load(def);
-      $('#level-label').textContent = R.i18n.t('UI_LEVEL', { n: U.pad(R.Levels.number(id)) });
+      // tentativas nesta visita à fase (algumas fases mudam quando você tenta de novo)
+      this._tries = opts.restart && this._triesId === id ? (this._tries || 1) + 1 : 1;
+      this._triesId = id;
+      if (!def.label) $('#level-label').textContent = R.i18n.t('UI_LEVEL', { n: U.pad(R.Levels.number(id)) });
+      this.engine.load(def, { attempt: this._tries });
 
       var n = R.Save.addAttempt(id);
       if (!opts.restart) R.Analytics.track('level_started', { level: id });
@@ -281,6 +286,7 @@
     openHint: function () {
       var self = this, lv = this.engine.level;
       if (!lv || this.won || this._card || R.Hints.isOpen()) return;
+      this.engine.hintOpened();
       this.engine.pause();
       this.mascot('thinking', true);
       R.Hints.open(lv, function () {
@@ -312,9 +318,37 @@
 
       Promise.all([done, U.wait(R.reduceMotion ? 600 : 950)]).then(function () {
         if (self.current !== id || self.screen !== 'play') return;
+        if (lv.finale === 'mid') { self.finale(next); return; }
         if (!next) { self.show('end'); return; }
         R.Transition.swap(self.screens.play, function () { self.startLevel(next, { chapterCard: true }); });
       });
+    },
+
+    // Final da fase 50: "AGORA VOCÊ CONHECE AS REGRAS." → a palavra cai → "...OU NÃO."
+    finale: function (next) {
+      var self = this, f = $('#finale'), w = f.querySelector('.finale-word');
+      f.querySelector('.finale-a').textContent = R.i18n.t('FINALE_1');
+      w.textContent = R.i18n.t('FINALE_WORD');
+      f.querySelector('.finale-b').textContent = R.i18n.t('FINALE_2');
+      f.querySelector('.finale-go').textContent = R.i18n.t('UI_CONTINUE');
+      f.classList.remove('dropped', 'shake');
+      f.hidden = false;
+      void f.offsetWidth;
+      f.classList.add('show');
+      var r = this.app.getBoundingClientRect();
+      R.Effects.burst(r.left + r.width / 2, r.top + r.height * 0.4, 70);
+      setTimeout(function () { f.classList.add('shake'); }, 1600);
+      w.onclick = function () {
+        if (f.classList.contains('dropped')) return;
+        f.classList.add('dropped');
+        R.Audio.play('whoosh');
+        setTimeout(function () { R.Audio.play('collision'); }, 500);
+      };
+      f.querySelector('.finale-go').onclick = function () {
+        f.classList.remove('show');
+        setTimeout(function () { f.hidden = true; }, 200);
+        if (next) self.startLevel(next, { chapterCard: true }); else self.show('end');
+      };
     },
 
     // ---------- feedback ----------

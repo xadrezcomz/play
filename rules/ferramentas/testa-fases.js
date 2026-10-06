@@ -68,7 +68,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     await touch('touchEnd', [[cb[0], cb[1], 1]]); await sleep(20);
     await touch('touchEnd', []); await sleep(100);
   };
-  const state = () => page.evaluate(() => ({ lvl: RULES.Game.current, won: RULES.Game.won, screen: RULES.Game.screen, card: !document.querySelector('#chapter-card').hidden }));
+  const state = () => page.evaluate(() => ({ lvl: RULES.Game.current, won: RULES.Game.won, screen: RULES.Game.screen, card: !document.querySelector('#chapter-card').hidden, finale: !document.querySelector('#finale').hidden }));
   const obj = (id, k) => page.evaluate(([id, k]) => { const o = RULES.Game.engine.get(id); return k ? o.state[k] : { x: o.x, y: o.y, scale: o.scale }; }, [id, k]);
   const waitLevel = async id => {
     for (let i = 0; i < 80; i++) {
@@ -90,7 +90,11 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     throw new Error('não chegou na fase ' + id);
   };
   const expectWin = async (id, name, ms = 3000) => {
-    for (let i = 0; i < ms / 100; i++) { if ((await state()).won) { console.log('OK  fase', String(id).padStart(2, '0'), name); return; } await sleep(100); }
+    for (let i = 0; i < ms / 100; i++) {
+      const st = await state();
+      if (st.won || st.lvl !== id || st.screen !== 'play' || st.finale) { console.log('OK  fase', String(id).padStart(2, '0'), name); return; }
+      await sleep(100);
+    }
     await page.screenshot({ path: SHOTS + 'FAIL-' + id + '.png' });
     throw new Error('fase ' + id + ' não completou');
   };
@@ -100,6 +104,26 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     console.log('      não completou com:', why);
   };
   const restart = async () => { await page.evaluate(() => RULES.Game.restart()); await sleep(450); };
+  const pinchAt = async (x, y, factor) => {
+    const d0 = 40, d1 = d0 * factor, a = [x, y, 0];
+    await touch('touchStart', [a]); await sleep(30);
+    await touch('touchStart', [a, [x + d0, y + d0, 1]]);
+    for (let i = 1; i <= 10; i++) { const d = d0 + (d1 - d0) * i / 10; await touch('touchMove', [a, [x + d, y + d, 1]]); await sleep(16); }
+    await touch('touchEnd', [a]); await sleep(20); await touch('touchEnd', []); await sleep(60);
+  };
+  const spin = async (id, turns) => {
+    const c = await center(id), r = Math.min(c[2], c[3]) * 0.35, n = Math.round(turns * 24);
+    await touch('touchStart', [[c[0], c[1] - r]]);
+    for (let i = 1; i <= n; i++) { const a = -Math.PI / 2 + i * Math.PI * 2 / 24; await touch('touchMove', [[c[0] + Math.cos(a) * r, c[1] + Math.sin(a) * r]]); await sleep(12); }
+    await touch('touchEnd', []); await sleep(80);
+  };
+  const drawPath = async (pts) => {
+    const P = []; for (const p of pts) P.push(await board(p[0], p[1]));
+    await touch('touchStart', [P[0]]);
+    for (let k = 1; k < P.length; k++) for (let i = 1; i <= 8; i++) { await touch('touchMove', [[P[k - 1][0] + (P[k][0] - P[k - 1][0]) * i / 8, P[k - 1][1] + (P[k][1] - P[k - 1][1]) * i / 8]]); await sleep(12); }
+    await touch('touchEnd', []); await sleep(120);
+  };
+  const dragToBoard = async (id, x, y) => { const t = await board(x, y); await drag(id, t[0], t[1]); };
 
   // ---------- as fases ----------
   const LEVELS = {
@@ -184,6 +208,66 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     27: ['ABRA A CAIXA', async () => { await tap('chest'); await notWon(27, 'tocar na caixa'); await dragTo('w_open', 'chest'); }],
     28: ['ESTRELA PARA CIMA', async () => { await dragBy('star', 0, -300); await sleep(400); await notWon(28, 'arrastar a estrela para cima'); await dragTo('w_up', 'star'); }],
     29: ['FAÇA CHOVER', async () => { await tap('cloud'); await notWon(29, 'tocar na nuvem'); await rub('cloud', 22); }],
+    31: ['ENCONTRE 3 TRIÂNGULOS', async () => { await tap('t1'); await notWon(31, 'tocar num triângulo'); await dragTo('hL', 'hR'); }],
+    32: ['ATRAVESSE A PONTE', async () => {
+      await dragBy('ruli', 300, 0); await sleep(700); await notWon(32, 'atravessar com a ponte curta');
+      await pinch('bridge', 3); await sleep(150); await dragBy('ruli', 300, 0);
+    }],
+    33: ['5 BOLAS NA CAIXA', async () => {
+      for (const id of ['b1', 'b2', 'b3', 'b4']) { await dragTo(id, 'box'); await sleep(150); }
+      await notWon(33, 'só quatro bolas'); await sleep(300);
+      await pinch('b4', 2); await sleep(400);
+      if (!(await state()).won) await dragTo('b5', 'box');
+    }],
+    34: ['DEIXE TUDO PEQUENO', async () => {
+      for (const id of ['ball', 'star', 'cube']) await pinch(id, 0.3);
+      await notWon(34, 'só os objetos'); await sleep(400);
+      await pinch('w_all', 0.3);
+    }],
+    35: ['PLANTA CRESCER', async () => {
+      await dragTo('sun', 'plant'); await sleep(400); await notWon(35, 'sol antes da água');
+      await dragTo('can', 'plant'); await sleep(400); await dragTo('sun', 'plant');
+    }],
+    36: ['O QUE ESTÁ ESCONDIDO', async () => {
+      await dragBy('box1', 60, 0); await notWon(36, 'mexer nas caixas');
+      await dragBy('w_all', 0, 330); await sleep(200); await tap('star');
+    }],
+    37: ['LUA NO CÉU', async () => { await tap('moon'); await notWon(37, 'tocar na lua'); await dragBy('sky', 0, 320); }],
+    38: ['JUNTE OS IGUAIS', async () => {
+      await dragTo('c1', 'c2'); await sleep(400); await notWon(38, 'tamanhos diferentes');
+      await pinch('c2', 0.38); await sleep(100); await dragTo('c1', 'c2');
+    }],
+    39: ['RELÓGIO MAIS RÁPIDO', async () => { await tap('minute'); await notWon(39, 'tocar no relógio'); await spin('minute', 2.4); }],
+    40: ['CHEGUE AO FINAL', async () => { await tap('ruli'); await notWon(40, 'tocar no Ruli'); await dragTo('w_final', 'ruli'); }],
+    41: ['NÃO TOQUE NO VERDE', async () => {
+      await tap('g'); await notWon(41, 'tocar no verde');
+      await dragTo('paint', 'g'); await sleep(400); await tap('g');
+    }],
+    42: ['ESTRELA FORA DA CAIXA', async () => { const c = await center('box'); await pinchAt(c[0] - 20, c[1] - 20, 3.6); }],
+    43: ['LADOS IGUAIS', async () => { await tap('o1'); await notWon(43, 'tocar nos círculos'); await dragToBoard('line', 46, 66); }],
+    44: ['ENCONTRE A PORTA', async () => { await dragTo('panel', 'frame'); await notWon(44, 'só o retângulo'); await sleep(200); await dragTo('knob', 'kslot'); }],
+    45: ['RULI MAIS ALTO', async () => {
+      await dragTo('ruli', 'star'); await sleep(1500); await notWon(45, 'levar o Ruli no ar até a estrela');
+      await dragToBoard('ruli', 30, 80); await sleep(1200);
+      await dragToBoard('b1', 50, 70); await sleep(1200);
+      await dragToBoard('b3', 50, 50); await sleep(1300);
+      await dragToBoard('ruli', 50, 30); await sleep(1500);
+    }, 4000],
+    46: ['NADA NO CHÃO', async () => {
+      await dragToBoard('ball', 30, 38); await dragToBoard('cube', 48, 38); await dragToBoard('apple', 66, 38);
+      await notWon(46, 'só os objetos'); await sleep(400);
+      await dragToBoard('nada', 80, 38);
+    }],
+    47: ['DIA VIRAR NOITE', async () => { await tap('sun'); await notWon(47, 'tocar no sol'); await dragToBoard('sun', 70, 112); }],
+    48: ['ENCONTRE A RESPOSTA', async () => { await dragTo('c6', 'slot'); await sleep(400); await notWon(48, 'colocar um número'); await dragTo('w_ans', 'slot'); }],
+    49: ['QUEBRE A REGRA', async () => { await tap('door'); await notWon(49, 'tocar na porta'); await dragBy('door', 0, -120); }],
+    50: ['VOCÊ JÁ SABE', async () => {
+      await dragBy('door', -150, 0); await notWon(50, 'porta trancada não sai');
+      await dragTo('ruli', 'door'); await sleep(300); await notWon(50, 'Ruli na porta trancada');
+      await dragBy('box', -60, -90); await sleep(200);
+      await dragTo('key', 'door'); await sleep(400);
+      await dragTo('ruli', 'door');
+    }],
     30: ['NÃO MOVA RULI', async () => {
       await dragTo('ruli', 'door'); await sleep(400); await notWon(30, 'arrastar o Ruli até a porta');
       const a = await board(60, 112), b = await board(-25, 112);
@@ -201,6 +285,13 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     await expectWin(id, L[0], L[2] || 3000);
     await sleep(200);
     if ([9, 11, 18, 26].includes(id)) await page.screenshot({ path: SHOTS + String(id).padStart(2, '0') + '-win.png' });
+    if (await page.evaluate(id => RULES.Levels.get(id).finale === 'mid', id)) {
+      await sleep(1600);
+      await page.screenshot({ path: SHOTS + 'finale-1.png' });
+      await page.click('.finale-word'); await sleep(1600);
+      await page.screenshot({ path: SHOTS + 'finale-2.png' });
+      await page.click('.finale-go'); await sleep(300);
+    }
   }
 
   await sleep(1400);
