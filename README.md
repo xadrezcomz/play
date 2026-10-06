@@ -9,7 +9,7 @@ celular ou no computador: **https://xadrezcomz.github.io/play/**
 | `rock-orbit/` | Página do Rock Orbit: trailer, imagens e recursos (pt, en, es) |
 | `rock-orbit/jogar/` | O Rock Orbit em si, jogável no navegador |
 | `slide-chess/jogar/` | O Slide Chess, jogável no navegador (com ícone e manifesto para instalar como app) |
-| `rules/jogar/` | O RULES (puzzle de instruções, 100 fases), jogável no navegador. Ainda fora da página inicial; detalhes em `rules/README.md` |
+| `rules/jogar/` | O RULES (puzzle de instruções, 100 fases), jogável no navegador; detalhes em `rules/README.md` |
 | `privacidade.html` | Política de privacidade do site e dos jogos |
 | `contador.js` | Contagem de visitas e jogadas pelo GoatCounter (sem cookies) |
 
@@ -62,8 +62,8 @@ No GoatCounter aparecem `site/apoio/abriu`, `site/apoio/escolheu/<n>-fichas`,
 
 Cada página tem as tags `og:` com uma imagem 1200×630 (abaixo de 300 KB, que é
 o limite seguro do WhatsApp): `img/compartilhar-site.jpg` na página inicial,
-`rock-orbit/img/compartilhar-pt.jpg` no Rock Orbit e `img/capa-slide-chess.jpg`
-no Slide Chess. O WhatsApp guarda a prévia de um link por um tempo; para testar
+`rock-orbit/img/compartilhar-pt.jpg` no Rock Orbit, `img/capa-slide-chess.jpg`
+no Slide Chess e `img/capa-rules.jpg` no RULES. O WhatsApp guarda a prévia de um link por um tempo; para testar
 uma imagem nova, mande o link com `?v=2` no fim.
 
 ## Atualizar um jogo

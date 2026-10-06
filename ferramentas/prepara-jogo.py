@@ -4,6 +4,7 @@
 #
 #   python3 ferramentas/prepara-jogo.py rock-orbit  caminho/rock-orbit.html
 #   python3 ferramentas/prepara-jogo.py slide-chess caminho/slide-chess.html
+#   python3 ferramentas/prepara-jogo.py rules        (RULES: refaz no próprio arquivo)
 #   python3 ferramentas/eventos-slide-chess.py      (só no Slide Chess, depois)
 #
 # Sem o segundo argumento, refaz no próprio arquivo que já está no site.
@@ -24,6 +25,13 @@ JOGOS = {
         'imagem': 'img/capa-slide-chess.jpg',
         'alt': 'Slide Chess: abra caminho, coroe o peão, leve a dama para casa',
         'contagem': '/jogo/slide-chess',
+    },
+    'rules': {
+        'titulo': 'RULES — jogue grátis no navegador',
+        'desc': 'Cada fase tem uma instrução simples. O difícil é descobrir como interpretá-la. 100 fases de puzzle grátis, no celular ou no computador.',
+        'imagem': 'img/capa-rules.jpg',
+        'alt': 'RULES: leia, pense, duvide',
+        'contagem': '/jogo/rules',
     },
 }
 
