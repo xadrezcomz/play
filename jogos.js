@@ -30,5 +30,13 @@ window.JOGOS = [
     jogar: 'slide-chess/jogar/',
     contagem: '/jogo/slide-chess',
     selos: ['Quebra-cabeça', 'Xadrez', 'Celular e computador', 'Português, inglês e espanhol']
+  },
+  {
+    nome: 'RULES',
+    desc: 'Cada fase tem uma instrução simples. O difícil é descobrir como interpretá-la. 100 fases para pensar diferente, com o Ruli.',
+    capa: 'img/capa-rules.jpg',
+    jogar: 'rules/jogar/',
+    contagem: '/jogo/rules',
+    selos: ['Quebra-cabeça', 'Celular e computador', 'Português, inglês e espanhol']
   }
 ];
