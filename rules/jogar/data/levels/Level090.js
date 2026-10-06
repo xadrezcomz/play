@@ -10,7 +10,7 @@ RULES.registerLevel({
     { id: 't2', type: 'tree', x: 50, y: 80, w: 26, h: 44, z: 4 },
     { id: 't3', type: 'chest', x: 76, y: 94, w: 20, h: 18, z: 4 },
     { id: 'ruli', type: 'ruli', x: 36, y: 95, w: 15, h: 17, z: 5, passive: true, state: { expr: 'thinking' } },
-    { id: 'friend', type: 'ruli', x: 104, y: 60, w: 16, h: 18, z: 6, rot: -20, props: { color: 'pink' }, behaviors: { clickable: {} } }
+    { id: 'friend', type: 'ruli', x: 98, y: 60, w: 16, h: 18, z: 6, rot: -20, props: { color: 'pink' }, behaviors: { clickable: {} } }
   ],
   reactions: [
     { on: 'tap', target: 't1', cooldown: 400, do: [{ fx: 'wobble' }, { say: 'FB_NOT_HERE' }] },
