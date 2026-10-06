@@ -47,10 +47,19 @@
     },
 
     // ---------- layout ----------
+    // Retrato: tudo numa coluna. Paisagem (celular deitado, tablet, PC): instrução
+    // e botões à esquerda, puzzle grande à direita. --W é a "largura de referência"
+    // que dá o tamanho das letras e botões nos dois casos.
     measure: function () {
+      var vw = window.innerWidth, vh = window.innerHeight;
+      var land = vw / vh > 1.05;
+      this.app.classList.toggle('land', land);
+      document.documentElement.classList.toggle('land', land);
       var r = this.app.getBoundingClientRect();
-      this.app.style.setProperty('--W', r.width + 'px');
+      var W = land ? Math.min(r.width * 0.4, r.height * 0.78, 640) : r.width;
+      this.app.style.setProperty('--W', W + 'px');
       this.app.style.setProperty('--H', r.height + 'px');
+      this.land = land;
     },
 
     onResize: function () {

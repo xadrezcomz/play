@@ -2,7 +2,7 @@
 
 Puzzle minimalista de quebra de expectativa: cada fase tem uma instrução
 simples, e o desafio é descobrir como interpretá-la. Para celular (toque), PC
-(mouse) e web, na vertical, em português, inglês e espanhol.
+(mouse) e web, na vertical ou na horizontal, em português, inglês e espanhol.
 
 **Jogar:** `rules/jogar/` no site (https://xadrezcomz.github.io/play/rules/jogar/)
 ou abrindo `rules/jogar/index.html` direto no navegador. Não tem build nem
@@ -161,6 +161,7 @@ node rules/ferramentas/valida-fases.js
 npx http-server -p 8123 .                     # na pasta play/
 node rules/ferramentas/testa-fases.js         # precisa do Playwright
 START=71 node rules/ferramentas/testa-fases.js # começa de uma fase
+VW=844 VH=390 node rules/ferramentas/testa-fases.js # tela na horizontal
 ```
 
 O teste joga as 100 fases com toque, pinça, toque simultâneo e esfregar de

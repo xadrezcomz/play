@@ -264,6 +264,7 @@
 
     updateDrag: function (p) {
       var o = p.obj, cfg = o.behaviors.draggable;
+      if (!cfg) return;
       var b = R.Stage.fromClient(p.cx, p.cy), sb = R.Stage.screenBounds();
       var x = b[0] + p.offX, y = b[1] + p.offY;
       if (cfg.axis === 'x') y = p.fromY;
@@ -283,7 +284,8 @@
       var ev = { obj: o, fromX: p.fromX, fromY: p.fromY, handled: false };
       R.Audio.play('drop');
       E.emit('drop', ev);
-      if (o.behaviors.draggable.returnOnDrop && !ev.handled) o.moveTo(p.fromX, p.fromY, 260);
+      var cfg = o.behaviors.draggable;
+      if (cfg && cfg.returnOnDrop && !ev.handled) o.moveTo(p.fromX, p.fromY, 260);
     },
 
     // Encerra toques pendurados (soltando o que estava sendo arrastado).

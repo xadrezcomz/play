@@ -170,8 +170,9 @@
     var el = this.instrEl, box = el && el.parentNode;
     if (!box) return;
     el.style.fontSize = '';
-    var size = parseFloat(getComputedStyle(el).fontSize), min = size * 0.6;
-    while (el.scrollHeight > box.clientHeight && size > min) {
+    var size = parseFloat(getComputedStyle(el).fontSize), min = size * 0.5;
+    // diminui até caber na altura E na largura (palavras longas não quebram no meio)
+    while ((el.scrollHeight > box.clientHeight + 1 || el.scrollWidth > box.clientWidth + 1) && size > min) {
       size *= 0.93;
       el.style.fontSize = size + 'px';
     }
