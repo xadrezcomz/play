@@ -174,6 +174,7 @@
       $('i-total').textContent = L.dist(save.stats.totalDistance, true);
       $('i-moedas').textContent = L.num(save.coins);
       $('i-melhor').textContent = save.records.longestRun > 0 ? t('home.best', { d: L.dist(save.records.longestRun) }) : t('home.firstRun');
+      if (EP.MetaUI && EP.Meta && EP.Meta.save === save) EP.MetaUI.home(save);   // nível, XP e selos dos botões
     },
 
     summary: function (sum, save) {

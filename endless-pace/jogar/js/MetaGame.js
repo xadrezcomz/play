@@ -34,8 +34,20 @@
       this.refreshDay();
       this.recompute();
       this._acc = { dist: 0, flow: 0, draft: 0, check: 0 };
+      this.runXp = 0;
       // conquistas que já valem (por exemplo, depois de uma atualização) entram sem festa
       this.checkAchievements(true);
+      this.welcomeGift();
+    },
+
+    // presente de boas-vindas (uma vez por save): moedas para estrear a loja
+    welcomeGift: function () {
+      var s = this.save, n = EP.data.welcomeGift || 0;
+      s.flags = s.flags || {};
+      if (s.flags.welcomeGift || !n) return;
+      s.flags.welcomeGift = true;
+      s.coins += n;
+      this.popups.push({ type: 'gift', data: { coins: n } });
     },
 
     refreshDay: function () {
@@ -67,10 +79,14 @@
       return ok;
     },
     equipItem: function (id) {
-      if (!this.inv) return;
-      this.inv.equip(id);
+      if (!this.inv) return false;
+      var ok = this.inv.equip(id);
       this.recompute();
+      return ok;
     },
+    level: function () { return this.save.profile.level; },
+    owns: function (id) { return !!this.inv && this.inv.owns(id); },
+    isEquipped: function (id) { var it = this.itemsById[id]; return !!it && this.save.equipped[it.slot] === id; },
 
     // ---------------------------------------------------------- XP e recompensas
     // reward: { coins, xp, item }
@@ -90,6 +106,7 @@
     },
     addXp: function (n, reason) {
       if (!this.levels || !(n > 0)) return null;
+      this.runXp += n;   // a tela de resumo mostra quanto XP a corrida rendeu
       var r = this.levels.addXp(n, reason);
       if (r && r.levelsGained) {
         (r.rewards || []).forEach(function (rw) { if (rw.item) M.grantItem(rw.item); });
@@ -102,6 +119,10 @@
     xpCfg: function () { return (EP.data.levels && EP.data.levels.xp) || {}; },
 
     // ---------------------------------------------------------- conquistas
+    // a tela de conquistas foi aberta: some o selo de novidade
+    seeAchievements: function () { this.save.unseen.achievements = []; },
+    unseenCount: function () { return (this.save.unseen.achievements || []).length; },
+
     checkAchievements: function (quiet) {
       if (!this.ach) return [];
       var got = this.ach.check();
@@ -126,6 +147,14 @@
       if (r) this.pay(r, 'mission');
       return r;
     },
+    // bônus do dia: as três missões resgatadas
+    claimBonus: function () {
+      if (!this.missions) return null;
+      var r = this.missions.claimBonus();
+      if (r) this.pay(r, 'mission_bonus');
+      return r;
+    },
+    pendingMissions: function () { return this.missions ? this.missions.pending() : 0; },
 
     // durante a corrida, chamado a cada quadro com o que aconteceu nele
     runTick: function (dt, meters, ctx) {
@@ -144,6 +173,11 @@
       this.addXp(xp * (ctx.xpMult || 1), 'run');
       this.checkAchievementsInRun();
       return done;
+    },
+    // fim da corrida: conta o que sobrou do último segundo
+    flushRun: function (ctx) {
+      this._acc.check = 1;
+      return this.runTick(0, 0, ctx || { flowLevel: 0, drafting: false, speed: 0 });
     },
     checkAchievementsInRun: function () {
       var got = this.checkAchievements();

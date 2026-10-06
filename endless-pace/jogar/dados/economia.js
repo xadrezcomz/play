@@ -53,6 +53,9 @@
     { id: 'relogios', slots: ['wrist'], text: 'shop.cat.relogios', icon: '⌚' }
   ];
 
+  // presente de boas-vindas (uma vez por save) para estrear a loja
+  EP.data.welcomeGift = 300;
+
   // Progresso offline (GDD §45–47): o corredor "continua treinando" enquanto o
   // jogo está fechado, num ritmo bem menor que o seu (20–40%) e com limite.
   EP.data.offline = {

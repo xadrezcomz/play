@@ -80,6 +80,7 @@
       <div class="bif-dica" data-t="fork.hint"></div>
     </div>
     <div id="h-aviso" class="aviso" aria-live="polite"></div>
+    <div id="h-meta" class="meta-toast" hidden aria-live="polite"><span id="h-meta-ic" class="mt-ic"></span><span class="mt-txt"><small id="h-meta-rot"></small><b id="h-meta-txt"></b></span></div>
     <div class="hud-base">
       <div id="h-batida" class="batida"><i></i></div>
       <div id="h-zona" class="zona"></div>
@@ -137,25 +138,125 @@
     <p class="girar" data-t="create.rotate"></p>
   </section>
 
-  <!-- tela inicial (GDD §91) -->
+  <!-- tela inicial (GDD §91): correr, loja e o resto do jogo à mão -->
   <section id="tela-inicio" class="tela" hidden>
     <header class="inicio-topo">
-      <div class="logo"><span>ENDLESS</span><span>PACE</span></div>
+      <button type="button" id="i-perfil" class="chip-perfil" data-t-aria="home.profile">
+        <span class="nivel"><small data-t="lvl.short"></small><b id="i-nivel">1</b></span>
+        <span class="cp-txt">
+          <span id="i-nome" class="cp-nome"></span>
+          <span id="i-titulo" class="cp-titulo"></span>
+          <span class="cp-xp"><i id="i-xp"></i></span>
+          <span id="i-xp-txt" class="cp-xp-txt"></span>
+        </span>
+      </button>
+      <div class="logo topo-logo"><span>ENDLESS</span><span>PACE</span></div>
       <span class="moedas pilula"><i class="moeda"></i><b id="i-moedas">0</b></span>
     </header>
     <div class="inicio-base">
       <div class="perfil">
-        <div id="i-nome" class="nome"></div>
         <div class="total"><b id="i-total">0 km</b> <span data-t="home.total"></span></div>
         <div id="i-melhor" class="melhor"></div>
       </div>
       <button type="button" id="i-correr" class="btn correr"><span data-t="home.run"></span></button>
-      <div class="menu">
-        <button type="button" class="btn sec" id="i-corredor" data-t="home.runner"></button>
-        <button type="button" class="btn sec" id="i-recordes" data-t="home.records"></button>
-        <button type="button" class="btn sec" id="i-opcoes" data-t="home.options"></button>
-      </div>
+      <nav class="menu-grade">
+        <button type="button" id="i-loja" class="mb loja">
+          <svg class="mi" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1.2 12.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8L5 8z"/><path d="M9 10V6.5a3 3 0 0 1 6 0V10"/></svg>
+          <span class="mb-txt"><b data-t="home.shop"></b><small data-t="home.shopSub"></small></span>
+          <em id="i-loja-selo" class="selo" hidden></em>
+        </button>
+        <button type="button" id="i-equipar" class="mb">
+          <svg class="mi" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 3.5 3 6.5l2 4.2 2.6-1V20.5h8.8V9.7l2.6 1 2-4.2-5.5-3a3.5 3.5 0 0 1-7 0z"/></svg>
+          <span class="mb-txt"><b data-t="home.equip"></b></span>
+        </button>
+        <button type="button" id="i-missoes" class="mb">
+          <svg class="mi" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2.5"/><path d="M9 4V2.8h6V4"/><path d="m8.8 12.5 2.2 2.2 4.2-4.4"/></svg>
+          <span class="mb-txt"><b data-t="home.missions"></b></span>
+          <em id="i-missoes-selo" class="selo" hidden></em>
+        </button>
+        <button type="button" id="i-conquistas" class="mb">
+          <svg class="mi" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3.5h8v5.5a4 4 0 0 1-8 0V3.5z"/><path d="M16 5h3v1.5a3.5 3.5 0 0 1-3.2 3.5M8 5H5v1.5A3.5 3.5 0 0 0 8.2 10"/><path d="M12 13v3.5M8.5 20.5h7M9.5 20.5l.8-4h3.4l.8 4"/></svg>
+          <span class="mb-txt"><b data-t="home.achievements"></b></span>
+          <em id="i-conquistas-selo" class="selo" hidden></em>
+        </button>
+        <button type="button" id="i-corredor" class="mb">
+          <svg class="mi" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7.5" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></svg>
+          <span class="mb-txt"><b data-t="home.runner"></b></span>
+        </button>
+        <button type="button" id="i-recordes" class="mb">
+          <svg class="mi" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20.5h16"/><path d="M7 20.5v-6M12 20.5v-14M17 20.5v-9.5"/></svg>
+          <span class="mb-txt"><b data-t="home.records"></b></span>
+        </button>
+        <button type="button" id="i-opcoes" class="mb">
+          <svg class="mi" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h9M18 6h2M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15.5" cy="6" r="2.2"/><circle cx="8.8" cy="12" r="2.2"/><circle cx="17" cy="18" r="2.2"/></svg>
+          <span class="mb-txt"><b data-t="home.options"></b></span>
+        </button>
+      </nav>
     </div>
+  </section>
+
+  <!-- loja (GDD §42) -->
+  <section id="tela-loja" class="tela modal meta" hidden>
+    <div class="caixa larga">
+      <header class="cab">
+        <h1 class="tit">🛍️ <span data-t="shop.title"></span></h1>
+        <span class="moedas pilula"><i class="moeda"></i><b id="loja-moedas">0</b></span>
+        <button type="button" class="x fechar" data-t-aria="ui.close">✕</button>
+      </header>
+      <nav id="loja-abas" class="abas"></nav>
+      <div id="loja-lista" class="rolagem grade-itens"></div>
+    </div>
+  </section>
+
+  <!-- detalhe do item: comparar e comprar -->
+  <section id="tela-item" class="tela modal topo" hidden>
+    <div class="caixa item-caixa">
+      <button type="button" class="x fechar" data-t-aria="ui.close">✕</button>
+      <div id="item-corpo" class="item-corpo"></div>
+    </div>
+  </section>
+
+  <!-- equipar: o corredor aparece ao lado e muda na hora -->
+  <section id="tela-equipar" class="tela painel-lateral equipar" hidden>
+    <div class="painel">
+      <header class="cab">
+        <h1 class="tit" data-t="equip.title"></h1>
+        <button type="button" class="x fechar" data-t-aria="ui.close">✕</button>
+      </header>
+      <p class="nota" data-t="equip.hint"></p>
+      <div id="eq-total" class="eq-total"></div>
+      <div id="eq-slots" class="eq-slots"></div>
+    </div>
+  </section>
+
+  <!-- conquistas (GDD §50–52) -->
+  <section id="tela-conquistas" class="tela modal meta" hidden>
+    <div class="caixa larga">
+      <header class="cab">
+        <h1 class="tit" data-t="ach.title"></h1>
+        <span id="cq-conta" class="pilula"></span>
+        <button type="button" class="x fechar" data-t-aria="ui.close">✕</button>
+      </header>
+      <nav id="cq-abas" class="abas"></nav>
+      <div id="cq-lista" class="rolagem"></div>
+    </div>
+  </section>
+
+  <!-- missões do dia (GDD §56) -->
+  <section id="tela-missoes" class="tela modal meta" hidden>
+    <div class="caixa">
+      <header class="cab">
+        <h1 class="tit" data-t="mis.title"></h1>
+        <button type="button" class="x fechar" data-t-aria="ui.close">✕</button>
+      </header>
+      <p id="ms-reset" class="nota"></p>
+      <div id="ms-lista" class="rolagem"></div>
+    </div>
+  </section>
+
+  <!-- avisos: progresso offline, nível, conquista, região, presente -->
+  <section id="tela-aviso" class="tela modal topo" hidden>
+    <div id="av-caixa" class="caixa aviso-caixa"></div>
   </section>
 
   <!-- pausa -->
@@ -176,6 +277,7 @@
       <div class="destaque"><b id="r-dist"></b><span id="r-tempo"></span></div>
       <dl id="r-lista" class="lista"></dl>
       <div class="ganho"><span data-t="sum.coins"></span><b id="r-moedas"></b></div>
+      <div id="r-meta" class="r-meta"></div>
       <p id="r-total" class="nota"></p>
       <button type="button" id="r-continuar" class="btn pri largo" data-t="ui.continue"></button>
     </div>
@@ -272,6 +374,7 @@
 <script src="js/systems/LevelSystem.js"></script>
 <script src="js/systems/DraftSystem.js"></script>
 <script src="js/systems/PacemakerSystem.js"></script>
+<script src="js/MetaGame.js"></script>
 <script src="js/audio/MusicLayerManager.js"></script>
 <script src="js/audio/AudioManager.js"></script>
 <!-- mundo e corredores -->
@@ -302,6 +405,8 @@
 <script src="js/ui/Input.js"></script>
 <script src="js/ui/CharacterCreator.js"></script>
 <script src="js/ui/UIManager.js"></script>
+<script src="js/ui/ItemIcons.js"></script>
+<script src="js/ui/MetaScreens.js"></script>
 <script src="js/GameManager.js"></script>
 </body>
 </html>

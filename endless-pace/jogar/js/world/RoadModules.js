@@ -43,7 +43,7 @@
       for (var xs = -1; xs <= 1; xs++) B.w.floor(xs * R * 2 / 3, 0, -(z + zl / 2), R * 2 / 3, zl, shade(pal.asphalt, 0.95 + arnd() * 0.1));
     }
     B.w.detail = 0;
-    for (z = 1.5; z < L - 1; z += 6) B.w.floor(0, 0.012, -(z + 1.5), 0.16, 3, pal.line);
+    for (z = 1.5; z < L - 1; z += 9) B.w.floor(0, 0.012, -(z + 1.5), 0.12, 3, pal.line);   // 3 m de faixa, 6 m de vão
     [-1, 1].forEach(function (s) {
       B.w.floor(s * (R - 0.35), 0.012, -L / 2, 0.12, L, pal.line);
       B.w.detail = 4; B.w.box(s * (R + 0.1), 0, -L / 2, 0.2, 0.17, L, pal.curb);

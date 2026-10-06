@@ -27,7 +27,7 @@
     // marcas de pneu: faixas um pouco mais escuras onde os carros passam
     [-3.0, -1.4, 1.4, 3.0].forEach(function (x) { B.w.floor(x, 0.006, -L / 2, 0.75, L, shade(C.asphalt, 0.9)); });
     // faixas: tracejada no meio, contínuas nas bordas
-    for (z = 2; z < L - 2; z += 7.5) B.w.floor(0, 0.012, -(z + 1.6), 0.14, 3.2, C.line);
+    for (z = 2; z < L - 2; z += 9) B.w.floor(0, 0.012, -(z + 1.5), 0.14, 3.0, C.line);
     [-1, 1].forEach(function (s) {
       B.w.floor(s * (R - 0.55), 0.012, -L / 2, 0.12, L, shade(C.line, 0.96));
       K.det(B, 4, function () {
@@ -59,7 +59,7 @@
     for (z = 0; z < L; z += 2.4) B.w.box(gx, 0.36, -z, 0.08, 1.02, 0.08, K.IRON);
     B.w.box(gx, 1.33, -L / 2, 0.07, 0.06, L, K.IRON);
     B.w.box(gx, 0.48, -L / 2, 0.05, 0.04, L, K.IRON);
-    for (z = 0.15; z < L; z += 0.24) B.w.quad(gx + 0.02, 0.91, -z, 0.026, 0.83, '#323741', Math.PI / 2);
+    [0.72, 0.96, 1.18].forEach(function (y) { B.w.box(gx, y, -L / 2, 0.035, 0.03, L, K.IRON); });   // barras ao longo da rua: não "piscam" com a velocidade
     ctx.outer = RIGHT_EDGE; ctx.curbX = R + 0.55; ctx.innerX = RIGHT_EDGE - 0.6; ctx.treeX = R + 1.6; ctx.propY = SW;
     return RIGHT_EDGE;
   };

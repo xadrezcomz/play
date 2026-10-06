@@ -7,7 +7,8 @@
   var U = EP.util;
   var $ = function (id) { return document.getElementById(id); };
   var t = function (k, p) { return EP.i18n.t(k, p); };
-  var UI = EP.UI, AU = EP.AudioManager;
+  var UI = EP.UI, AU = EP.AudioManager, MU = EP.MetaUI;
+  var META_MODALS = ['tela-item', 'tela-loja', 'tela-conquistas', 'tela-missoes', 'tela-opcoes', 'tela-recordes'];
 
   var G = EP.Game = {
     state: 'boot',
@@ -15,13 +16,17 @@
     boot: function () {
       this.saveMgr = new EP.SaveManager();
       this.save = this.saveMgr.load();
+      // itens, nível, conquistas e missões; o treino com o jogo fechado vira aviso na tela inicial
+      EP.Meta.init(this.save);
+      EP.Meta.collectOffline(Date.now());
       EP.i18n.set(this.save.settings.lang || EP.i18n.detect());
       UI.init(this);
+      MU.init(this);
       this._applySettings();
       if (!this._webgl()) { UI.error(t('boot.noWebgl')); return; }
       var self = this;
       // antes de abrir: o corredor do jogador e um corredor da rua já esculpidos (em segundo plano)
-      var RR = EP.RunnerRig, heroApp = RR.resolve(this.save.profile), npc0 = RR.NPC_OUTFITS[0], left = 2;
+      var RR = EP.RunnerRig, heroApp = this._look(), npc0 = RR.NPC_OUTFITS[0], left = 2;
       var go = function () {
         if (--left > 0) return;
         try { self._init3d(); }
@@ -67,7 +72,7 @@
       this.biome = this.world.biomeById(save.world.region || EP.data.biomes[0].id);
 
       this.rig = new EP.RunnerRig();
-      this.rig.setAppearance(EP.RunnerRig.resolve(save.profile));
+      this.rig.setAppearance(this._look());
       this.rig.shadow.material = EP.Materials.shadowSoft || this.rig.shadow.material;
       this.rig.onStep = function () { if (self.state === 'run') AU.step(self.speed.value); };
       this.scene.add(this.rig.root);
@@ -112,6 +117,16 @@
     },
 
     // ---------------------------------------------------------------- estados
+    // aparência do corredor com os itens equipados · basic: roupa da criação (o criador mostra as cores escolhidas)
+    _look: function (profile, basic) {
+      var M = EP.Meta, eq = this.save.equipped;
+      if (basic && M.inv) {
+        eq = Object.assign({}, eq);
+        ['shirt', 'shorts', 'shoes'].forEach(function (s) { var st = M.inv.starterFor(s); if (st) eq[s] = st.id; });
+      }
+      return EP.RunnerRig.resolve(profile || this.save.profile, M.gear(eq));
+    },
+
     _homeScene: function () {
       this.world.reset({ biome: this.biome.id, firstRun: !this.save.stats.runs });
       this.daynight.setBiome(this.biome);
@@ -123,13 +138,122 @@
     goHome: function () {
       this.state = 'home';
       this.camMode = 'home';
-      ['tela-criar', 'tela-pausa', 'tela-resumo'].forEach(UI.hide);
+      this.dressing = false;
+      ['tela-criar', 'tela-pausa', 'tela-resumo', 'tela-equipar'].forEach(UI.hide);
       UI.hud(false);
       UI.show('tela-inicio');
+      EP.Meta.refreshDay();
       UI.home(this.save);
       this._homeScene();
       AU.ambience(false);
       this._persist();
+      var self = this;
+      setTimeout(function () { self._nextPopup(); }, 450);
+    },
+
+    // ---------------------------------------------------------------- loja, equipar, conquistas, missões
+    _modalOpen: function () {
+      return this.dressing || UI.isOpen('tela-aviso') || UI.isOpen('tela-confirmar') || META_MODALS.some(function (id) { return UI.isOpen(id); });
+    },
+    // avisos guardados (offline, nível, conquista, região, presente): um de cada vez, só na tela inicial
+    _nextPopup: function () {
+      var M = EP.Meta, self = this;
+      if (this.state !== 'home' || this._modalOpen() || !M.popups.length) return;
+      var p = M.popups.shift();
+      if (p.type === 'level' || p.type === 'achievement' || p.type === 'gift') AU.challenge(true); else AU.ui();
+      this._popupDone = function (action) {
+        self._popupDone = null;
+        UI.hide('tela-aviso');
+        self._persist();
+        UI.home(self.save);
+        if (action === 'shop') self.openShop('tenis');
+        else if (action === 'equip') self.openEquip();
+        else self._nextPopup();
+      };
+      MU.popup(p, function (action) { AU.ui(); if (self._popupDone) self._popupDone(action); });
+    },
+
+    openShop: function (cat) {
+      AU.unlock(); AU.ui();
+      if (this.dressing) this.closeEquip(true);
+      MU.shop(cat);
+      UI.show('tela-loja');
+      document.getElementById('loja-lista').scrollTop = 0;
+    },
+    buyItem: function (id) {
+      if (!EP.Meta.buy(id)) { AU.ui(); return; }
+      AU.coin();
+      EP.haptics.pulse([20, 30, 20]);
+      this._persist();
+      MU.shop();
+      MU.item(id, true);
+      UI.home(this.save);
+    },
+    equipItem: function (id) {
+      if (!EP.Meta.equipItem(id)) return;
+      AU.ui();
+      EP.haptics.pulse(12);
+      this._afterGear();
+    },
+    unequipSlot: function (slot) {
+      EP.Meta.inv.unequip(slot);
+      EP.Meta.recompute();
+      AU.ui();
+      this._afterGear();
+    },
+    // depois de trocar um item: bônus na corrida, roupa no boneco e as telas abertas
+    _afterGear: function () {
+      EP.Meta.applyTo(this);
+      this.rig.setAppearance(this._look());
+      this._persist();
+      if (UI.isOpen('tela-equipar')) MU.equip();
+      if (UI.isOpen('tela-loja')) MU.shop();
+      UI.home(this.save);
+    },
+    openEquip: function () {
+      AU.unlock(); AU.ui();
+      this.dressing = true;
+      this.camMode = 'create';
+      this.cam.turn = 0;
+      UI.hide('tela-inicio');
+      MU.equip();
+      UI.show('tela-equipar');
+    },
+    closeEquip: function (quiet) {
+      this.dressing = false;
+      this.camMode = 'home';
+      UI.hide('tela-equipar');
+      if (this.state !== 'home') return;
+      UI.show('tela-inicio');
+      UI.home(this.save);
+      if (!quiet) this._nextPopup();
+    },
+    openAchievements: function () {
+      AU.unlock(); AU.ui();
+      MU.achievements();
+      UI.show('tela-conquistas');
+      this._persist();   // as novidades já foram vistas
+    },
+    openMissions: function () {
+      AU.unlock(); AU.ui();
+      MU.missions();
+      UI.show('tela-missoes');
+    },
+    claimMission: function (i) {
+      if (!EP.Meta.claimMission(i)) return;
+      AU.coin();
+      EP.haptics.pulse([20, 30, 20]);
+      this._persist();
+      MU.missions();
+      UI.home(this.save);
+    },
+    claimBonus: function () {
+      if (!EP.Meta.claimBonus()) return;
+      AU.challenge(true);
+      EP.haptics.pulse([30, 40, 30]);
+      this._persist();
+      MU.missions();
+      UI.home(this.save);
     },
 
     openCreator: function (editing) {
@@ -140,21 +264,22 @@
       UI.hide('tela-inicio');
       UI.show('tela-criar');
       if (!editing) this._homeScene();
+      this.rig.setAppearance(this._look(this.save.profile, true));
       this.creator.open({
         profile: this.save.profile,
         editing: editing,
-        onChange: function (p) { self.rig.setAppearance(EP.RunnerRig.resolve(p)); },
+        onChange: function (p) { self.rig.setAppearance(self._look(p, true)); },
         onDone: function (p) {
           var first = !self.save.profile.created;
           self.save.profile.name = p.name;
           self.save.profile.gender = p.gender;
           self.save.profile.appearance = p.appearance;
           self.save.profile.created = true;
-          self.rig.setAppearance(EP.RunnerRig.resolve(self.save.profile));
+          self.rig.setAppearance(self._look());
           if (first) EP.events.emit('character_created', { gender: p.gender });
           self.goHome();
         },
-        onCancel: editing ? function () { self.rig.setAppearance(EP.RunnerRig.resolve(self.save.profile)); self.goHome(); } : null
+        onCancel: editing ? function () { self.rig.setAppearance(self._look()); self.goHome(); } : null
       });
     },
 
@@ -164,6 +289,15 @@
       if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
       this.state = 'run';
       this.camMode = 'run';
+      this.dressing = false;
+      // bônus dos itens equipados (antes de zerar: a energia máxima depende deles)
+      var M = EP.Meta;
+      M.refreshDay();
+      M.recompute();
+      M.applyTo(this);
+      M.runXp = 0;
+      this.runMeta = { levelFrom: save.profile.level, achievements: [], missions: [] };
+      M.visit(this.biome.id);
       this.rhythm.reset(); this.flow.reset(); this.energy.reset(); this.speed.reset();
       this.overtakes.reset(); this.economy.reset(); this.draft.reset(); this.pacer.stop();
       var firstRun = !save.stats.runs;
@@ -174,9 +308,10 @@
       this.forkShown = false; this.forkHideT = 0; this.routeId = this.biome.startRoute; this.comboShown = false;
       this.tutorial = save.tutorialDone ? null : { step: -1, t: 0, taps: 0 };
       this.npcs.reset(this.player, this._npcCtx(false));
-      UI.hide('tela-inicio');
+      META_MODALS.concat(['tela-inicio', 'tela-aviso', 'tela-equipar']).forEach(UI.hide);
       UI.resetCache();
       UI.clearToasts();
+      MU.clearRunToasts();
       UI.hud(true);
       UI.flow(0); UI.combo(0); UI.challenge(null); UI.route(null); UI.fork(null); UI.rating(null); UI.hint(null);
       UI.coins(save.coins);
@@ -209,9 +344,22 @@
       UI.hud(false);
       var sum = this.progression.finishRun();
       sum.run.coins = this.economy.runCoins;
+      // fecha a parte "meta" da corrida: último segundo, missão de corridas, regiões e conquistas
+      var M = EP.Meta, rm = this.runMeta || { levelFrom: this.save.profile.level, achievements: [], missions: [] };
+      M.flushRun({ flowLevel: 0, drafting: false, speed: 0 });
+      M.track('runs', 1);
+      M.checkUnlocks();
+      M.checkAchievements();
+      this.runMeta = null;
+      // o que já aparece no resumo não volta como aviso na tela inicial
+      var shown = {};
+      rm.achievements.forEach(function (d) { shown[d.id] = 1; });
+      M.popups = M.popups.filter(function (p) { return !(p.type === 'achievement' && shown[p.data.id]); });
+      MU.clearRunToasts();
       EP.events.emit('run_finished', { distance: r.distance, time: r.time, overtakes: r.overtakes, coins: sum.run.coins, maxFlow: r.maxFlow });
       this._persist();
       UI.summary(sum, this.save);
+      MU.summary({ xp: M.runXp, levelFrom: rm.levelFrom, levelTo: this.save.profile.level, achievements: rm.achievements, missions: rm.missions });
       UI.show('tela-resumo');
       AU.ambience(false);
     },
@@ -228,9 +376,10 @@
       });
       // girar o boneco na criação
       var drag = null;
-      layer.addEventListener('pointerdown', function (e) { if (self.state === 'create') drag = e.clientX; });
+      var turning = function () { return self.state === 'create' || self.dressing; };
+      layer.addEventListener('pointerdown', function (e) { if (turning()) drag = e.clientX; });
       layer.addEventListener('pointermove', function (e) {
-        if (drag === null || self.state !== 'create') return;
+        if (drag === null || !turning()) return;
         self.cam.turn += (e.clientX - drag) * 0.012;
         drag = e.clientX;
       });
@@ -239,8 +388,11 @@
 
     _escape: function () {
       if (UI.isOpen('tela-confirmar')) { UI.hide('tela-confirmar'); return; }
-      if (UI.isOpen('tela-opcoes')) { UI.hide('tela-opcoes'); return; }
-      if (UI.isOpen('tela-recordes')) { UI.hide('tela-recordes'); return; }
+      if (UI.isOpen('tela-aviso')) { if (this._popupDone) this._popupDone('ok'); else UI.hide('tela-aviso'); return; }
+      for (var i = 0; i < META_MODALS.length; i++) {
+        if (UI.isOpen(META_MODALS[i])) { AU.ui(); UI.hide(META_MODALS[i]); this.onModalClosed(); return; }
+      }
+      if (this.dressing) { AU.ui(); this.closeEquip(); return; }
       if (this.state === 'run') this.pause();
       else if (this.state === 'paused') this.resume();
     },
@@ -260,7 +412,13 @@
       this.flow.onRating(r);
       this.challenges.onRating(r);
       undo.perfect = r === 'perfect';
-      if (undo.perfect) { this.progression.addPerfect(); EP.haptics.pulse(8); if (!this.save.settings.reduceMotion) this.fovKick = 1.3; }
+      if (undo.perfect) {
+        this.progression.addPerfect();
+        EP.Meta.track('perfects', 1);
+        EP.Meta.addXp(EP.Meta.xpCfg().perPerfect || 0, 'perfect');
+        EP.haptics.pulse(8);
+        if (!this.save.settings.reduceMotion) this.fovKick = 1.3;
+      }
       this.tapUndo = undo;
       AU.tap(r, this.flow.level, res.interval);
       UI.rating(r);
@@ -276,7 +434,10 @@
       this.flow._set(u.flow);
       this.energy.value = u.energy;
       if (u.ch && this.challenges.active === u.ch) u.ch.progress = u.chProgress;
-      if (u.perfect) { this.progression.run.perfects--; this.save.stats.perfects--; }
+      if (u.perfect) {
+        this.progression.run.perfects--; this.save.stats.perfects--;
+        EP.Meta.missions.list().forEach(function (m) { if (m.metric === 'perfects' && !m.done && m.progress > 0) m.progress--; });
+      }
       UI.rating(null);
       if (this.tutorial) this.tutorial.taps = Math.max(0, this.tutorial.taps - 1);
       this.tapUndo = null;
@@ -337,7 +498,7 @@
 
     _updateIdle: function (dt) {
       this.rig.animate(dt, 0, { idle: true });
-      this.rig.root.rotation.y = U.damp(this.rig.root.rotation.y, this.state === 'create' ? this.cam.turn : 0, 10, dt);
+      this.rig.root.rotation.y = U.damp(this.rig.root.rotation.y, this.state === 'create' || this.dressing ? this.cam.turn : 0, 10, dt);
       this.npcs.update(dt, this.player, this._npcCtx(true));
     },
 
@@ -348,16 +509,18 @@
       this.flow.update(dt, this.rhythm.idle(clock));
       var lvl = this.flow.level;
       this.draft.update(dt, this.npcs.pool, this.player, this.speed.value);
-      this.speed.update(dt, freq, { flowLevel: lvl, exhausted: this.energy.exhausted, speedBonus: this.draft.speedBonus() });
-      this.energy.update(dt, this.speed.value, { flowLevel: lvl, energy: mods.energy, consumption: this.draft.consumption() });
+      var fx = EP.Meta.fx;   // tênis, camisetas, shorts... (EquipmentManager.effects)
+      this.speed.update(dt, freq, { flowLevel: lvl, exhausted: this.energy.exhausted, speedBonus: this.draft.speedBonus(), statSpeed: fx.speedMult });
+      this.energy.update(dt, this.speed.value, { flowLevel: lvl, energy: mods.energy, consumption: this.draft.consumption() * fx.consumptionMult, recovery: fx.recoveryMult });
       if (this.energy.exhausted && !this.wasExhausted) UI.toast(t('hud.lowEnergy'), 2600);
       this.wasExhausted = this.energy.exhausted;
       var limits = this.world.limitsAt(this.player.z, this.player.x, B.run.laneLimit);
       this.player.update(dt, this.speed.value, limits);
       var meters = this.speed.value / 3.6 * dt;
       this.progression.tick(dt, meters, this.speed.value);
-      this.economy.addDistance(meters, this.economy.multiplier(lvl, mods));
+      this.economy.addDistance(meters, this._coinMult(lvl, mods));
       if (lvl > 0) this.progression.addFlowTime(dt);
+      EP.Meta.runTick(dt, meters, { flowLevel: lvl, drafting: this.draft.active, speed: this.speed.value });
 
       this.world.update(this.player.z);
       this._updateFork(dt);
@@ -394,11 +557,18 @@
       });
     },
 
+    // moedas: FLOW e rota multiplicam; no FLOW os fones dão um bônus a mais
+    _coinMult: function (lvl, mods) {
+      return this.economy.multiplier(lvl, mods) * (lvl > 0 ? EP.Meta.fx.flowCoinMult : 1);
+    },
+
     _onOvertake: function () {
       var seg = this.world.segmentAt(this.player.z), mods = EP.data.routes[seg.route].modifiers;
       var o = this.overtakes.onOvertake(this.clock);
       this.progression.addOvertake(o.combo);
-      this.economy.add(o.coins * this.economy.multiplier(this.flow.level, mods), 'overtake');
+      EP.Meta.track('overtakes', 1);
+      EP.Meta.track('combo', o.combo, 'max');
+      this.economy.add(o.coins * this._coinMult(this.flow.level, mods), 'overtake');
       this.challenges.onOvertake(o.combo);
       UI.combo(o.combo);
       this.comboShown = o.combo > 1;
@@ -532,8 +702,8 @@
     // desloca a imagem para o boneco ficar na parte livre da tela (fora dos painéis)
     _viewOffset: function (dt) {
       var w = window.innerWidth, h = window.innerHeight, ox = 0, oy = 0, el;
-      if (this.state === 'create') {
-        el = document.querySelector('#tela-criar .painel');
+      if (this.state === 'create' || this.dressing) {
+        el = document.querySelector(this.dressing ? '#tela-equipar .painel' : '#tela-criar .painel');
         if (w < h) oy = el.offsetHeight / 2 - 10;
         else ox = (el.offsetWidth + 16) / 2;
       } else if (this.state === 'home') {
@@ -576,6 +746,11 @@
       E.on('challenge_completed', function (p) {
         var coins = self.economy.add(p.reward.coins, 'challenge');
         self.progression.run.challenges++;
+        var M = EP.Meta, x = M.xpCfg();
+        M.track('challenges', 1);
+        M.addXp(x.perChallenge || 0, 'challenge');
+        if (p.type === 'pacer') { M.track('pacers', 1); M.addXp(x.perPacer || 0, 'pacer'); }
+        M.checkAchievements();
         UI.challengeDone(true, p.target);
         UI.toast(t('ch.done') + ' ' + t('ch.reward', { n: coins }), 2600);
         AU.challenge(true);
@@ -583,12 +758,38 @@
       });
       E.on('challenge_failed', function () { UI.challengeDone(false); UI.toast(t('ch.failed')); AU.challenge(false); });
       E.on('distance_reached', function (p) { UI.toast(t('toast.km', { n: p.km }), 2400); });
-      E.on('coins', function (p) { UI.coins(p.total); if (p.reason !== 'distance') AU.coin(); });
+      E.on('coins', function (p) {
+        UI.coins(p.total);
+        if (self.state === 'home') document.getElementById('i-moedas').textContent = EP.i18n.num(p.total);
+        if (p.reason !== 'distance' && !p.silent) AU.coin();
+      });
+      // conquistas, missões e nível: aviso rápido na corrida e lista no resumo
+      E.on('achievement_unlocked', function (p) {
+        if (self.state !== 'run' && self.state !== 'paused' && !self.runMeta) return;
+        var d = p.def;
+        if (self.runMeta) self.runMeta.achievements.push(d);
+        if (self.state === 'run') { MU.runToast(d.icon, t('toast.ach'), t(d.text + '.t')); AU.challenge(true); }
+      });
+      E.on('mission_completed', function (p) {
+        if (!self.runMeta) return;
+        var m = EP.Meta.missions.list().filter(function (x) { return x.id === p.id; })[0];
+        if (!m) return;
+        self.runMeta.missions.push(m);
+        if (self.state === 'run') { MU.runToast(MU.missionIcon[m.metric] || '🎯', t('toast.mission'), MU.missionText(m)); AU.ui(); }
+      });
+      E.on('level_up', function (p) {
+        if (self.state === 'run') { MU.runToast('⭐', t('toast.level'), t('lvl.level', { n: p.level }) + ' · ' + t(EP.Meta.levels.title(p.level))); AU.flowUp(5); }
+      });
     },
 
     _buttons: function () {
       var self = this;
       $('i-correr').addEventListener('click', function () { self.startRun(); });
+      $('i-loja').addEventListener('click', function () { self.openShop(); });
+      $('i-equipar').addEventListener('click', function () { self.openEquip(); });
+      $('i-conquistas').addEventListener('click', function () { self.openAchievements(); });
+      $('i-missoes').addEventListener('click', function () { self.openMissions(); });
+      $('i-perfil').addEventListener('click', function () { AU.unlock(); AU.ui(); UI.records(self.save); UI.show('tela-recordes'); });
       $('i-corredor').addEventListener('click', function () { AU.unlock(); AU.ui(); self.openCreator(true); });
       $('i-recordes').addEventListener('click', function () { AU.unlock(); AU.ui(); UI.records(self.save); UI.show('tela-recordes'); });
       $('i-opcoes').addEventListener('click', function () { AU.unlock(); AU.ui(); self._openOptions(); });
@@ -599,7 +800,12 @@
       $('r-continuar').addEventListener('click', function () { AU.ui(); self.goHome(); });
     },
 
-    onModalClosed: function () {},
+    // uma tela foi fechada (botão ✕/Fechar ou ESC)
+    onModalClosed: function () {
+      if (this.dressing && !UI.isOpen('tela-equipar')) { this.closeEquip(); return; }
+      if (UI.isOpen('tela-loja')) MU.shop();   // fechou o detalhe do item
+      if (this.state === 'home') { UI.home(this.save); this._nextPopup(); }
+    },
 
     _openOptions: function () {
       var self = this;
