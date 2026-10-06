@@ -20,6 +20,7 @@
 //   receives   { from:[ids], set:{...}, consume } → outro objeto solto em cima dele aplica estados (ferramenta)
 //   rubbable   { count, decayMs, progress, set }  → esfregar (ou passar algo por cima) várias vezes
 //   carries    { ids:[...] }                      → ao ser arrastado, leva esses objetos junto
+//   stackPress { key }                            → tocar num objeto empilhado aciona também os de baixo
 (function () {
   'use strict';
   var R = window.RULES, U = R.util;
@@ -156,6 +157,7 @@
           victim.setState(key, false);
           victim.fx('shake');
           R.Audio.play('click');
+          E.emit('replaced', { obj: victim });
         });
       }
     },
@@ -323,6 +325,22 @@
             var dir = d > 0 ? 1 : -1;
             if (m[k[1]] && dir !== m[k[1]]) bump();
             m[k[1]] = dir; m[k[0]] = t[k[0]];
+          });
+        });
+      }
+    },
+
+    // Objetos empilhados (um em cima do outro) são apertados juntos.
+    stackPress: {
+      init: function (o, cfg, E) {
+        var key = cfg.key || 'on';
+        E.on('tap', function (e) {
+          if (e.obj !== o) return;
+          E.objects.forEach(function (x) {
+            if (x === o || !x.has('stackPress')) return;
+            if (U.dist(x.x, x.y, o.x, o.y) > Math.min(o.sw, x.sw) * 0.7) return;
+            x.setState(key, !x.state[key]);
+            x.fx('squash');
           });
         });
       }

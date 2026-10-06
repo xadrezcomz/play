@@ -108,6 +108,7 @@ RULES.L10N['en-US'] = {
     FB_SAME: 'THAT ONE IS THE SAME...',
     FB_NOT_BLUE: 'THAT\'S NOT BLUE',
     FB_SERIOUS: 'RULI IS STILL SERIOUS',
+    FB_OLDEST: 'THE OLDEST ONE WENT OUT',
     FB_NOT_UP: 'IT WON\'T GO UP...',
 
     LEVEL_004_TITLE: 'TURN ON THE LIGHT',
@@ -152,8 +153,8 @@ RULES.L10N['en-US'] = {
 
     LEVEL_018_TITLE: 'TURN ON ALL THE LIGHTS',
     LEVEL_018_HINT_1: 'Only two can stay on. The oldest one always goes out.',
-    LEVEL_018_HINT_2: 'What if none of them were the oldest?',
-    LEVEL_018_HINT_3: 'Turn on two switches at the same time (on a PC, click both very fast), then the third.',
+    LEVEL_018_HINT_2: 'What if two were turned on at exactly the same time? The switches can move, too.',
+    LEVEL_018_HINT_3: 'Drag one switch on top of another and tap the stack: both turn on together. Then turn on the third. (With two fingers you can also tap two at once.)',
 
     LEVEL_019_TITLE: 'DON\'T LET THE BALL FALL',
     LEVEL_019_HINT_1: 'The ball won\'t float forever.',

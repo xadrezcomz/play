@@ -108,6 +108,7 @@ RULES.L10N['pt-BR'] = {
     FB_SAME: 'ESSE É IGUAL...',
     FB_NOT_BLUE: 'ISSO NÃO É AZUL',
     FB_SERIOUS: 'RULI CONTINUA SÉRIO',
+    FB_OLDEST: 'A MAIS ANTIGA APAGOU',
     FB_NOT_UP: 'ELA NÃO SOBE...',
 
     LEVEL_004_TITLE: 'ACENDA A LUZ',
@@ -152,8 +153,8 @@ RULES.L10N['pt-BR'] = {
 
     LEVEL_018_TITLE: 'ACENDA TODAS AS LUZES',
     LEVEL_018_HINT_1: 'Só duas aguentam ficar acesas. A mais antiga sempre apaga.',
-    LEVEL_018_HINT_2: 'E se nenhuma fosse a mais antiga?',
-    LEVEL_018_HINT_3: 'Ligue dois interruptores ao mesmo tempo (no PC, clique nos dois o mais rápido que puder) e depois o terceiro.',
+    LEVEL_018_HINT_2: 'E se duas fossem ligadas exatamente ao mesmo tempo? Os interruptores também saem do lugar.',
+    LEVEL_018_HINT_3: 'Arraste um interruptor para cima de outro e toque na pilha: os dois ligam juntos. Depois ligue o terceiro. (Com dois dedos, também dá para tocar em dois ao mesmo tempo.)',
 
     LEVEL_019_TITLE: 'NÃO DEIXE A BOLA CAIR',
     LEVEL_019_HINT_1: 'A bola não vai ficar parada para sempre.',

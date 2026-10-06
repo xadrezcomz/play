@@ -137,7 +137,12 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       console.log('      um por vez:', await obj('b1', 'on'), await obj('b2', 'on'), await obj('b3', 'on'));
       await notWon(18, 'ligar um por vez');
       await restart();
-      await tapTogether('s1', 's2'); await sleep(200); await tap('s3');
+      await tapTogether('s1', 's2'); await sleep(200);
+      console.log('      dois dedos juntos:', await obj('b1', 'on'), await obj('b2', 'on'));
+      await restart();
+      await dragTo('s1', 's2'); await sleep(200); await tap('s1'); await sleep(200);   // empilha e toca na pilha
+      console.log('      pilha (um dedo):', await obj('b1', 'on'), await obj('b2', 'on'));
+      await tap('s3');
     }],
     19: ['NÃO DEIXE A BOLA CAIR', async () => {
       await sleep(5200); await notWon(19, 'deixar a bola cair');
