@@ -9,7 +9,22 @@
 (function (EP) {
   'use strict';
   var U = EP.util, BM = EP.BodyModel, C = BM.C;
-  var STRIDE = [[0, 0.85], [4, 0.9], [6, 1.0], [8, 1.3], [12, 1.43], [16, 1.55], [21, 1.68]];   // ciclos (2 passos) por segundo
+  // ciclos (2 passos) por segundo: 163 passos/min a 10 km/h, 182 a 20 km/h (como um corredor de verdade)
+  var STRIDE = [[0, 0.85], [4, 0.9], [6, 1.02], [7.5, 1.3], [10, 1.36], [12, 1.4], [15, 1.45], [20, 1.52], [22, 1.55]];
+  // fração do ciclo com o pé no chão: caminhando quase sempre, correndo cada vez menos
+  var DUTY = [[4, 0.62], [6, 0.6], [7.5, 0.42], [10, 0.37], [15, 0.31], [20, 0.27], [24, 0.24]];
+  var THIGH = 0.45, SHIN = 0.385, SOLE_Y = -0.062, HEEL_F = -0.08, TOE_F = 0.19, LEG_MAX = (THIGH + SHIN) * 0.999;
+  // tornozelo para a sola tocar o chão no ponto gf (frente = +f) com o pé inclinado th
+  function ankleOn(gf, th, pf, out) { var c = Math.cos(th), s = Math.sin(th); out.y = -(SOLE_Y * c + pf * s); out.f = gf - (pf * c - SOLE_Y * s); return out; }
+  // perna de dois ossos até o tornozelo (IK analítica no plano frente/cima)
+  function legIK(leg, knee, foot, hipY, ay, af, th) {
+    var dy = ay - hipY, d = Math.sqrt(dy * dy + af * af);
+    if (d > LEG_MAX) { dy *= LEG_MAX / d; af *= LEG_MAX / d; d = LEG_MAX; }
+    var a = Math.atan2(af, -dy) + Math.acos(U.clamp((THIGH * THIGH + d * d - SHIN * SHIN) / (2 * THIGH * d), -1, 1));
+    var b = Math.acos(U.clamp((THIGH * THIGH + SHIN * SHIN - d * d) / (2 * THIGH * SHIN), -1, 1)) - Math.PI;
+    leg.rotation.x = a; knee.rotation.x = b; foot.rotation.x = th - a - b;
+  }
+  var _t = [{ y: 0, f: 0, th: 0 }, { y: 0, f: 0, th: 0 }], _fa = { y: 0, f: 0 }, _fb = { y: 0, f: 0 };
   var HIP_H = BM.HIP_H, HC = BM.HC;
   var DISC = null;
   var BONES = BM.BONES;
@@ -195,6 +210,7 @@
     this._pal = [];
     for (var i = 0; i < BM.NSLOT; i++) this._pal.push(new THREE.Color());
     this._ponyV = 0; this._ponyA = 0; this._ponyZ = 0; this._ponyVZ = 0;
+    this._stance = 0;
   }
   var P = RunnerRig.prototype;
 
@@ -319,33 +335,49 @@
   };
 
   // ---------------------------------------------------------------- animação
-  // A passada acompanha a velocidade real: a amplitude do quadril sai do
-  // comprimento do passo (velocidade ÷ cadência), assim o pé apoiado não
-  // escorrega no chão. Braço oposto à perna, cotovelo dobrado para a frente.
+  // A passada acompanha a velocidade real: cadência de corredor e pés
+  // plantados por IK (o pé apoiado não escorrega). Braço oposto à perna,
+  // cotovelo dobrado para a frente.
   // opts: { idle, celebrate, lateral }
   P.animate = function (dt, speed, opts) {
     opts = opts || {};
     if (opts.idle || opts.celebrate) return this._idle(dt, opts);
     var run = U.smooth((speed - 5.8) / 2.6), sprint = U.smooth((speed - 14) / 5);
-    var prev = this.phase, freq = U.table(STRIDE, speed);
+    var freq = U.table(STRIDE, speed), duty = U.table(DUTY, speed);
     this.phase += dt * Math.PI * 2 * freq;
     var ph = this.phase, s = Math.sin(ph), c = Math.cos(ph);
-    var omega = Math.PI * 2 * freq, A = U.clamp(speed / 3.6 / (0.88 * omega), 0.26, 0.62) * (1 + run * 0.18);
-    var legs = [[this.legL, this.kneeL, this.footL, 0], [this.legR, this.kneeR, this.footR, Math.PI]];
-    for (var i = 0; i < 2; i++) {
-      var L = legs[i], p = ph + L[3], ls = Math.sin(p), lc = Math.cos(p);
-      var swing = Math.max(0, lc);                                   // perna indo para a frente
-      var hip = A * ls + run * 0.1 + swing * run * 0.12 * ls;
-      // joelho: dobra muito no balanço (o calcanhar sobe), pouco no apoio
-      var kneeSwing = U.lerp(0.45, 1.75, run) + sprint * 0.25;
-      var knee = -(U.lerp(0.06, 0.22, run) * Math.max(0, -lc) * (0.6 + 0.4 * Math.max(0, ls)) +
-        kneeSwing * Math.pow(Math.max(0, Math.sin(p + 0.55 + run * 0.25)), 1.6) * (0.35 + 0.65 * swing));
-      // pé: toca de calcanhar (ponta para cima), fica plano no apoio e empurra com a ponta
-      var stance = Math.max(0, -lc);
-      var abs = 0.22 * Math.max(0, ls) * (1 - run * 0.5) - 0.65 * stance * Math.max(0, -ls) * (0.5 + run * 0.5) + swing * 0.12;
-      L[0].rotation.set(hip, 0, (i ? -1 : 1) * 0.015);
-      L[1].rotation.x = knee;
-      L[2].rotation.x = abs - hip - knee;
+    // Pés plantados: no apoio, o pé fica parado no chão enquanto o corpo passa
+    // (a distância percorrida no apoio = velocidade × tempo de apoio), sem escorregar.
+    var D = speed / 3.6 / this.body.scale.y * duty / freq;
+    var land = D * U.lerp(0.48, 0.38, run) + 0.02;
+    var thTD = U.lerp(0.28, 0.12, run), thTO = -U.lerp(0.4, 0.75, run);
+    var lift = U.lerp(0.07, 0.3, run) + sprint * 0.12, hipMax = 9, step = 0, i;
+    for (i = 0; i < 2; i++) {
+      var t = _t[i], u = ((ph / (Math.PI * 2) + i * 0.5) % 1 + 1) % 1, k = (u - 0.5 + duty / 2) / duty;
+      if (k >= 0 && k <= 1) {   // apoio: calcanhar toca, pé plano, empurra com a ponta
+        var heel = land + HEEL_F - D * k;
+        t.th = k < 0.2 ? thTD * (1 - U.smooth(k / 0.2)) : k > 0.5 ? thTO * U.smooth((k - 0.5) / 0.5) : 0;
+        if (t.th >= 0) ankleOn(heel, t.th, HEEL_F, t); else ankleOn(heel + TOE_F - HEEL_F, t.th, TOE_F, t);
+        hipMax = Math.min(hipMax, t.y + Math.sqrt(Math.max(0, LEG_MAX * LEG_MAX - t.f * t.f)));
+        if (!(this._stance & (1 << i))) { this._stance |= 1 << i; step = i ? 1 : -1; }
+      } else {                   // balanço: o pé sobe e volta para a frente
+        var w = (k > 1 ? k - 1 : k + 1 / duty - 1) * duty / (1 - duty), e = U.smooth(w);
+        ankleOn(land + HEEL_F - D + TOE_F - HEEL_F, thTO, TOE_F, _fa);
+        ankleOn(land + HEEL_F, thTD, HEEL_F, _fb);
+        t.f = U.lerp(_fa.f, _fb.f, e);
+        t.y = U.lerp(_fa.y, _fb.y, e) + lift * Math.pow(Math.sin(Math.PI * Math.pow(w, 0.75)), 1.2);
+        t.th = U.lerp(thTO, thTD, U.smooth(w * 1.4 - 0.2));
+        this._stance &= ~(1 << i);
+      }
+    }
+    var bob = Math.abs(Math.cos(ph - 0.35));
+    var hy = HIP_H - run * 0.035 - U.lerp(0.012, 0.045, run) * (bob - 0.5) - 0.012 * (1 - run);
+    this.hips.position.y = Math.max(Math.min(hy, hipMax + 0.01), hy - 0.07);
+    this.hips.rotation.set(0, -0.08 * s, 0.035 * c * (1 - run * 0.4));
+    var legs = [[this.legL, this.kneeL, this.footL], [this.legR, this.kneeR, this.footR]];
+    for (i = 0; i < 2; i++) {
+      legIK(legs[i][0], legs[i][1], legs[i][2], this.hips.position.y - 0.01, _t[i].y, _t[i].f, _t[i].th);
+      legs[i][0].rotation.z = (i ? -1 : 1) * 0.015;
     }
     // braços: o esquerdo vai para a frente quando a perna direita vai (e vice-versa);
     // o cotovelo dobra para a frente, mais quanto mais rápido
@@ -354,17 +386,14 @@
     this.armR.rotation.set(aa * s - 0.04 * run, 0, 0.07 + run * 0.03);
     this.elbowL.rotation.set(elbow + 0.2 * Math.max(0, s) * run, 0, 0.16 * run);
     this.elbowR.rotation.set(elbow + 0.2 * Math.max(0, -s) * run, 0, -0.16 * run);
-    // tronco e quadril: sobe e desce duas vezes por ciclo, gira levemente
-    var bob = Math.abs(Math.cos(ph - 0.35));
-    this.hips.position.y = HIP_H - run * 0.035 - U.lerp(0.012, 0.045, run) * (bob - 0.5) - 0.012 * (1 - run);
-    this.hips.rotation.set(0, -0.08 * s, 0.035 * c * (1 - run * 0.4));
+    // tronco: inclina com a velocidade e gira levemente
     var lean = U.lerp(0.035, 0.11, run) + sprint * 0.06;
     this.torso.rotation.set(-lean, 0.14 * s * (0.6 + run * 0.4), -0.02 * c);
     // a cabeça olha para a frente (compensa o giro do tronco)
     this.head.rotation.set(lean * 0.7 + 0.02 * (bob - 0.5) * run, -0.1 * s * (0.6 + run * 0.4), 0.02 * c);
     this._ponyStep(dt, run, bob, s);
     this.root.rotation.z = U.damp(this.root.rotation.z, -(opts.lateral || 0) * 0.045, 8, dt);
-    if (this.onStep && Math.sin(prev) * s < 0) this.onStep(s > 0 ? 1 : -1);
+    if (this.onStep && step) this.onStep(step);
   };
 
   // rabo de cavalo: mola amortecida puxada pelo sobe-e-desce e pelo giro

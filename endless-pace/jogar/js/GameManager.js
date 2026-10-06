@@ -74,7 +74,8 @@
       this.rig = new EP.RunnerRig();
       this.rig.setAppearance(this._look());
       this.rig.shadow.material = EP.Materials.shadowSoft || this.rig.shadow.material;
-      this.rig.onStep = function () { if (self.state === 'run') AU.step(self.speed.value); };
+      // passos só se ouvem sem tocar (enquanto toca, o som do toque já marca o ritmo)
+      this.rig.onStep = function () { if (self.state === 'run' && self.rhythm.idle(self.clock)) AU.step(self.speed.value); };
       this.scene.add(this.rig.root);
       this.player = new EP.RunnerController(this.rig, B.run);
       this.npcs = new EP.NPCManager(this.scene, EP.data.npcs, B.run.laneLimit);
@@ -100,8 +101,9 @@
       this._input();
       window.addEventListener('resize', function () { self._resize(); });
       document.addEventListener('visibilitychange', function () {
-        if (document.hidden) { self._persist(); if (self.state === 'run') self.pause(); AU.suspend(); }
-        else if (self.state !== 'paused') AU.resume();
+        if (document.hidden) { self._persist(); if (self.state === 'run') self.pause(); AU.suspend(); return; }
+        if (self.state !== 'paused') AU.resume();
+        self._backFromAway();
       });
       window.addEventListener('pagehide', function () { self._persist(); });
       if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { EP.ForkSigns.refreshAll(); });
@@ -135,8 +137,21 @@
       this.snapCam = true;
     },
 
+    // voltou para a aba depois de um tempo: treino offline sem precisar recarregar
+    // (antes de qualquer _persist, que trocaria a hora em que o jogador saiu)
+    _backFromAway: function () {
+      // corrida em andamento (inclusive pausada ao sair da aba) não recebe treino offline
+      if (this.runMeta || this.state === 'run' || this.state === 'paused') return;
+      if (!EP.Meta.collectOffline(Date.now())) return;
+      this._persist();
+      if (this.state !== 'home') return;
+      UI.home(this.save);
+      this._nextPopup();
+    },
+
     goHome: function () {
       this.state = 'home';
+      this._shopFromEquip = false;
       this.camMode = 'home';
       this.dressing = false;
       ['tela-criar', 'tela-pausa', 'tela-resumo', 'tela-equipar'].forEach(UI.hide);
@@ -167,7 +182,7 @@
         self._persist();
         UI.home(self.save);
         if (action === 'shop') self.openShop('tenis');
-        else if (action === 'equip') self.openEquip();
+        else if (action === 'equip') { self._shopFromEquip = false; self.openEquip(); }
         else self._nextPopup();
       };
       MU.popup(p, function (action) { AU.ui(); if (self._popupDone) self._popupDone(action); });
@@ -175,6 +190,8 @@
 
     openShop: function (cat) {
       AU.unlock(); AU.ui();
+      // aberta do EQUIPAR: ao fechar a loja, volta para o provador
+      this._shopFromEquip = !!this.dressing;
       if (this.dressing) this.closeEquip(true);
       MU.shop(cat);
       UI.show('tela-loja');
@@ -304,7 +321,7 @@
       this.challenges.reset(firstRun || !save.tutorialDone);
       this.progression.startRun();
       this.daynight.phase = this.daynight.startPhaseFor(this.daynight.phase);
-      this.saveT = 0; this.secT = 0; this.tapUndo = null; this.lastSpamHint = -99; this.wasExhausted = false;
+      this.saveT = 0; this.secT = 0; this.tapUndo = null; this.perfectAt = -1; this._shopFromEquip = false; this.lastSpamHint = -99; this.wasExhausted = false;
       this.forkShown = false; this.forkHideT = 0; this.routeId = this.biome.startRoute; this.comboShown = false;
       this.tutorial = save.tutorialDone ? null : { step: -1, t: 0, taps: 0 };
       this.npcs.reset(this.player, this._npcCtx(false));
@@ -346,6 +363,7 @@
       sum.run.coins = this.economy.runCoins;
       // fecha a parte "meta" da corrida: último segundo, missão de corridas, regiões e conquistas
       var M = EP.Meta, rm = this.runMeta || { levelFrom: this.save.profile.level, achievements: [], missions: [] };
+      this._commitPerfect();
       M.flushRun({ flowLevel: 0, drafting: false, speed: 0 });
       M.track('runs', 1);
       M.checkUnlocks();
@@ -412,10 +430,10 @@
       this.flow.onRating(r);
       this.challenges.onRating(r);
       undo.perfect = r === 'perfect';
+      this._commitPerfect();   // o perfeito anterior já não pode virar deslize
       if (undo.perfect) {
         this.progression.addPerfect();
-        EP.Meta.track('perfects', 1);
-        EP.Meta.addXp(EP.Meta.xpCfg().perPerfect || 0, 'perfect');
+        this.perfectAt = performance.now() / 1000;   // missão e XP só depois da janela do deslize (_commitPerfect)
         EP.haptics.pulse(8);
         if (!this.save.settings.reduceMotion) this.fovKick = 1.3;
       }
@@ -436,11 +454,19 @@
       if (u.ch && this.challenges.active === u.ch) u.ch.progress = u.chProgress;
       if (u.perfect) {
         this.progression.run.perfects--; this.save.stats.perfects--;
-        EP.Meta.missions.list().forEach(function (m) { if (m.metric === 'perfects' && !m.done && m.progress > 0) m.progress--; });
+        this.perfectAt = -1;   // missão e XP ainda não tinham contado
       }
       UI.rating(null);
       if (this.tutorial) this.tutorial.taps = Math.max(0, this.tutorial.taps - 1);
       this.tapUndo = null;
+    },
+
+    // perfeito confirmado (passou a janela em que o toque ainda podia virar deslize)
+    _commitPerfect: function () {
+      if (!(this.perfectAt >= 0)) return;
+      this.perfectAt = -1;
+      EP.Meta.track('perfects', 1);
+      EP.Meta.addXp(EP.Meta.xpCfg().perPerfect || 0, 'perfect');
     },
 
     onSwipe: function (dir) {
@@ -465,7 +491,7 @@
     },
 
     _frame: function (now) {
-      var raw = Math.max(0, (now - this.last) / 1000), dt = Math.min(0.05, raw);
+      var raw = Math.max(0, (now - this.last) / 1000), dt = Math.min(0.1, raw);   // até 10 fps o mundo anda no km/h mostrado
       this.last = now;
       this._adapt(raw);
       this.clock = now / 1000;
@@ -520,6 +546,7 @@
       this.progression.tick(dt, meters, this.speed.value);
       this.economy.addDistance(meters, this._coinMult(lvl, mods));
       if (lvl > 0) this.progression.addFlowTime(dt);
+      if (this.perfectAt >= 0 && clock - this.perfectAt > EP.Input.SWIPE_MS / 1000 + 0.05) this._commitPerfect();
       EP.Meta.runTick(dt, meters, { flowLevel: lvl, drafting: this.draft.active, speed: this.speed.value });
 
       this.world.update(this.player.z);
@@ -804,6 +831,7 @@
     onModalClosed: function () {
       if (this.dressing && !UI.isOpen('tela-equipar')) { this.closeEquip(); return; }
       if (UI.isOpen('tela-loja')) MU.shop();   // fechou o detalhe do item
+      else if (this._shopFromEquip && this.state === 'home' && !UI.isOpen('tela-item')) { this._shopFromEquip = false; this.openEquip(); return; }
       if (this.state === 'home') { UI.home(this.save); this._nextPopup(); }
     },
 

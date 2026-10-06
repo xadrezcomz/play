@@ -15,6 +15,7 @@
 
   EP.Input = {
     touchSeen: false,
+    SWIPE_MS: SWIPE_MS,   // até quando um toque ainda pode virar deslize (e ser desfeito)
     // handlers: { tap(t), cancelTap(), swipe(dir), pause() , enabled() }
     init: function (layer, h) {
       var pointers = {};

@@ -33,7 +33,7 @@
       if (save.stats.lastDay !== day) { save.stats.daysPlayed++; save.stats.lastDay = day; }
       this.refreshDay();
       this.recompute();
-      this._acc = { dist: 0, flow: 0, draft: 0, check: 0 };
+      this._acc = { dist: 0, flow: 0, draft: 0, check: 0, top: 0 };
       this.runXp = 0;
       // conquistas que já valem (por exemplo, depois de uma atualização) entram sem festa
       this.checkAchievements(true);
@@ -109,12 +109,28 @@
       this.runXp += n;   // a tela de resumo mostra quanto XP a corrida rendeu
       var r = this.levels.addXp(n, reason);
       if (r && r.levelsGained) {
-        (r.rewards || []).forEach(function (rw) { if (rw.item) M.grantItem(rw.item); });
-        this.popups.push({ type: 'level', data: { level: this.save.profile.level, rewards: r.rewards || [] } });
+        // LevelSystem já somou as moedas do nível; item que o jogador já tinha (comprou antes) vira moedas
+        var paid = 0, rewards = [];
+        (r.rewards || []).forEach(function (rw) {
+          paid += rw.coins || 0;
+          if (!rw.item) { if (rw.coins) rewards.push({ coins: rw.coins }); return; }
+          if (M.grantItem(rw.item)) { rewards.push({ item: rw.item, coins: rw.coins || 0 }); return; }
+          var it = M.itemsById[rw.item], back = it ? it.price || 0 : 0;
+          M.save.coins += back;
+          paid += back;
+          rewards.push({ refund: rw.item, coins: (rw.coins || 0) + back });
+        });
+        if (paid) EP.events.emit('coins', { amount: paid, reason: 'level', total: this.save.coins, silent: true });
+        this.popups.push({ type: 'level', data: { level: this.save.profile.level, rewards: rewards } });
         this.refreshDay();
         this.checkAchievements();
       }
       return r;
+    },
+    // nível em que o item vem de presente (null se não for presente ou se o nível já passou)
+    rewardLevel: function (id) {
+      var rw = ((EP.data.levels && EP.data.levels.rewards) || []).filter(function (r) { return r.item === id; })[0];
+      return rw && this.save.profile.level < rw.at ? rw.at : null;
     },
     xpCfg: function () { return (EP.data.levels && EP.data.levels.xp) || {}; },
 
@@ -163,10 +179,12 @@
       if (ctx.flowLevel > 0) a.flow += dt;
       if (ctx.drafting) a.draft += dt;
       a.check += dt;
+      // maior velocidade a cada quadro (a mesma que o resumo mostra), com 1 casa como na tela
+      if (ctx.speed > a.top) a.top = ctx.speed;
       if (a.check < 1) return done;
       // uma vez por segundo: missões, XP da distância e conquistas
       a.check = 0;
-      done = done.concat(this.track('distance', a.dist), this.track('flowTime', a.flow), this.track('draftTime', a.draft), this.track('topSpeed', ctx.speed, 'max'));
+      done = done.concat(this.track('distance', a.dist), this.track('flowTime', a.flow), this.track('draftTime', a.draft), this.track('topSpeed', Math.round(a.top * 10) / 10, 'max'));
       this.save.stats.draftTime += a.draft;
       var xp = a.dist / 1000 * (x.perKm || 100) + a.flow * (x.perFlowSecond || 0);
       a.dist = 0; a.flow = 0; a.draft = 0;
@@ -177,7 +195,9 @@
     // fim da corrida: conta o que sobrou do último segundo
     flushRun: function (ctx) {
       this._acc.check = 1;
-      return this.runTick(0, 0, ctx || { flowLevel: 0, drafting: false, speed: 0 });
+      var done = this.runTick(0, 0, ctx || { flowLevel: 0, drafting: false, speed: 0 });
+      this._acc.top = 0;   // a próxima corrida começa do zero
+      return done;
     },
     checkAchievementsInRun: function () {
       var got = this.checkAchievements();
@@ -217,11 +237,14 @@
       if (!this.offline) return null;
       var r = this.offline.compute(this.save, now || Date.now(), this.fx);
       if (!r) return null;
+      // XP do treino offline (e de conquistas que ele destrava) não é XP de corrida
+      var runXp = this.runXp;
       this.offline.apply(this.save, r);
       if (r.xp) this.addXp(r.xp, 'offline');
       this.popups.unshift({ type: 'offline', data: r });
       this.checkUnlocks();
       this.checkAchievements();
+      this.runXp = runXp;
       return r;
     }
   };

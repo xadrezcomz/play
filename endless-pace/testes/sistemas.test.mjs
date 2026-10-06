@@ -17,7 +17,8 @@ const ARQUIVOS = [
   'js/systems/OvertakeSystem.js', 'js/systems/EconomyManager.js', 'js/systems/ChallengeManager.js', 'js/systems/ProgressionManager.js',
   'dados/economia.js', 'dados/itens.js', 'dados/niveis.js', 'dados/conquistas.js', 'dados/missoes.js',
   'js/systems/EquipmentManager.js', 'js/systems/InventoryManager.js', 'js/systems/LevelSystem.js', 'js/systems/AchievementManager.js',
-  'js/systems/MissionManager.js', 'js/systems/OfflineProgressManager.js', 'js/systems/DraftSystem.js'
+  'js/systems/MissionManager.js', 'js/systems/OfflineProgressManager.js', 'js/systems/DraftSystem.js',
+  'js/MetaGame.js'
 ];
 
 function carrega() {
@@ -329,4 +330,77 @@ test('vácuo: atrás de outro corredor gasta menos energia', () => {
   assert.ok(d.active && d.consumption() < 0.75 && d.speedBonus() > 0.4);
   for (let i = 0; i < 20; i++) d.update(0.1, npcs, { x: 2, z: 0 }, 12);
   assert.ok(!d.active);
+});
+
+test('meta: presente de boas-vindas uma vez, itens mudam a corrida e bônus das missões', () => {
+  const EP = carrega();
+  const save = EP.SaveManager.defaults();
+  save.profile.created = true;
+  EP.Meta.init(save);
+  assert.equal(save.coins, EP.data.welcomeGift);
+  assert.equal(EP.Meta.popups.filter(p => p.type === 'gift').length, 1);
+  EP.Meta.popups = [];
+  EP.Meta.init(save);                       // abrir de novo não dá outro presente
+  assert.equal(save.coins, EP.data.welcomeGift);
+  assert.ok(EP.Meta.buy('tenis-leve'));
+  assert.ok(EP.Meta.equipItem('tenis-leve'));
+  assert.ok(EP.Meta.fx.speedMult > 1);
+  const g = { rhythm: {}, flow: {}, energy: {} };
+  EP.Meta.applyTo(g);
+  assert.equal(g.energy.maxBonus, 0);
+  assert.equal(EP.Meta.gear().shoes.kind, 'tenis');
+  // missões: cumpre e resgata as três, depois o bônus do dia
+  EP.Meta.missions.list().forEach(m => { m.progress = m.target; m.done = true; });
+  assert.equal(EP.Meta.pendingMissions(), 3);
+  assert.equal(EP.Meta.claimBonus(), null);
+  [0, 1, 2].forEach(i => assert.ok(EP.Meta.claimMission(i)));
+  const coins = save.coins;
+  assert.deepEqual({ ...EP.Meta.claimBonus() }, { ...EP.data.missions.bonus });
+  assert.equal(save.coins, coins + EP.data.missions.bonus.coins);
+  assert.equal(EP.Meta.claimBonus(), null);
+  // fim da corrida: o último pedaço de distância vira XP
+  EP.Meta.runXp = 0;
+  EP.Meta.runTick(0.5, 500, { flowLevel: 0, drafting: false, speed: 10 });
+  EP.Meta.flushRun();
+  assert.ok(Math.abs(EP.Meta.runXp - EP.data.levels.xp.perKm / 2) < 1e-6);
+});
+
+test('meta: presente de nível já comprado vira moedas, e a maior velocidade conta a cada quadro', () => {
+  const EP = carrega();
+  const save = EP.SaveManager.defaults();
+  save.profile.created = true;
+  EP.Meta.init(save);
+  EP.Meta.popups = [];
+  assert.equal(EP.Meta.rewardLevel('bone-classico'), 3);   // a loja avisa: grátis no nível 3
+  assert.ok(EP.Meta.buy('bone-classico'));
+  const emitted = [];
+  EP.events.on('coins', p => emitted.push(p));
+  const before = save.coins;
+  while (save.profile.level < 3) EP.Meta.addXp(50, 'teste');
+  const pop = EP.Meta.popups.filter(p => p.type === 'level' && p.data.level === 3)[0];
+  const price = EP.Meta.itemsById['bone-classico'].price;
+  assert.ok(pop.data.rewards.some(r => r.refund === 'bone-classico'));
+  assert.ok(!pop.data.rewards.some(r => r.item === 'bone-classico'));
+  assert.equal(save.inventory.filter(id => id === 'bone-classico').length, 1);
+  assert.equal(save.coins, before + 40 * 2 + 40 * 3 + price);
+  assert.equal(emitted[emitted.length - 1].total, save.coins);   // o HUD fica certo
+  assert.equal(EP.Meta.rewardLevel('bone-classico'), null);
+  // pico curto de velocidade no meio do segundo vale para a missão
+  save.missions.list = [{ id: 'x', metric: 'topSpeed', mode: 'max', target: 14, progress: 0, done: false, claimed: false }];
+  EP.Meta.runTick(0.6, 0, { flowLevel: 0, drafting: false, speed: 14.5 });
+  EP.Meta.runTick(0.5, 0, { flowLevel: 0, drafting: false, speed: 12 });
+  EP.Meta.flushRun();
+  assert.equal(save.missions.list[0].done, true);
+});
+
+test('meta: treino offline não conta como XP da corrida', () => {
+  const EP = carrega();
+  const save = EP.SaveManager.defaults();
+  save.profile.created = true; save.stats.runs = 2;
+  EP.Meta.init(save);
+  EP.Meta.runXp = 0;
+  save.lastSeenAt = Date.now() - 2 * 3600 * 1000;
+  const r = EP.Meta.collectOffline(Date.now());
+  assert.ok(r && r.xp > 0);
+  assert.equal(EP.Meta.runXp, 0);
 });

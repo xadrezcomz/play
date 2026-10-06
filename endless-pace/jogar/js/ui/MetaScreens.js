@@ -85,7 +85,10 @@
       if (!rw) return box;
       if (rw.coins) box.appendChild(coinTag(rw.coins, 'mais', true));
       if (rw.xp) box.appendChild(el('span', 'xp-tag', '+' + L.num(Math.round(rw.xp)) + ' XP'));
-      if (rw.item && M.itemsById[rw.item]) box.appendChild(el('span', 'item-tag', '🎁 ' + this.itemName(M.itemsById[rw.item])));
+      var self = this;
+      (rw.items || (rw.item ? [rw.item] : [])).forEach(function (id) {
+        if (M.itemsById[id]) box.appendChild(el('span', 'item-tag', '🎁 ' + self.itemName(M.itemsById[id])));
+      });
       return box;
     },
 
@@ -106,8 +109,8 @@
       };
       badge('i-conquistas-selo', M.unseenCount());
       badge('i-missoes-selo', M.pendingMissions());
-      // loja: quantos itens novos dá para comprar agora
-      var lv = save.profile.level, can = M.items.filter(function (it) { return !it.starter && M.inv.canBuy(it.id, lv).ok; }).length;
+      // loja: quantos itens novos dá para comprar agora (fora os que vêm de presente de nível)
+      var lv = save.profile.level, can = M.items.filter(function (it) { return !it.starter && !M.rewardLevel(it.id) && M.inv.canBuy(it.id, lv).ok; }).length;
       badge('i-loja-selo', can);
     },
 
@@ -139,6 +142,8 @@
         var st = el('span', 'ic-stats');
         Object.keys(it.stats || {}).forEach(function (k) { st.appendChild(el('span', null, self.statLine(k, it.stats[k]))); });
         info.appendChild(st);
+        var gift = !owned && M.rewardLevel(it.id);
+        if (gift) info.appendChild(el('span', 'ic-presente', '🎁 ' + t('shop.freeAt', { n: gift })));
         card.appendChild(info);
         var foot = el('span', 'ic-pe');
         if (eq) foot.appendChild(el('span', 'tag ok', '✓ ' + t('shop.equipped')));
@@ -210,7 +215,8 @@
         else act.appendChild(btn('btn pri largo', bought ? t('shop.equipNow') : t('shop.equip'), function () { G.equipItem(id); self.item(id); }));
         if (bought) act.appendChild(btn('btn sec largo', t('shop.keep'), function () { EP.AudioManager.ui(); EP.UI.hide('tela-item'); self.shop(); }));
       } else {
-        var can = M.inv.canBuy(id, save.profile.level);
+        var can = M.inv.canBuy(id, save.profile.level), gift = M.rewardLevel(id);
+        if (gift) act.appendChild(el('p', 'nota presente', '🎁 ' + t('shop.freeAtDesc', { n: gift })));
         var b = btn('btn pri largo comprar', null, function () { G.buyItem(id); });
         b.appendChild(el('span', null, t('shop.buy')));
         b.appendChild(coinTag(it.price));
@@ -306,7 +312,9 @@
     },
     achievements: function (catId) {
       var M = EP.Meta, self = this, cats = EP.data.achievementCats, all = M.ach.list();
-      var unseen = (M.save.unseen.achievements || []).slice();
+      // as novidades valem enquanto a tela está aberta: trocar de aba não apaga os selos
+      if (!catId || !this._achUnseen) this._achUnseen = (M.save.unseen.achievements || []).slice();
+      var unseen = this._achUnseen;
       if (catId) this.achCat = catId;
       if (!this.achCat) this.achCat = cats[0].id;
       $('cq-conta').textContent = '🏆 ' + M.ach.count() + ' / ' + all.length;
@@ -409,7 +417,7 @@
       var box = $('av-caixa'), self = this, d = p.data || {};
       box.innerHTML = '';
       box.className = 'caixa aviso-caixa ' + p.type;
-      var big = el('div', 'av-ic'), title = '', lines = [], reward = null, extra = null;
+      var big = el('div', 'av-ic'), title = '', lines = [], reward = null, extra = null, toWear = null;
       switch (p.type) {
         case 'offline':
           big.textContent = '🌙';
@@ -423,8 +431,15 @@
           big.appendChild(el('b', 'av-nivel', String(d.level)));
           title = t('pop.level.t', { n: d.level });
           lines.push(t('pop.level.d', { title: t(EP.Meta.levels.title(d.level)) }));
-          reward = { coins: 0 };
-          (d.rewards || []).forEach(function (r) { if (r.coins) reward.coins += r.coins; if (r.item) reward.item = r.item; });
+          reward = { coins: 0, items: [] };
+          (d.rewards || []).forEach(function (r) {
+            if (r.coins) reward.coins += r.coins;
+            if (r.item) reward.items.push(r.item);
+            // presente que o jogador já tinha comprado: devolve as moedas
+            if (r.refund && EP.Meta.itemsById[r.refund]) lines.push(t('pop.level.refund', { item: self.itemName(EP.Meta.itemsById[r.refund]) }));
+          });
+          // "Equipar agora" só para item novo que ainda não está no corpo
+          var toWear = reward.items.filter(function (id) { return !EP.Meta.isEquipped(id); });
           break;
         case 'achievement':
           big.textContent = d.icon || '🏆';
@@ -448,12 +463,12 @@
       box.appendChild(el('h1', 'tit', title));
       lines.forEach(function (s, i) { box.appendChild(el('p', i ? 'nota' : 'av-txt', s)); });
       if (extra) box.appendChild(el('p', 'nota', extra));
-      if (reward && (reward.coins || reward.xp || reward.item)) box.appendChild(self.rewardChips(reward));
+      if (reward && (reward.coins || reward.xp || reward.item || (reward.items && reward.items.length))) box.appendChild(self.rewardChips(reward));
       var acts = el('div', 'av-acoes');
       if (p.type === 'gift') {
         acts.appendChild(btn('btn pri largo', '🛍️ ' + t('pop.gift.go'), function () { done('shop'); }));
         acts.appendChild(btn('btn sec largo', t('pop.later'), function () { done('ok'); }));
-      } else if (p.type === 'level' && reward && reward.item) {
+      } else if (p.type === 'level' && toWear && toWear.length) {
         acts.appendChild(btn('btn pri largo', t('pop.equip'), function () { done('equip'); }));
         acts.appendChild(btn('btn sec largo', t('pop.ok'), function () { done('ok'); }));
       } else acts.appendChild(btn('btn pri largo', t('pop.ok'), function () { done('ok'); }));

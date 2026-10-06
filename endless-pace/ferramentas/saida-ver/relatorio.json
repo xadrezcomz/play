@@ -1,0 +1,26 @@
+{
+ "versao": 1,
+ "inicio": "2026-10-06T18:00:34.766Z",
+ "generos": {
+  "m": {
+   "bindErr": 3.7853860324066346e-7,
+   "palm_l": 0.996,
+   "palm_r": 0.994,
+   "altura": 1.76,
+   "escala": 0.96725
+  },
+  "f": {
+   "bindErr": 4.318840167855109e-7,
+   "palm_l": 0.987,
+   "palm_r": 0.985,
+   "altura": 1.76,
+   "escala": 0.99152
+  }
+ },
+ "arquivos": {
+  "corredor-m.js": 257088,
+  "corredor-f.js": 259562
+ },
+ "totalBytes": 516650,
+ "segundos": 1.8
+}
