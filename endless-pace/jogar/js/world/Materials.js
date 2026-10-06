@@ -48,6 +48,40 @@
     shader.uniforms.uSunFog = BEND.uSunFog;
     shader.vertexShader = VERT_DECL + shader.vertexShader.replace('#include <project_vertex>', PROJECT);
     shader.fragmentShader = FRAG_DECL + shader.fragmentShader.replace('#include <fog_fragment>', FOG);
+    if (this.runnerMats) {
+      // corredor: cada material (pele, algodão, tecido técnico, cabelo, tênis, olho) com o seu brilho;
+      // tecido sem cara de plástico, pele com um calor por baixo, cabelo com mechas
+      shader.vertexShader = 'attribute float mat;\nvarying float vMat;\nvarying vec3 vRest;\n' + shader.vertexShader.replace('#include <begin_vertex>',
+        '#include <begin_vertex>\nvMat = mat;\nvRest = position;');
+      shader.fragmentShader = 'varying float vMat;\nvarying vec3 vRest;\n' + shader.fragmentShader
+        .replace('#include <color_fragment>', [
+          '#include <color_fragment>',
+          'float rm = floor( vMat + 0.5 );',
+          'if ( rm > 2.5 && rm < 3.5 ) {',
+          '  float ang = atan( vRest.x, vRest.z - 0.02 );',
+          '  diffuseColor.rgb *= 0.86 + 0.22 * pow( abs( sin( ang * 46.0 + vRest.y * 24.0 + sin( ang * 7.0 ) * 2.0 ) ), 3.0 );',
+          '} else if ( rm > 0.5 && rm < 2.5 ) {',
+          '  diffuseColor.rgb *= 0.965 + 0.035 * sin( vRest.y * 700.0 ) * sin( ( vRest.x + vRest.z ) * 700.0 );',
+          '}'
+        ].join('\n'))
+        .replace('#include <lights_phong_fragment>', [
+          '#include <lights_phong_fragment>',
+          'if ( rm < 0.5 ) { material.specularStrength = 0.55; material.specularShininess = 14.0; }',
+          'else if ( rm < 1.5 ) { material.specularStrength = 0.05; material.specularShininess = 4.0; }',
+          'else if ( rm < 2.5 ) { material.specularStrength = 0.7; material.specularShininess = 22.0; }',
+          'else if ( rm < 3.5 ) { material.specularStrength = 1.1; material.specularShininess = 36.0; }',
+          'else if ( rm < 4.5 ) { material.specularStrength = 0.5; material.specularShininess = 20.0; }',
+          'else { material.specularStrength = 2.5; material.specularShininess = 90.0; }'
+        ].join('\n'))
+        .replace('#include <aomap_fragment>', [
+          '#include <aomap_fragment>',
+          'if ( rm < 0.5 ) reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3( 0.09, 0.03, 0.015 );',          // calor da pele
+          'if ( rm > 0.5 && rm < 2.5 ) {',                                                                           // brilho aveludado do tecido
+          '  float sh = pow( 1.0 - max( dot( normalize( vViewPosition ), normal ), 0.0 ), 2.0 );',
+          '  reflectedLight.indirectDiffuse += diffuseColor.rgb * sh * 0.22;',
+          '}'
+        ].join('\n'));
+    }
     if (this.rim) {   // luz de contorno (corredores): borda dourada contra o sol
       shader.uniforms.uRim = BEND.uRim;
       shader.fragmentShader = 'uniform vec3 uRim;\n' + shader.fragmentShader.replace('#include <aomap_fragment>',
@@ -164,7 +198,8 @@
         : watery(new THREE.MeshPhongMaterial({ vertexColors: true, shininess: 120, specular: new THREE.Color('#fff1d6') }));
       // corredores: pele e tecido com um brilho leve
       M.runner = bent(surface({ vertexColors: true, specular: new THREE.Color(0x161616), shininess: 22 }), !lite);
-      M.runnerSkin = bent(surface({ vertexColors: true, skinning: true, specular: new THREE.Color(0x161616), shininess: 22 }), !lite);
+      M.runnerSkin = bent(surface({ vertexColors: true, skinning: true, specular: new THREE.Color(0x262626), shininess: 22 }), !lite);
+      if (!lite) { M.runnerSkin.runnerMats = true; M.runnerSkin.customProgramCacheKey = function () { return 'runnerMats'; }; }
       // sombra redonda embaixo de cada corredor
       M.shadow = bent(new THREE.MeshBasicMaterial({ map: M.blobTexture(), color: 0x000000, transparent: true, opacity: 0.42, depthWrite: false }));
       // sombra de contato do jogador (a sombra de verdade vem do sol)

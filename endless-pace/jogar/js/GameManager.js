@@ -20,10 +20,15 @@
       this._applySettings();
       if (!this._webgl()) { UI.error(t('boot.noWebgl')); return; }
       var self = this;
-      setTimeout(function () {
+      // antes de abrir: o corredor do jogador e um corredor da rua já esculpidos (em segundo plano)
+      var RR = EP.RunnerRig, heroApp = RR.resolve(this.save.profile), npc0 = RR.NPC_OUTFITS[0], left = 2;
+      var go = function () {
+        if (--left > 0) return;
         try { self._init3d(); }
         catch (e) { UI.error(t('boot.noWebgl')); if (window.console) console.error(e); }
-      }, 30);
+      };
+      EP.BodyModel.prepare(heroApp.gender, RR.outfitOf(heroApp), 0, go);
+      EP.BodyModel.prepare(npc0.gender, npc0, 1, go);
     },
 
     _webgl: function () {
@@ -68,6 +73,7 @@
       this.scene.add(this.rig.root);
       this.player = new EP.RunnerController(this.rig, B.run);
       this.npcs = new EP.NPCManager(this.scene, EP.data.npcs, B.run.laneLimit);
+      setTimeout(function () { EP.RunnerRig.warmNpcs(); }, 400);   // as outras roupas da rua, aos poucos
 
       this.rhythm = new EP.TapRhythmSystem(B.rhythm);
       this.flow = new EP.FlowSystem(B.flow);

@@ -17,6 +17,7 @@
     for (var i = 0; i < data.poolSize; i++) {
       var rig = new EP.RunnerRig();
       rig.mesh.castShadow = false;   // sombra redonda basta (a do jogador é de verdade)
+      rig.lod = 1;                    // molde médio de perto, leve de longe
       rig.root.visible = false;
       scene.add(rig.root);
       this.pool.push({ rig: rig, active: false });
@@ -178,7 +179,7 @@
       if (!n.counted && n.wasAhead && ahead < -0.6) { n.counted = true; if (ctx.onOvertake) ctx.onOvertake(n); }
       if (!n.pacer && (ahead < behindLim || ahead > aheadLim) || (!ctx.home && !n.pacer && ahead > 112 && n.speed >= ctx.playerSpeed)) { n.active = false; n.rig.root.visible = false; continue; }
       n.rig.root.position.set(n.x, 0, n.z);
-      n.rig.setLod(Math.abs(ahead) > (n.rig.lod ? 22 : 26) ? 1 : 0);   // longe: molde leve
+      n.rig.setLod(Math.abs(ahead) > (n.rig.lod === 2 ? 26 : 32) ? 2 : 1);   // longe: molde leve
       n.animAcc += dt;
       if (Math.abs(ahead) < 70 || (this.frame + i) % 3 === 0) { n.rig.animate(n.animAcc, n.speed, null); n.animAcc = 0; }
     }
