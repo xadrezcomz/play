@@ -81,11 +81,15 @@
     this._build(this.defs[id], variant);
     var g = this.geos[id][variant], M = EP.Materials;
     var mesh = new THREE.Mesh(g.world, M.world);
+    mesh.receiveShadow = true;
     mesh.frustumCulled = false;   // a curvatura move os vértices: o recorte padrão erraria
     if (g.glow) { var gl = new THREE.Mesh(g.glow, M.glow); gl.frustumCulled = false; mesh.add(gl); }
     if (g.water) { var wa = new THREE.Mesh(g.water, M.water); wa.frustumCulled = false; mesh.add(wa); }
     if (g.shadow) { var sh = new THREE.Mesh(g.shadow, M.shadowDecal); sh.frustumCulled = false; sh.renderOrder = 1; mesh.add(sh); }
     if (g.light) { var lp = new THREE.Mesh(g.light, M.lightPool); lp.frustumCulled = false; lp.renderOrder = 2; mesh.add(lp); }
+    if (g.leaf) { var lf = new THREE.Mesh(g.leaf, M.leaf); lf.frustumCulled = false; lf.receiveShadow = true; mesh.add(lf); }
+    if (g.glass) { var gs = new THREE.Mesh(g.glass, M.glass); gs.frustumCulled = false; mesh.add(gs); }
+    if (g.sign) { var sg = new THREE.Mesh(g.sign, M.sign); sg.frustumCulled = false; mesh.add(sg); }
     mesh.matrixAutoUpdate = false;
     mesh.userData = { busy: true, variant: variant, id: id };
     this.scene.add(mesh);

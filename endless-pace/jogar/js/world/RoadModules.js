@@ -338,7 +338,10 @@
         glow: B.g.count() ? B.g.build() : null,
         water: B.water.count() ? B.water.build() : null,
         shadow: B.shadow.count() ? B.shadow.build() : null,
-        light: B.light.count() ? B.light.build() : null
+        light: B.light.count() ? B.light.build() : null,
+        leaf: B.leaf.count() ? B.leaf.build() : null,
+        glass: B.glass.count() ? B.glass.build() : null,
+        sign: B.sign.count() ? B.sign.build() : null
       };
     }
   };

@@ -18,7 +18,7 @@
         towers: ['#9fb6cd', '#c7d3dd', '#7d93ab', '#e0d6c8', '#b8c4b0', '#d9c2b0'],
         roofs: ['#b5543c', '#9a4a36', '#5b6574', '#7a5a48'],
         awnings: ['#ff6a3d', '#2fb5ff', '#20c997', '#ffd23f', '#ff4f6d'],
-        trunk: '#80583c', leaves: ['#5aa857', '#6dbb5a', '#4c9a55', '#7cc463', '#3f8f52', '#8fc95e'], blossom: ['#ffa3c4', '#ffd447', '#d7a3f0', '#ff9e7a'],
+        trunk: '#6f5440', leaves: ['#6e9e4a', '#7aa84e', '#5f9147', '#86b057', '#6a9a52', '#8fb35a'], blossom: ['#ffa3c4', '#ffd447', '#d7a3f0', '#ff9e7a'],
         metal: '#5d6470', wood: '#b07a4f', skyline: '#9aaccc'
       },
       // conjuntos de peças (as peças são desenhadas em js/world/Assets.js)
@@ -26,6 +26,8 @@
       vegetation: ['redonda', 'pinheiro', 'palmeira', 'arbusto', 'florida'],
       props: ['poste', 'banco', 'lixeira', 'placa', 'hidrante'],
       lighting: 'padrao',
+      // ao fundo: morros e, do lado do rio, o horizonte de prédios da cidade
+      backdrop: { city: true, hills: '#7fae6a', hillsAlt: '#93bb78', mountains: '#9aaecb' },
       weatherOptions: ['sol'],
       musicProfile: 'cidade'
     }

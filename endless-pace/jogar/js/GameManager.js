@@ -37,14 +37,24 @@
       this.renderer = new THREE.WebGLRenderer({ canvas: $('cena'), antialias: save.settings.quality !== 'low', powerPreference: 'high-performance' });
       // cor correta: luz calculada em espaço linear e curva de tons de cinema na saída
       this.renderer.outputEncoding = THREE.sRGBEncoding;
-      this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      this.renderer.toneMappingExposure = 0.9;
+      this.renderer.toneMapping = THREE.CustomToneMapping;   // curva e grading em Materials.js
+      this.renderer.toneMappingExposure = 0.78;
       this.renderer.autoClear = false;
+      // sombra de verdade só do corredor e de quem está perto (o cenário usa sombras pintadas)
+      if (save.settings.quality !== 'low') {
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      }
       this.scene = new THREE.Scene();
       this.camera = new THREE.PerspectiveCamera(60, 1, 0.3, 700);
       this._resize();
       EP.Materials.init(save.settings.quality);
       this.daynight = new EP.DayNightSystem(this.scene, EP.data.dayNight);
+      if (this.renderer.shadowMap.enabled) {
+        this.daynight.sun.castShadow = true;
+        var ms = save.settings.quality === 'high' ? 2048 : 1024;
+        this.daynight.sun.shadow.mapSize.set(ms, ms);
+      }
       this.daynight.phase = this.daynight.startPhaseFor(save.world.timeOfDay);
       this.world = new EP.ProceduralWorldGenerator(this.scene);
       this.world.signFactory = function (fork) { return EP.ForkSigns.get(fork); };
@@ -53,6 +63,7 @@
 
       this.rig = new EP.RunnerRig();
       this.rig.setAppearance(EP.RunnerRig.resolve(save.profile));
+      this.rig.shadow.material = EP.Materials.shadowSoft || this.rig.shadow.material;
       this.rig.onStep = function () { if (self.state === 'run') AU.step(self.speed.value); };
       this.scene.add(this.rig.root);
       this.player = new EP.RunnerController(this.rig, B.run);
@@ -65,6 +76,8 @@
       this.overtakes = new EP.OvertakeSystem(B.economy);
       this.economy = new EP.EconomyManager(B.economy, save);
       this.challenges = new EP.ChallengeManager(EP.data.challenges, save.stats);
+      this.draft = new EP.DraftSystem(EP.data.draft);
+      this.pacer = new EP.PacemakerSystem(this.npcs);
       this.progression = new EP.ProgressionManager(save);
       this.creator = new EP.CharacterCreator($('tela-criar'));
 
@@ -146,7 +159,7 @@
       this.state = 'run';
       this.camMode = 'run';
       this.rhythm.reset(); this.flow.reset(); this.energy.reset(); this.speed.reset();
-      this.overtakes.reset(); this.economy.reset();
+      this.overtakes.reset(); this.economy.reset(); this.draft.reset(); this.pacer.stop();
       var firstRun = !save.stats.runs;
       this.challenges.reset(firstRun || !save.tutorialDone);
       this.progression.startRun();
@@ -278,6 +291,7 @@
       else if (this.state === 'home' || this.state === 'create' || this.state === 'summary') this._updateIdle(dt);
       this._updateCamera(dt);
       this.daynight.update(dt, this.camera.position, this.state === 'run');
+      this.daynight.follow(this.rig.root.position, this.camera);
       // duas camadas: céu e paisagem distante, depois o mundo (que termina na neblina)
       var cam = this.camera, r = this.renderer;
       r.clear();
@@ -312,8 +326,9 @@
       var freq = this.rhythm.frequency(clock);
       this.flow.update(dt, this.rhythm.idle(clock));
       var lvl = this.flow.level;
-      this.speed.update(dt, freq, { flowLevel: lvl, exhausted: this.energy.exhausted });
-      this.energy.update(dt, this.speed.value, { flowLevel: lvl, energy: mods.energy });
+      this.draft.update(dt, this.npcs.pool, this.player, this.speed.value);
+      this.speed.update(dt, freq, { flowLevel: lvl, exhausted: this.energy.exhausted, speedBonus: this.draft.speedBonus() });
+      this.energy.update(dt, this.speed.value, { flowLevel: lvl, energy: mods.energy, consumption: this.draft.consumption() });
       if (this.energy.exhausted && !this.wasExhausted) UI.toast(t('hud.lowEnergy'), 2600);
       this.wasExhausted = this.energy.exhausted;
       var limits = this.world.limitsAt(this.player.z, this.player.x, B.run.laneLimit);
@@ -328,7 +343,11 @@
       this.npcs.update(dt, this.player, this._npcCtx(false));
       this.overtakes.update(clock);
       if (this.comboShown && !this.overtakes.combo) { this.comboShown = false; UI.combo(0); }
-      this.challenges.update(dt, { distance: this.progression.run.distance, blocked: this.forkShown || (this.tutorial && this.tutorial.step < 3) });
+      this.challenges.update(dt, {
+        distance: this.progression.run.distance, blocked: this.forkShown || (this.tutorial && this.tutorial.step < 3),
+        meters: meters, speed: this.speed.value, energy: this.energy.fraction(), drafting: this.draft.active,
+        pacerGap: this.pacer.gap(this.player), level: this.save.profile.level
+      });
       if (this.challenges.active) UI.challengeTick(this.challenges.active);
 
       seg = this.world.segmentAt(this.player.z);
@@ -359,7 +378,7 @@
       var o = this.overtakes.onOvertake(this.clock);
       this.progression.addOvertake(o.combo);
       this.economy.add(o.coins * this.economy.multiplier(this.flow.level, mods), 'overtake');
-      this.challenges.onOvertake();
+      this.challenges.onOvertake(o.combo);
       UI.combo(o.combo);
       this.comboShown = o.combo > 1;
       AU.overtake(o.combo);
@@ -444,20 +463,25 @@
       if (this.camMode === 'run') {
         var it = this.speed.intensity(), lvl = Math.min(this.flow.level, 4);
         theta = 0;
-        r = U.lerp(B.walk.dist, B.sprint.dist, it) + k * 0.5;
-        h = U.lerp(B.walk.height, B.sprint.height, it) + k * 0.45;
-        fov = U.lerp(B.walk.fov, B.sprint.fov, it) + lvl * B.flowFov + k * B.portraitFovBoost + (calm ? 0 : this.fovKick);
-        cx = p.x * 0.6; lx = p.x * 0.75; ly = 1.35 - k * 0.1; lz = p.z - 9;
-        if (!calm) h += Math.sin(this.rig.phase * 2) * 0.025 * U.smooth((this.speed.value - 6) / 4);
+        r = U.lerp(B.walk.dist, B.sprint.dist, it) * U.lerp(1, B.portraitDist, k);
+        h = U.lerp(B.walk.height, B.sprint.height, it) - k * 0.1;
+        // 55° caminhando, 60° correndo, 65° no sprint (+ um pouco no FLOW)
+        fov = (it < 0.5 ? U.lerp(B.walk.fov, B.run.fov, it * 2) : U.lerp(B.run.fov, B.sprint.fov, it * 2 - 1)) + lvl * B.flowFov + (calm ? 0 : this.fovKick * 0.6);
+        cx = p.x * 0.55; lx = p.x * 0.7; ly = 1.2 - k * 0.15; lz = p.z - 10;
+        if (!calm) h += Math.sin(this.rig.phase * 2) * 0.012 * U.smooth((this.speed.value - 6) / 4);
       } else {
         var create = this.camMode === 'create';
         theta = Math.PI - (create ? 0.15 : 0.42);
         r = create ? 3.7 + k * 0.6 : 4.3 + k * 0.6;
         h = create ? 1.25 : 1.4;
-        fov = 50 + k * 14;
+        fov = 50;
         cx = p.x;
         lx = p.x; ly = 0.95; lz = p.z;
       }
+      // celular em pé: abre a vertical para manter um campo horizontal mínimo
+      var hmin = (this.camMode === 'run' ? B.minHFov : 40) * Math.PI / 180;
+      var vNeed = 2 * Math.atan(Math.tan(hmin / 2) / aspect) * 180 / Math.PI;
+      fov = Math.min(B.maxVFov, Math.max(fov, vNeed));
       this._viewOffset(dt);   // em todos os modos (na corrida volta a zero)
       this.fovKick = U.damp(this.fovKick, 0, 6, dt);
       if (this.snapCam) {
@@ -465,11 +489,11 @@
         this.snapCam = false;
       } else {
         c.theta = U.damp(c.theta, theta, 2.6, dt);
-        c.r = U.damp(c.r, r, 3, dt);
-        c.h = U.damp(c.h, h, 3, dt);
-        c.fov = U.damp(c.fov, fov, 3, dt);
-        c.cx = U.damp(c.cx, cx, 6, dt);
-        c.look.x = U.damp(c.look.x, lx, 6, dt);
+        c.r = U.damp(c.r, r, 2.2, dt);
+        c.h = U.damp(c.h, h, 2.2, dt);
+        c.fov = U.damp(c.fov, fov, 2, dt);
+        c.cx = U.damp(c.cx, cx, 3.5, dt);
+        c.look.x = U.damp(c.look.x, lx, 3.5, dt);
         c.look.y = U.damp(c.look.y, ly, 4, dt);
         c.look.z = this.camMode === 'run' ? U.damp(c.look.z, lz, 12, dt) : U.damp(c.look.z, lz, 4, dt);
       }
@@ -520,7 +544,12 @@
         if (up) { AU.flowUp(p.level); EP.haptics.pulse(20); self.progression.setFlow(p.level); }
       });
       E.on('flow_lost', function () { if (self.state === 'run') AU.flowLost(); });
-      E.on('challenge_started', function () { UI.challenge(self.challenges.active); AU.ui(); });
+      E.on('challenge_started', function (p) {
+        if (p.type === 'pacer') self.pacer.start(self.player, p.speed);
+        UI.challenge(self.challenges.active); AU.ui();
+      });
+      var endPacer = function () { self.pacer.stop(); };
+      E.on('challenge_failed', endPacer); E.on('challenge_completed', endPacer); E.on('challenge_cancelled', endPacer);
       E.on('challenge_completed', function (p) {
         var coins = self.economy.add(p.reward.coins, 'challenge');
         self.progression.run.challenges++;

@@ -4,6 +4,13 @@
 // especiais. O desenho de cada peça fica em js/world/Assets.js.
 (function (EP) {
   EP.data.roadModules = (EP.data.roadModules || []).concat([
+    // ORLA: o trecho-modelo da direção de arte (js/world/Orla.js)
+    {
+      id: 'orla', biome: 'cidade', ground: 'lot', length: 160, curvature: 0.3, slope: 0,
+      entrance: 'rua', exit: 'rua', floor: 'orla', npcDensity: 1.1, mirror: false, skyline: false,
+      sides: { buildings: [], buildingGap: [0, 0], setback: [0, 0], trees: [], treeEvery: [0, 0], props: [], propEvery: [0, 0] },
+      extras: ['orla', 'crosswalk']
+    },
     {
       id: 'residencial', biome: 'cidade', ground: 'ground', length: 90, curvature: 0.35, slope: 0,
       entrance: 'rua', exit: 'rua', floor: 'rua', npcDensity: 1,
@@ -111,7 +118,7 @@
   // Rotas: conjuntos de módulos com pequenos modificadores (GDD §20–21).
   // modifiers.energy: 1.10 = recupera 10% mais e gasta 10% menos.
   EP.data.routes = Object.assign(EP.data.routes || {}, {
-    bairro: { text: 'route.bairro', icon: '🏘️', modules: ['residencial', 'comercial', 'praca', 'ponte', 'tunel'], modifiers: {} },
+    bairro: { text: 'route.bairro', icon: '🏘️', modules: ['orla', 'residencial', 'comercial', 'praca', 'ponte', 'tunel'], modifiers: {} },
     parque: {
       text: 'route.parque', icon: '🌳', modules: ['parque', 'parque-lago', 'quadra'], length: [4, 6],
       modifiers: { energy: 1.10, npcDensity: 0.6 }, perks: ['perk.energy10', 'perk.fewerRunners']

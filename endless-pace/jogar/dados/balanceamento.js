@@ -68,10 +68,14 @@
 
     camera: {
       // por velocidade: distância atrás, altura, campo de visão (graus)
-      walk: { dist: 3.8, height: 2.1, fov: 60 },
-      sprint: { dist: 4.9, height: 2.35, fov: 70 },
-      flowFov: 1.2,          // graus extras por nível de FLOW (até ×4)
-      portraitFovBoost: 12   // celular em pé: mais campo de visão
+      // atrás e um pouco acima; o corredor ocupa ~30% da altura da tela
+      walk: { dist: 4.6, height: 1.95, fov: 55 },
+      run: { fov: 60 },
+      sprint: { dist: 5.3, height: 2.15, fov: 65 },
+      flowFov: 0.6,          // graus extras por nível de FLOW (até ×4)
+      minHFov: 52,           // celular em pé: campo horizontal mínimo (a vertical abre para compensar)
+      maxVFov: 84,
+      portraitDist: 0.74     // em pé, a câmera chega mais perto (o corredor não fica pequeno)
     },
 
     run: {

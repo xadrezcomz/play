@@ -14,7 +14,10 @@ const ARQUIVOS = [
   'dados/textos/pt-BR.js', 'dados/textos/en-US.js', 'dados/textos/es.js',
   'js/core/SaveManager.js', 'js/core/LocalizationManager.js',
   'js/systems/TapRhythmSystem.js', 'js/systems/FlowSystem.js', 'js/systems/EnergySystem.js', 'js/systems/SpeedSystem.js',
-  'js/systems/OvertakeSystem.js', 'js/systems/EconomyManager.js', 'js/systems/ChallengeManager.js', 'js/systems/ProgressionManager.js'
+  'js/systems/OvertakeSystem.js', 'js/systems/EconomyManager.js', 'js/systems/ChallengeManager.js', 'js/systems/ProgressionManager.js',
+  'dados/economia.js', 'dados/itens.js', 'dados/niveis.js', 'dados/conquistas.js', 'dados/missoes.js',
+  'js/systems/EquipmentManager.js', 'js/systems/InventoryManager.js', 'js/systems/LevelSystem.js', 'js/systems/AchievementManager.js',
+  'js/systems/MissionManager.js', 'js/systems/OfflineProgressManager.js', 'js/systems/DraftSystem.js'
 ];
 
 function carrega() {
@@ -141,7 +144,8 @@ test('ultrapassagens em sequência fazem combo e dão moedas extras', () => {
 test('desafio de PERFECT seguidos completa, dá recompensa e sobe a meta', () => {
   const EP = carrega();
   const save = EP.SaveManager.defaults();
-  const ch = new EP.ChallengeManager(EP.data.challenges, save.stats);
+  const so = Object.assign({}, EP.data.challenges, { list: EP.data.challenges.list.filter(c => c.id === 'flow') });
+  const ch = new EP.ChallengeManager(so, save.stats);
   ch.reset(true);
   ch.update(0.1, { distance: 100 });
   assert.equal(ch.active, null);
@@ -225,10 +229,104 @@ test('textos: os três idiomas têm as mesmas chaves', () => {
 test('dados: módulos das rotas e bifurcações existem', () => {
   const EP = carrega();
   const ids = EP.data.roadModules.map(m => m.id);
-  assert.equal(ids.length, 10);
+  assert.equal(ids.length, 11);
   for (const r of Object.values(EP.data.routes)) for (const m of r.modules) assert.ok(ids.includes(m), m);
   for (const f of EP.data.forks) {
     assert.ok(ids.includes(f.module));
     assert.ok(EP.data.routes[f.left] && EP.data.routes[f.right]);
   }
+});
+
+// ---------------------------------------------------------------- v1.0
+test('loja: compra, equipa e os itens somam atributos com efeito limitado', () => {
+  const EP = carrega();
+  const save = EP.SaveManager.defaults();
+  const inv = new EP.InventoryManager(save, EP.data.items), eq = new EP.EquipmentManager(EP.data.items, EP.data.statEffects);
+  inv.ensureStarters();
+  assert.equal(save.equipped.shoes, 'tenis-basico');
+  assert.equal(inv.canBuy('tenis-leve', 1).reason, 'coins');
+  save.coins = 10000;
+  assert.equal(inv.canBuy('tenis-cometa', 1).reason, 'level');
+  assert.ok(inv.buy('tenis-leve', 1));
+  assert.equal(save.coins, 10000 - 180);
+  inv.equip('tenis-leve');
+  const fx = eq.effects(eq.totals(save.equipped));
+  assert.ok(Math.abs(fx.speedMult - 1.016) < 1e-9);
+  // conjunto lendário completo: ajuda, mas não dobra a velocidade (GDD §43)
+  const top = {}; EP.data.items.filter(i => i.rarity === 'lendario').forEach(i => { top[i.slot] = i.id; });
+  assert.ok(eq.effects(eq.totals(top)).speedMult < 1.15);
+});
+
+test('nível: XP sobe de nível e paga moedas', () => {
+  const EP = carrega();
+  const save = EP.SaveManager.defaults();
+  const lv = new EP.LevelSystem(EP.data.levels, save);
+  const r = lv.addXp(lv.xpForLevel(1) + 1);
+  assert.equal(save.profile.level, 2);
+  assert.equal(r.levelsGained, 1);
+  assert.ok(save.coins >= 80);
+});
+
+test('conquistas: distância acumulada destrava as referências reais', () => {
+  const EP = carrega();
+  const save = EP.SaveManager.defaults();
+  const ach = new EP.AchievementManager(EP.data.achievements, save);
+  save.stats.totalDistance = 13300;
+  const got = ach.check().map(d => d.id);
+  assert.ok(got.includes('ponte-rio-niteroi') && got.includes('10km') && !got.includes('meia-maratona'));
+  assert.equal(ach.check().length, 0);
+});
+
+test('missões: o mesmo dia sorteia as mesmas missões e o progresso completa', () => {
+  const EP = carrega();
+  const a = EP.SaveManager.defaults(), b = EP.SaveManager.defaults();
+  new EP.MissionManager(EP.data.missions, a).ensureDay('2026-10-06', 3);
+  const mm = new EP.MissionManager(EP.data.missions, b);
+  mm.ensureDay('2026-10-06', 3);
+  assert.deepEqual(a.missions.list.map(m => m.id), b.missions.list.map(m => m.id));
+  assert.equal(new Set(b.missions.list.map(m => m.metric)).size, 3);
+  const m = b.missions.list[0];
+  const done = mm.track(m.metric, m.target + 5, m.mode);
+  assert.equal(done.length, 1);
+  assert.ok(mm.claim(0));
+  assert.equal(mm.claim(0), null);
+});
+
+test('offline: ritmo limitado e teto de horas', () => {
+  const EP = carrega();
+  const save = EP.SaveManager.defaults();
+  save.profile.created = true; save.stats.runs = 2;
+  const off = new EP.OfflineProgressManager(EP.data.offline);
+  save.lastSeenAt = 1000;
+  assert.equal(off.compute(save, 1000 + 60 * 1000, {}), null);          // 1 min: não conta
+  const r = off.compute(save, 1000 + 30 * 3600 * 1000, {});             // 30 h fora
+  assert.ok(r.capped && r.hours === 8);
+  assert.ok(r.km <= 8 * EP.data.offline.maxKmh + 1e-9);
+  off.apply(save, r);
+  assert.equal(save.stats.offlineDistance, r.meters);
+});
+
+test('desafios novos: PACE conta tempo na faixa e SPRINT guarda o recorde', () => {
+  const EP = carrega();
+  const save = EP.SaveManager.defaults();
+  const ch = new EP.ChallengeManager(EP.data.challenges, save.stats);
+  ch.reset(false);
+  ch.start({ level: 9 }, 'pace');
+  const a = ch.active, v = a.target2;
+  for (let i = 0; i < (a.target + 1) * 10; i++) ch.update(0.1, { distance: 0, speed: v, meters: 0.3 });
+  assert.equal(ch.active, null);
+  assert.equal(save.stats.challenges.pace, 1);
+  ch.start({ level: 9 }, 'sprint');
+  for (let i = 0; i < 400 && ch.active; i++) ch.update(0.1, { distance: 0, speed: 18, meters: 0.5 });
+  assert.ok(save.stats.challengeRecords.sprint200 > 0 && save.stats.challengeRecords.sprint200 <= 40.5);
+});
+
+test('vácuo: atrás de outro corredor gasta menos energia', () => {
+  const EP = carrega();
+  const d = new EP.DraftSystem(EP.data.draft);
+  const npcs = [{ active: true, x: 0, z: -2 }];
+  for (let i = 0; i < 20; i++) d.update(0.1, npcs, { x: 0.1, z: 0 }, 12);
+  assert.ok(d.active && d.consumption() < 0.75 && d.speedBonus() > 0.4);
+  for (let i = 0; i < 20; i++) d.update(0.1, npcs, { x: 2, z: 0 }, 12);
+  assert.ok(!d.active);
 });

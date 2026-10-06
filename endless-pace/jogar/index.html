@@ -42,19 +42,23 @@
   <!-- HUD da corrida (GDD §65–66): pouco espaço, cenário sempre à vista -->
   <div id="hud" hidden>
     <div class="hud-topo">
-      <div class="marcador esq">
-        <span class="rot" data-t="hud.distance"></span>
+      <div class="pil p-dist">
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5a7 7 0 0 0-7 7c0 5.2 7 12 7 12s7-6.8 7-12a7 7 0 0 0-7-7zm0 9.6a2.6 2.6 0 1 1 0-5.2 2.6 2.6 0 0 1 0 5.2z"/></svg>
         <b id="h-dist">0 m</b>
       </div>
-      <button id="h-pausa" class="btn-pausa" type="button" data-t-aria="hud.pause"><span></span><span></span></button>
-      <div class="marcador dir">
-        <span class="rot" data-t="hud.speed"></span>
-        <b id="h-vel">4,0</b>
+      <div class="pil p-vel">
+        <svg class="ic raio" viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 2 4.5 13.5h6L9.5 22l9-11.5h-6z"/></svg>
+        <span class="pil-txt"><span class="rot" data-t="hud.speed"></span><b><span id="h-vel">4,0</span><small> km/h</small></b></span>
       </div>
+      <div id="h-flow" class="pil p-flow">
+        <svg class="ic chama" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.6 2.2c.5 3-1.6 4.6-3 6.3C8 10.4 7 12 7 14.3A5 5 0 0 0 12 19.5a5 5 0 0 0 5-5.2c0-1.6-.6-3-1.5-4.1-.2 1.4-1 2.4-2.1 2.6.8-3.1-.1-7.3-.8-10.6zM12 21.8a7.3 7.3 0 0 1-7.3-7.4c0-3.2 1.7-5.4 3.4-7.3-.2 1.4.2 2.6 1 3.4C10 6.8 11.3 4 11 1c4.4 2.3 8.3 7 8.3 13.3a7.3 7.3 0 0 1-7.3 7.5z"/></svg>
+        <span class="pil-txt"><span class="rot">FLOW <em id="h-flow-n"></em></span><span class="segs"><i></i><i></i><i></i><i></i><i></i><s id="h-flow-bar"></s></span></span>
+      </div>
+      <button id="h-pausa" class="btn-pausa" type="button" data-t-aria="hud.pause"><span></span><span></span></button>
     </div>
     <div class="hud-linha">
-      <span id="h-moedas" class="moedas"><i class="moeda"></i><b id="h-moedas-b">0</b></span>
-      <span class="ultra"><span data-t="hud.overtakes"></span> <b id="h-ultra">0</b></span>
+      <span id="h-moedas" class="pil mini moedas"><i class="moeda"></i><b id="h-moedas-b">0</b></span>
+      <span class="pil mini ultra"><span data-t="hud.overtakes"></span> <b id="h-ultra">0</b></span>
     </div>
     <div id="h-rota" class="rota" hidden></div>
     <div id="h-desafio" class="desafio" hidden>
@@ -64,7 +68,6 @@
     </div>
     <div class="hud-centro">
       <div id="h-aval" class="aval"></div>
-      <div id="h-flow" class="flow" hidden><span id="h-flow-n"></span><i><s id="h-flow-bar"></s></i></div>
       <div id="h-combo" class="combo" hidden></div>
     </div>
     <div id="h-dica" class="dica" hidden><strong id="h-dica-t"></strong><span id="h-dica-s"></span></div>
@@ -80,9 +83,10 @@
     <div class="hud-base">
       <div id="h-batida" class="batida"><i></i></div>
       <div id="h-zona" class="zona"></div>
-      <div class="energia">
-        <span class="rot" data-t="hud.energy"></span>
-        <div class="barra"><i id="h-energia"></i></div>
+      <div class="pil energia">
+        <svg class="ic raio" viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 2 4.5 13.5h6L9.5 22l9-11.5h-6z"/></svg>
+        <span class="en-col"><span class="rot" data-t="hud.energy"></span><span class="barra"><i id="h-energia"></i></span></span>
+        <b id="h-energia-pct">100%</b>
       </div>
     </div>
   </div>
@@ -271,10 +275,13 @@
 <script src="js/audio/MusicLayerManager.js"></script>
 <script src="js/audio/AudioManager.js"></script>
 <!-- mundo e corredores -->
+<script src="js/world/Textures.js"></script>
 <script src="js/world/Materials.js"></script>
 <script src="js/world/GeoBuilder.js"></script>
 <script src="js/world/Assets.js"></script>
 <script src="js/world/RoadModules.js"></script>
+<script src="js/world/Kit.js"></script>
+<script src="js/world/Orla.js"></script>
 <script src="js/world/biomas/litoral.js"></script>
 <script src="js/world/biomas/metropole.js"></script>
 <script src="js/world/biomas/europeu.js"></script>

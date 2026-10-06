@@ -44,6 +44,7 @@
       this._set('h-ultra', String(s.overtakes));
       this._set('h-zona', t('zone.' + s.zone));
       this._style('h-energia', 'transform', 'scaleX(' + Math.max(0.001, s.energy).toFixed(3) + ')');
+      this._set('h-energia-pct', Math.round(s.energy * 100) + '%');
       var low = s.energy < 0.22 || s.exhausted;
       if (this.cache.low !== low) { this.cache.low = low; $('h-energia').classList.toggle('baixa', low); }
       var b = $('h-batida');
@@ -54,7 +55,7 @@
         b.firstElementChild.style.opacity = s.beat > 1.15 ? '0.3' : '1';
       } else if (this.cache.beatOn) { this.cache.beatOn = false; b.classList.remove('ativa'); }
       if (this.cache.beatFlow !== (s.flow > 0)) { this.cache.beatFlow = s.flow > 0; b.classList.toggle('fluindo', s.flow > 0); }
-      if (s.flow > 0) this._style('h-flow-bar', 'width', Math.round(s.flowProgress * 100) + '%');
+      this._style('h-flow-bar', 'width', s.flow > 0 && s.flow < 5 ? Math.round(s.flowProgress * 100) + '%' : '0%');
       if (this.toastTimer > 0) {
         this.toastTimer -= s.dt;
         if (this.toastTimer <= 0) { $('h-aviso').classList.remove('mostra'); this._nextToast(); }
@@ -72,14 +73,15 @@
       el.className = 'aval mostra ' + r;
     },
 
+    // FLOW no painel de cima: cinco segmentos (×5 ou mais = máximo, dourado)
     flow: function (level, up) {
-      var el = $('h-flow');
-      el.hidden = level <= 0;
-      if (level > 0) {
-        $('h-flow-n').textContent = t('hud.flow', { n: level });
-        if (up) { el.classList.remove('sobe'); void el.offsetWidth; el.classList.add('sobe'); }
-      }
-      $('flow-fx').style.opacity = level <= 0 ? 0 : Math.min(1, 0.25 + level * 0.18);
+      var el = $('h-flow'), segs = el.querySelectorAll('.segs i');
+      for (var i = 0; i < segs.length; i++) segs[i].classList.toggle('on', i < level);
+      $('h-flow-n').textContent = level > 0 ? '×' + level : '';
+      el.classList.toggle('zero', level <= 0);
+      el.classList.toggle('max', level >= 5);
+      if (up) { el.classList.remove('sobe'); void el.offsetWidth; el.classList.add('sobe'); }
+      $('flow-fx').style.opacity = level <= 0 ? 0 : Math.min(1, 0.15 + level * 0.12);
     },
 
     combo: function (n) {
@@ -150,12 +152,15 @@
       if (!state) { el.hidden = true; el.classList.remove('ok'); return; }
       var def = state.def;
       $('h-d-tit').textContent = t(def.text + '.title');
-      $('h-d-desc').textContent = t(def.text + '.desc', { n: state.target });
+      $('h-d-desc').textContent = t(def.text + '.desc', { n: state.target, v: state.target2 });
       el.hidden = false;
       this.challengeTick(state);
     },
     challengeTick: function (state) {
-      this._set('h-d-prog', state.progress + '/' + state.target);
+      var hint = state.hint > 0 ? ' · ' + t('ch.hint.faster') : state.hint < 0 ? ' · ' + t('ch.hint.slower') : '';
+      var prog = state.def.type === 'sprint' ? t('ch.sprintTime', { t: L.num(state.time, 1) }) + ' · ' + state.progress + '/' + state.target + ' m'
+        : state.progress + '/' + state.target + (state.unit === 's' ? ' s' : state.unit === 'm' ? ' m' : '');
+      this._set('h-d-prog', prog + hint);
       this._style('h-d-tempo', 'transform', 'scaleX(' + Math.max(0, state.timeLeft / state.def.timeLimit).toFixed(3) + ')');
     },
     challengeDone: function (ok, target) {

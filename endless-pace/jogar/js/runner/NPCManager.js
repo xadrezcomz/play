@@ -16,6 +16,7 @@
     this.frame = 0;
     for (var i = 0; i < data.poolSize; i++) {
       var rig = new EP.RunnerRig();
+      rig.mesh.castShadow = false;   // sombra redonda basta (a do jogador é de verdade)
       rig.root.visible = false;
       scene.add(rig.root);
       this.pool.push({ rig: rig, active: false });
@@ -49,7 +50,7 @@
     n.z = z; n.x = x; n.laneX = x; n.desiredX = x;
     n.base = speed; n.speed = speed; n.cat = cat; n.group = group || 0;
     n.wobbleT = Math.random() * 100; n.wobbleF = 0.05 + Math.random() * 0.12;
-    n.counted = false; n.wasAhead = false; n.animAcc = 0; n.laneTimer = 4 + Math.random() * 10;
+    n.counted = false; n.wasAhead = false; n.pacer = false; n.animAcc = 0; n.laneTimer = 4 + Math.random() * 10;
     n.rig.setAppearance(EP.RunnerRig.random());
     n.rig.root.visible = true;
     n.rig.root.position.set(x, 0, z);
@@ -125,7 +126,7 @@
       n = list[i];
       if (!n.active) continue;
       n.wobbleT += dt;
-      n.speed = Math.max(4, n.base + Math.sin(n.wobbleT * n.wobbleF * Math.PI * 2) * d.wobble);
+      n.speed = n.pacer ? n.base : Math.max(4, n.base + Math.sin(n.wobbleT * n.wobbleF * Math.PI * 2) * d.wobble);
       n.z -= n.speed / 3.6 * dt;
       // de vez em quando muda de faixa
       n.laneTimer -= dt;
@@ -175,11 +176,34 @@
       var ahead = player.z - n.z;
       if (ahead > 0.6) n.wasAhead = true;
       if (!n.counted && n.wasAhead && ahead < -0.6) { n.counted = true; if (ctx.onOvertake) ctx.onOvertake(n); }
-      if (ahead < behindLim || ahead > aheadLim || (!ctx.home && ahead > 112 && n.speed >= ctx.playerSpeed)) { n.active = false; n.rig.root.visible = false; continue; }
+      if (!n.pacer && (ahead < behindLim || ahead > aheadLim) || (!ctx.home && !n.pacer && ahead > 112 && n.speed >= ctx.playerSpeed)) { n.active = false; n.rig.root.visible = false; continue; }
       n.rig.root.position.set(n.x, 0, n.z);
+      n.rig.setLod(Math.abs(ahead) > (n.rig.lod ? 22 : 26) ? 1 : 0);   // longe: molde leve
       n.animAcc += dt;
       if (Math.abs(ahead) < 70 || (this.frame + i) % 3 === 0) { n.rig.animate(n.animAcc, n.speed, null); n.animAcc = 0; }
     }
+  };
+
+  // corredor-guia (PACER): um corredor do grupo, com colete e bandeirinha, num ritmo fixo
+  P.spawnPacer = function (player, speed, ahead) {
+    var n = this._free();
+    if (!n) {   // grupo cheio: reaproveita o mais distante
+      var far = null;
+      this.pool.forEach(function (o) { if (o.active && !o.pacer && (!far || Math.abs(o.z - player.z) > Math.abs(far.z - player.z))) far = o; });
+      n = far;
+    }
+    if (!n) return null;
+    this._activate(n, player.z - ahead, U.clamp(player.x + 0.8, -this.limit + 0.5, this.limit - 0.5), speed, 'pacer', 0);
+    var app = EP.RunnerRig.random();
+    app.pacer = true; app.gear = { head: { kind: 'viseira', color: '#ffffff', accent: '#ff5a3d' } };
+    n.rig.setAppearance(app);
+    n.pacer = true; n.counted = true; n.wasAhead = false; n.laneTimer = 999;
+    return n;
+  };
+  P.releasePacer = function (n) {
+    if (!n) return;
+    n.pacer = false;
+    if (n.active && Math.abs(n.z) >= 0) n.laneTimer = 2;
   };
 
   P.rebase = function (shift) {
