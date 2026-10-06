@@ -275,8 +275,14 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     }]
   };
 
+  // START=40 node testa-fases.js → começa da fase 40 (as anteriores contam como feitas)
+  const START = parseInt(process.env.START || '1', 10);
+  if (START > 1) {
+    await page.evaluate(n => { const c = {}; for (let i = 1; i < n; i++) c[i] = true; localStorage.setItem('rules.save.v1', JSON.stringify({ completed: c })); }, START);
+    await page.reload(); await sleep(400);
+  }
   await page.click('#btn-play');
-  const ids = await page.evaluate(() => RULES.Levels.order());
+  const ids = (await page.evaluate(() => RULES.Levels.order())).filter(id => id >= START);
   for (const id of ids) {
     const L = LEVELS[id];
     if (!L) throw new Error('sem roteiro de teste para a fase ' + id);
@@ -288,7 +294,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     if (await page.evaluate(id => RULES.Levels.get(id).finale === 'mid', id)) {
       await sleep(1600);
       await page.screenshot({ path: SHOTS + 'finale-1.png' });
-      await page.click('.finale-word'); await sleep(1600);
+      await page.click('.finale-word', { force: true }); await sleep(1600);
       await page.screenshot({ path: SHOTS + 'finale-2.png' });
       await page.click('.finale-go'); await sleep(300);
     }

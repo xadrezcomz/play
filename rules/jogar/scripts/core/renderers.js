@@ -233,7 +233,10 @@
   } };
   // metade de triângulo (props.side: 'left' | 'right')
   T.halftri = { view: '0 0 50 90', svg: function (p) {
-    var c = col(p, C.yellow), d = p.side === 'right' ? 'M4 6 L46 84 L4 84Z' : 'M46 6 L46 84 L4 84Z';
+    // pedaço de triângulo com a borda quebrada (zigue-zague): não parece um triângulo inteiro
+    var c = col(p, C.yellow), d = p.side === 'right'
+      ? 'M4 6 L46 84 L4 84 L10 70 L2 56 L10 42 L2 28 L8 16Z'
+      : 'M46 6 L4 84 L46 84 L40 70 L48 56 L40 42 L48 28 L40 16Z';
     return '<path d="' + d + '" fill="' + c + '" stroke="' + c + '" stroke-width="6" stroke-linejoin="round"/>';
   } };
   T.plank = { view: '0 0 100 20', stretch: true, svg: function (p) {

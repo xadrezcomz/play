@@ -133,7 +133,9 @@
       var o = new R.GameObject(d, self);
       o.el.classList.add('in-text');
       self.objects.set(o.id, o);
-      wordEl().appendChild(o.el);
+      // uma frase inteira como peça pode quebrar linha normalmente
+      if (/\s/.test(part.text)) { o.el.classList.add('phrase'); word = null; el.appendChild(o.el); }
+      else wordEl().appendChild(o.el);
     });
   };
 

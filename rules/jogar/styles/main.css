@@ -191,6 +191,9 @@ button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-c
   font-size: calc(var(--W) * .07); color: var(--ink);
 }
 .instr-word { white-space: nowrap; }
+.instr-text .obj.phrase .obj-inner { display: inline; white-space: normal; }
+.obj-word.detached.phrase { white-space: normal; text-align: center; }
+.obj-word.detached.phrase .obj-inner { width: 100%; }
 .instr-text .obj.in-text { position: relative; display: inline; }
 .instr-text .obj.in-text .obj-inner { display: inline-block; width: auto; height: auto; }
 .word-ghost { visibility: hidden; }
