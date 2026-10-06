@@ -28,6 +28,7 @@
     if (this.behaviors.draggable && this.type !== 'word') el.classList.add('is-draggable');
     if (this.behaviors.clickable) el.classList.add('is-clickable');
     if (def.passive) el.classList.add('is-passive');
+    if (def.cls) def.cls.split(' ').forEach(function (c) { el.classList.add(c); });
     if (this.hidden) el.style.visibility = 'hidden';
     this.inner = U.el('span', 'obj-inner', el);
     R.Renderers.draw(this);

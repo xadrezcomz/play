@@ -4,8 +4,9 @@
   'use strict';
   var R = window.RULES;
 
-  // MVP 0.1: as dez fases que testam tap, drag, escala, texto, espera e interpretação.
-  R.LEVEL_ORDER = [1, 2, 3, 5, 9, 10, 11, 12, 16, 20];
+  // Capítulos 1–3 completos (fases 1–30).
+  R.LEVEL_ORDER = [];
+  for (var i = 1; i <= 30; i++) R.LEVEL_ORDER.push(i);
 
   R.CHAPTERS = [
     { id: 1, title: 'CHAPTER_1', theme: 'ch1' },

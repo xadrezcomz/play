@@ -135,11 +135,98 @@
     return rays + '<circle cx="50" cy="50" r="28" fill="#FFC94A"/>';
   } };
 
-  T.cloud = { view: '0 0 100 60', svg: function () {
-    return '<path d="M22 56 Q2 56 4 40 Q6 26 22 28 Q26 8 48 10 Q66 4 74 22 Q96 20 96 40 Q96 56 78 56Z" fill="#fff" stroke="#E2E8F0" stroke-width="3"/>';
+  // Nuvem: state.charge (0–1) escurece; state.raining desenha a chuva.
+  T.cloud = { view: '0 0 100 60', svg: function (p, o) {
+    var k = o.state.charge || 0, v = Math.round(255 - k * 110);
+    var fill = 'rgb(' + v + ',' + Math.round(v + k * 8) + ',' + Math.round(v + k * 30) + ')';
+    var rain = '';
+    if (o.state.raining) {
+      for (var i = 0; i < 6; i++) rain += '<path class="drop" style="animation-delay:' + (i * 0.12) + 's" d="M' + (20 + i * 12) + ' 62 l-3 12" stroke="' + C.blue + '" stroke-width="4" stroke-linecap="round"/>';
+    }
+    return rain + '<path d="M22 56 Q2 56 4 40 Q6 26 22 28 Q26 8 48 10 Q66 4 74 22 Q96 20 96 40 Q96 56 78 56Z" fill="' + fill + '" stroke="#D5DEEA" stroke-width="3"/>';
+  } };
+
+  // Copo: state.fill de 0 a 1.
+  T.cup = { view: '0 0 80 100', svg: function (p, o) {
+    var f = o.state.fill || 0, top = 92 - f * 78;
+    var water = f > 0 ? '<path d="M' + (10 + (92 - top) * 0.08) + ' ' + top + ' L' + (70 - (92 - top) * 0.08) + ' ' + top + ' L64 92 Q40 96 16 92Z" fill="' + C.blue + '" opacity=".75"/>' : '';
+    return water + '<path d="M6 8 L16 92 Q40 98 64 92 L74 8" fill="none" stroke="#9FB4C9" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>' +
+      '<path d="M14 18 L20 80" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".7"/>';
+  } };
+
+  // Jarra com bico à esquerda; state.pouring desenha o fio de água.
+  T.jug = { view: '0 0 100 100', svg: function (p, o) {
+    var stream = o.state.pouring ? '<path class="stream" d="M10 30 Q2 60 8 140" fill="none" stroke="' + C.blue + '" stroke-width="7" stroke-linecap="round" opacity=".8"/>' : '';
+    return stream + '<path d="M84 34 Q100 40 96 60 Q92 74 78 74" fill="none" stroke="' + C.purple + '" stroke-width="7"/>' +
+      '<path d="M8 26 L26 22 L78 20 L82 90 Q50 98 22 90 L26 40Z" fill="' + C.purple + '"/>' +
+      '<path d="M28 44 L76 44 L79 86 Q50 93 25 86Z" fill="' + C.blue + '" opacity=".55"/>' +
+      '<path d="M34 30 L36 78" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".45"/>';
+  } };
+
+  T.stick = { view: '0 0 10 10', stretch: true, svg: function (p) {
+    return '<rect x="0" y="0" width="10" height="10" rx="5" ry="5" fill="' + col(p, C.ink) + '"/>';
+  } };
+
+  T.fish = { view: '0 0 100 60', svg: function (p) {
+    var c = col(p, C.orange);
+    return '<path d="M74 30 L98 10 L96 50Z" fill="' + shade(c, -25) + '"/>' +
+      '<ellipse cx="44" cy="30" rx="38" ry="24" fill="' + c + '"/>' +
+      '<path d="M38 8 Q50 0 60 9" fill="' + shade(c, -25) + '"/>' +
+      '<circle cx="22" cy="24" r="7" fill="#fff"/><circle cx="20" cy="24" r="3.6" fill="' + C.ink + '"/>' +
+      '<path d="M10 36 Q16 40 22 36" fill="none" stroke="' + C.ink + '" stroke-width="2.6" stroke-linecap="round"/>' +
+      '<path d="M44 18 Q52 30 44 42 M56 18 Q64 30 56 42" fill="none" stroke="#fff" stroke-width="3" opacity=".5"/>';
+  } };
+
+  // Caixa fechada, sem tampa à vista; state.open abre as abas e mostra o brilho.
+  T.chest = { view: '0 0 100 90', svg: function (p, o) {
+    var c = col(p, '#E8A866');
+    if (o.state.open) {
+      return '<circle cx="50" cy="26" r="26" fill="#FFE27A" opacity=".55"/>' +
+        '<path d="M8 32 L-4 10 L30 12 L36 32Z" fill="' + shade(c, -15) + '"/><path d="M92 32 L104 10 L70 12 L64 32Z" fill="' + shade(c, -15) + '"/>' +
+        '<rect x="6" y="30" width="88" height="58" rx="6" fill="' + c + '"/><rect x="6" y="30" width="88" height="8" fill="' + shade(c, -40) + '"/>';
+    }
+    return '<rect x="6" y="20" width="88" height="68" rx="7" fill="' + c + '"/>' +
+      '<rect x="6" y="20" width="88" height="12" rx="6" fill="' + shade(c, -15) + '"/>' +
+      '<rect x="44" y="20" width="12" height="68" fill="#fff" opacity=".2"/>';
+  } };
+
+  T.wall = { view: '0 0 100 100', stretch: true, svg: function (p) {
+    var c = col(p, '#E9A07E'), rows = '';
+    for (var y = 0; y < 100; y += 12.5) {
+      var off = (y / 12.5) % 2 ? 12.5 : 0;
+      for (var x = -off; x < 100; x += 25) rows += '<rect x="' + (x + 1) + '" y="' + (y + 1) + '" width="23" height="10.5" rx="1.5" fill="' + shade(c, ((x + y) % 3) * 6 - 6) + '"/>';
+    }
+    return '<rect width="100" height="100" fill="' + shade(c, -40) + '"/>' + rows;
+  } };
+
+  T.gem = { view: '0 0 100 90', svg: function (p) {
+    var c = col(p, C.teal);
+    return '<path d="M20 4 L80 4 L98 30 L50 88 L2 30Z" fill="' + c + '"/>' +
+      '<path d="M2 30 L98 30 M20 4 L36 30 L50 88 L64 30 L80 4" fill="none" stroke="#fff" stroke-width="3" opacity=".5" stroke-linejoin="round"/>';
+  } };
+
+  T.feather = { view: '0 0 50 100', svg: function (p) {
+    var c = col(p, C.pink);
+    return '<path d="M25 96 Q22 50 40 6 Q50 40 30 80 Z" fill="' + c + '"/><path d="M25 96 Q14 56 6 26 Q30 50 30 80Z" fill="' + shade(c, -20) + '"/>' +
+      '<path d="M25 98 Q26 50 40 8" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>';
+  } };
+
+  T.tree = { view: '0 0 60 100', svg: function () {
+    return '<rect x="25" y="55" width="10" height="45" rx="3" fill="' + C.woodDark + '"/>' +
+      '<circle cx="30" cy="34" r="26" fill="' + C.green + '"/><circle cx="20" cy="26" r="7" fill="#fff" opacity=".25"/>';
+  } };
+
+  T.apple = { view: '0 0 100 100', svg: function (p) {
+    var c = col(p, C.coral);
+    return '<path d="M50 24 Q78 6 92 40 Q100 80 66 94 Q50 88 34 94 Q0 80 8 40 Q22 6 50 24Z" fill="' + c + '"/>' +
+      '<path d="M50 24 Q50 10 58 2" fill="none" stroke="' + C.woodDark + '" stroke-width="5" stroke-linecap="round"/>' +
+      '<ellipse cx="68" cy="10" rx="12" ry="6" fill="' + C.green + '" transform="rotate(-25 68 10)"/>';
   } };
 
   T.ruli = { view: '0 0 100 112', svg: function (p, o) { return null; } };
+
+  // Ponto invisível (lugares de encaixe, controladores).
+  T.marker = { view: '0 0 10 10', svg: function () { return ''; } };
 
   R.Renderers = {
     types: T,
@@ -152,7 +239,7 @@
         return;
       }
       if (obj.type === 'ruli') {
-        obj.inner.innerHTML = R.Ruli.svg(obj.state.expr || 'normal');
+        obj.inner.innerHTML = R.Ruli.svg(obj.state.expr || 'normal', (obj.def.props || {}).color);
         return;
       }
       var t = T[obj.type];

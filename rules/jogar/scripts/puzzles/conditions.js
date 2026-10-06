@@ -4,7 +4,7 @@
 //   { type:'inside',   objects:[ids], container }
 //   { type:'touching', a, b, pad }
 //   { type:'moved',    target, distance }
-//   { type:'state',    target, key, equals }
+//   { type:'state',    target, key, equals }  (ou truthy:true)
 //   { type:'idle',     seconds }          → nenhum toque por N segundos
 //   { type:'scale',    target, min, max }
 //   { type:'all'|'any', of:[...] }, { type:'not', of: cond }
@@ -41,7 +41,9 @@
 
     state: function (c, E) {
       var o = E.get(c.target);
-      return !!o && o.state[c.key] === (c.equals === undefined ? true : c.equals);
+      if (!o) return false;
+      if (c.truthy) return !!o.state[c.key];
+      return o.state[c.key] === (c.equals === undefined ? true : c.equals);
     },
 
     idle: function (c, E) { return E.idleMs() >= c.seconds * 1000; },

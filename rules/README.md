@@ -8,20 +8,25 @@ simples, e o desafio é descobrir como interpretá-la. Para celular (toque), PC
 ou abrindo `rules/jogar/index.html` direto no navegador. Não tem build nem
 dependência: é HTML, CSS e JavaScript puros.
 
-## Estado: MVP 0.1
+## Estado: capítulos 1 a 3 (fases 1–30)
 
-As dez fases do MVP estão prontas e testadas: **01, 02, 03, 05, 09, 10, 11,
-12, 16 e 20**. Elas cobrem toque, arraste, pinça (escala), palavras da
-instrução como objetos, espera e "manipular a interpretação".
+As 30 primeiras fases do documento de design estão prontas e testadas:
+**Capítulo 1 — Aprenda as regras** (1–10), **Capítulo 2 — Não confie nas
+regras** (11–20) e **Capítulo 3 — Mexa em tudo** (21–30).
+
+Mecânicas usadas: toque, arraste, pinça (escala), segurar em cima (despejar),
+toque simultâneo com dois dedos, esfregar, espera, gravidade, encaixe em
+lugares, palavras da instrução como objetos e como ferramentas, objetos que
+fogem, buracos, mover o cenário inteiro e observar uma animação diferente.
 
 Também já funcionam: menu, mapa de fases por capítulo, ajustes (música,
 efeitos, vibração, reduzir animações, idioma, apagar progresso), dicas em três
 níveis, reiniciar na hora, salvamento local, cartões de capítulo, celebração
-com partículas e som, Ruli com 5 expressões e eventos de analytics.
+com partículas e som, Ruli (e amigos de outras cores) com 6 expressões e
+eventos de analytics.
 
-No jogo, a numeração mostrada ("FASE 04") é a posição na ordem de jogo; o
-arquivo continua com o número do documento de design (`Level005.js`).
-Quando as 50 fases existirem, os dois números serão iguais.
+A numeração mostrada no jogo ("FASE 04") é a posição na ordem de jogo
+(`LEVEL_ORDER`); hoje ela coincide com o número do arquivo.
 
 | Controle | Celular | PC |
 |---|---|---|
@@ -97,17 +102,24 @@ RULES.registerLevel({
   (altura) unidades. `w`/`h` também em unidades. O tabuleiro é encaixado na
   área central da tela, então funciona em qualquer proporção.
 - **Tipos de objeto** (`type`): circle, ball, star, cube, box, slot, door,
-  doorway, key, platform, hole, button, bulb, switch, sun, cloud, ruli, word.
+  doorway, key, platform, hole, button, bulb, switch, sun, cloud, cup, jug,
+  stick, fish, chest, wall, gem, feather, tree, apple, marker (invisível),
+  ruli (com `props.color`: teal, pink, yellow, purple), word.
   Novos visuais: `RULES.Renderers.register('nome', { view, svg })`.
 - **Comportamentos** (`behaviors`): `draggable`, `scalable`, `holdable`,
-  `clickable`, `container`, `door`, `flee`, `fallsInto`, `character`. A lista
+  `clickable`, `container`, `door`, `flee`, `fallsInto`, `character`,
+  `mirror`, `group`, `pourer`, `gravity`, `snap`, `receives`, `rubbable`,
+  `carries`. A lista
   de opções de cada um está no topo de `scripts/puzzles/behaviors.js`.
 - **Condições de vitória** (`win`): `tapped`, `inside`, `touching`, `moved`,
   `state`, `idle`, `scale`, e as combinações `all`, `any`, `not`.
 - **Reações** (`reactions`): respondem a eventos (`tap`, `drop`, `hold`,
-  `swipe`, `rub`, `scaledenied`, `flee`, `fell`, `rejected`, `input`...) com
-  ações em sequência: `fx`, `sound`, `say`, `fail`, `expr`, `move`, `reset`,
-  `hide`, `show`, `state`, `wait`, `vibrate`.
+  `swipe`, `rub`, `rubbing`, `scaledenied`, `flee`, `fell`, `rejected`,
+  `snapped`, `used`, `input`...) com ações em sequência: `fx`, `sound`, `say`,
+  `fail`, `expr`, `move`, `reset`, `hide`, `show`, `state`, `toggle`, `wait`,
+  `vibrate`.
+- **Classes visuais** (`cls`): `breathe` / `breathe-odd` (fase 17), `flop`,
+  `big-letter` e `word-blue` (para letras e palavras da instrução).
 - **Palavras da instrução** viram objetos com `[[id|PALAVRA]]` no texto de
   cada idioma e um objeto `{ id, inText: true }` na fase. Cada idioma escolhe a
   própria palavra (TUDO / EVERYTHING / TODO) sem mexer na fase.
@@ -133,10 +145,11 @@ npx http-server -p 8123 .                     # na pasta play/
 node rules/ferramentas/testa-fases.js         # precisa do Playwright
 ```
 
-O teste joga as 10 fases com toque e pinça de verdade, confere que as
-soluções "óbvias" não completam (tocar na porta, círculo grande demais, Ruli
-indo até a chave, tocar durante a espera...), que o progresso fica salvo e
-que não aparecem erros no console.
+O teste joga as 30 fases com toque, pinça, toque simultâneo e esfregar de
+verdade, confere que as soluções "óbvias" não completam (tocar na porta,
+círculo grande demais, Ruli indo até a chave, ligar as luzes uma por vez,
+deixar a bola cair, arrastar o Ruli na fase 30...), que o progresso fica
+salvo e que não aparecem erros no console.
 
 ## Analytics
 
@@ -157,6 +170,4 @@ para dicas) podem ser ligados depois sem mexer nas fases nem nas telas.
 ## Próximos passos (documento de design)
 
 - Etapa 6: testar em celulares de verdade (Android/iOS) e ajustar.
-- Etapa 8: fases 4, 6, 7, 8 e 13–30 (precisarão de poucas mecânicas novas:
-  ordem de toques, toque simultâneo, esfregar, mover o cenário).
 - Etapa 9: fases 31–50 e o final ("...OU NÃO.").

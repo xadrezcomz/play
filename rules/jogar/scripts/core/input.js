@@ -65,7 +65,9 @@
 
       if (this.ptrs.size === 1 && !this.pinch) {
         var first = this.ptrs.values().next().value;
-        if (first.mode !== 'none') {
+        // dois dedos em objetos diferentes: cada um faz o seu (toque simultâneo, arrastar dois)
+        var indep = first.obj && p.obj && first.obj !== p.obj && !first.obj.has('scalable') && !p.obj.has('scalable');
+        if (first.mode !== 'none' && !indep) {
           this.ptrs.set(p.id, p);
           this.startPinch(first, p);
           return;
@@ -100,14 +102,12 @@
         else p.mode = 'swipe';
       }
       if (p.mode === 'drag') this.updateDrag(p);
-      else if (p.mode === 'swipe' && Math.abs(dx) > 2) {
-        var dir = dx > 0 ? 1 : -1;
-        if (p.lastDir && dir !== p.lastDir) {
-          p.revs++;
-          if (p.obj) this.E.emit('rub', { obj: p.obj, count: p.revs });
-        }
-        p.lastDir = dir;
+      else if (p.mode === 'swipe') {
+        var dy = e.clientY - (p.py != null ? p.py : p.sy);
+        this.rub(p, dx, 'lastDir');
+        this.rub(p, dy, 'lastDirY');
       }
+      p.py = e.clientY;
     },
 
     up: function (e) {
@@ -133,6 +133,18 @@
         }
       }
       if (this.ptrs.size === 0) E.check();
+    },
+
+    // Esfregar: cada vez que o dedo inverte a direção em cima de um objeto.
+    rub: function (p, d, key) {
+      if (Math.abs(d) < 2) return;
+      var dir = d > 0 ? 1 : -1;
+      if (p[key] && dir !== p[key]) {
+        p.revs++;
+        var o = this.objAt(document.elementFromPoint(p.cx, p.cy)) || p.obj;
+        if (o) this.E.emit('rub', { obj: o, count: p.revs });
+      }
+      p[key] = dir;
     },
 
     startDrag: function (p) {

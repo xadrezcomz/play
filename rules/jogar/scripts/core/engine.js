@@ -12,7 +12,8 @@
 // Ações (em sequência): { wait:ms } { fx:'pop', target } { sound:'tap' }
 //   { say:'CHAVE' } { fail:true|'CHAVE' } { expr:'happy', target } { mascot:'happy' }
 //   { move:'id', to:[x,y] | toObj:'id', offset:[dx,dy] | by:[dx,dy], ms, await:true }
-//   { reset:'id' } { hide:'id' } { show:'id' } { state:'id', key, value } { vibrate:ms }
+//   { reset:'id' } { hide:'id' } { show:'id' } { state:'id', key, value } { toggle:'id', key }
+//   { vibrate:ms }
 (function () {
   'use strict';
   var R = window.RULES, U = R.util;
@@ -88,14 +89,25 @@
   P.buildInstruction = function () {
     var self = this, def = this.level, el = this.instrEl;
     el.innerHTML = '';
+    // Cada palavra fica num bloco que não quebra, mesmo quando só uma letra
+    // dela é um objeto (CÍRCUL + [[O]]).
+    var word = null;
+    function wordEl() { return word || (word = U.el('span', 'instr-word', el)); }
     R.i18n.parseRich(R.i18n.t(def.instruction)).forEach(function (part) {
-      if (!part.id) { el.appendChild(document.createTextNode(part.text)); return; }
+      if (!part.id) {
+        part.text.split(/(\s+)/).forEach(function (piece) {
+          if (!piece) return;
+          if (/^\s+$/.test(piece)) { word = null; el.appendChild(document.createTextNode(piece)); }
+          else wordEl().appendChild(document.createTextNode(piece));
+        });
+        return;
+      }
       var base = (def.objects || []).filter(function (o) { return o.id === part.id; })[0] || { id: part.id };
       var d = Object.assign({}, base, { type: 'word', inText: true, text: part.text });
       var o = new R.GameObject(d, self);
       o.el.classList.add('in-text');
       self.objects.set(o.id, o);
-      el.appendChild(o.el);
+      wordEl().appendChild(o.el);
     });
   };
 
@@ -315,7 +327,8 @@
     },
     hide: function (a, e, E) { var o = E.get(a.hide); if (o) o.setHidden(true); },
     show: function (a, e, E) { var o = E.get(a.show); if (o) { o.setHidden(false); o.fx('pop'); } },
-    state: function (a, e, E) { var o = E.get(a.state); if (o) o.setState(a.key, a.value); }
+    state: function (a, e, E) { var o = E.get(a.state); if (o) o.setState(a.key, a.value); },
+    toggle: function (a, e, E) { var o = E.get(a.toggle), k = a.key || 'on'; if (o) o.setState(k, !o.state[k]); }
   };
 
   R.PuzzleEngine = Engine;

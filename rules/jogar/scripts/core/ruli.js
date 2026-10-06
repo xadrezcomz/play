@@ -1,10 +1,15 @@
 // Ruli: o personagem. Um SVG simples com expressões trocáveis.
-// Expressões: normal, thinking, surprised, happy, confused.
+// Expressões: normal, thinking, surprised, happy, confused, serious.
+// Cores: teal (o Ruli), pink, yellow, purple (amigos).
 (function () {
   'use strict';
   var R = window.RULES;
 
-  var BODY = '#2EC4B6', DARK = '#1C8F86', INK = '#2B2D42';
+  var INK = '#2B2D42';
+  var COLORS = {
+    teal: ['#2EC4B6', '#1C8F86'], pink: ['#FF8FB1', '#D9628A'],
+    yellow: ['#FFC94A', '#D99A1E'], purple: ['#9B7BFF', '#6E50D6']
+  };
 
   var EXPR = {
     normal:    { pl: [0, 1], pr: [0, 1], r: 6,
@@ -21,6 +26,10 @@
     happy:     { eyes: 'closed',
                  mouth: '<path d="M37 68 Q50 88 63 68 Z" fill="' + INK + '"/><path d="M44 77 Q50 83 56 77 Q50 74 44 77Z" fill="#FF8FB1"/>',
                  brows: '', arms: 'up' },
+    serious:   { pl: [0, 2], pr: [0, 2], r: 5.5,
+                 mouth: '<path d="M42 75 L58 75" fill="none" stroke="' + INK + '" stroke-width="3.6" stroke-linecap="round"/>',
+                 brows: '<path d="M27 36 L45 38 M55 38 L73 36" fill="none" stroke="' + INK + '" stroke-width="3.4" stroke-linecap="round"/>',
+                 arms: 'down' },
     confused:  { pl: [-3, 3], pr: [3, -3], r: 5.5,
                  mouth: '<path d="M39 75 q5.5 -5 11 0 t11 0" fill="none" stroke="' + INK + '" stroke-width="3.4" stroke-linecap="round"/>',
                  brows: '<path d="M27 37 L44 33 M56 31 L73 36" fill="none" stroke="' + INK + '" stroke-width="3.2" stroke-linecap="round"/>',
@@ -49,8 +58,8 @@
 
   R.Ruli = {
     EXPRESSIONS: Object.keys(EXPR),
-    svg: function (expr) {
-      var e = EXPR[expr] || EXPR.normal;
+    svg: function (expr, color) {
+      var e = EXPR[expr] || EXPR.normal, c = COLORS[color] || COLORS.teal, BODY = c[0], DARK = c[1];
       return '<svg class="ruli-svg" viewBox="0 0 100 112" aria-hidden="true">' +
         '<ellipse cx="50" cy="108" rx="30" ry="3.5" fill="#000" opacity=".08"/>' +
         '<g class="ruli-legs"><ellipse cx="37" cy="101" rx="10" ry="6.5" fill="' + DARK + '"/><ellipse cx="63" cy="101" rx="10" ry="6.5" fill="' + DARK + '"/></g>' +

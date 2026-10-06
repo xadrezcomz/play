@@ -190,8 +190,9 @@ button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-c
   text-align: center; font-weight: 900; line-height: 1.12; letter-spacing: .01em;
   font-size: calc(var(--W) * .07); color: var(--ink);
 }
+.instr-word { white-space: nowrap; }
 .instr-text .obj.in-text { position: relative; display: inline; }
-.instr-text .obj.in-text .obj-inner { display: inline-block; }
+.instr-text .obj.in-text .obj-inner { display: inline-block; width: auto; height: auto; }
 .word-ghost { visibility: hidden; }
 
 .layer { position: absolute; inset: 0; pointer-events: none; z-index: 20; transform-origin: 50% 55%; }
@@ -335,6 +336,17 @@ button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-c
 @keyframes fx-squash { 40% { transform: scale(1.12, .86); } }
 .fx-enter { animation: fx-enter .35s ease-in forwards; }
 @keyframes fx-enter { to { transform: scale(.1); opacity: 0; } }
+
+/* animações que fazem parte de puzzles (continuam com "reduzir animações") */
+.breathe svg { animation: breathe 2.4s ease-in-out infinite; transform-origin: 50% 50%; }
+.breathe-odd svg { animation-delay: -1.2s; }
+@keyframes breathe { 50% { transform: scale(1.1); } }
+.flop svg { animation: flop 1.6s ease-in-out infinite; transform-origin: 60% 50%; }
+@keyframes flop { 0%, 70%, 100% { transform: none; } 78% { transform: rotate(-12deg) scaleY(.9); } 86% { transform: rotate(10deg); } }
+.obj svg .drop { animation: drop .5s linear infinite; }
+@keyframes drop { from { transform: translateY(-6px); opacity: 0; } 30% { opacity: 1; } to { transform: translateY(14px); opacity: 0; } }
+.big-letter .obj-inner { font-size: 1.45em; line-height: .8; vertical-align: -.06em; }
+.word-blue .obj-inner { color: var(--blue); }
 
 /* reduzir animações: corta o movimento decorativo, mantém o jogo */
 #app.reduce-motion .obj-inner,

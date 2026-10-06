@@ -101,6 +101,113 @@ RULES.L10N['en-US'] = {
     LEVEL_020_TITLE: 'WAIT.',
     LEVEL_020_HINT_1: 'Patience is a rule too.',
     LEVEL_020_HINT_2: 'Every touch restarts the count.',
-    LEVEL_020_HINT_3: "Close this hint and don't touch anything for 5 seconds."
+    LEVEL_020_HINT_3: "Close this hint and don't touch anything for 5 seconds.",
+    FB_PRESSED: 'YOU PRESSED IT!',
+    FB_DONT_MOVE: 'DON\'T MOVE RULI!',
+    FB_BIGGER: 'THERE\'S A BIGGER ONE...',
+    FB_SAME: 'THAT ONE IS THE SAME...',
+    FB_NOT_BLUE: 'THAT\'S NOT BLUE',
+    FB_SERIOUS: 'RULI IS STILL SERIOUS',
+    FB_NOT_UP: 'IT WON\'T GO UP...',
+
+    LEVEL_004_TITLE: 'TURN ON THE LIGHT',
+    LEVEL_004_HINT_1: 'Every bulb has a way to turn on.',
+    LEVEL_004_HINT_2: 'The bulb won\'t turn on by itself.',
+    LEVEL_004_HINT_3: 'Tap the switch.',
+
+    LEVEL_006_TITLE: 'FIND THE STAR',
+    LEVEL_006_HINT_1: 'Not everything is in plain sight.',
+    LEVEL_006_HINT_2: 'One of the circles isn\'t stuck.',
+    LEVEL_006_HINT_3: 'Drag the red circle and tap the star.',
+
+    LEVEL_007_TITLE: 'MAKE THEM MEET',
+    LEVEL_007_HINT_1: 'It takes two to meet.',
+    LEVEL_007_HINT_2: 'Neither can go all the way alone.',
+    LEVEL_007_HINT_3: 'Bring each one to the middle.',
+
+    LEVEL_008_TITLE: 'FILL THE GLASS',
+    LEVEL_008_HINT_1: 'Water won\'t jump out of the jug.',
+    LEVEL_008_HINT_2: 'Jugs need to tilt.',
+    LEVEL_008_HINT_3: 'Hold the jug just above the glass until it fills.',
+
+    LEVEL_013_TITLE: 'L[[w_o|O]]OK FOR THE BIGGEST CIRCLE',
+    LEVEL_013_HINT_1: 'The biggest one may not be among the things.',
+    LEVEL_013_HINT_2: 'A letter is round too.',
+    LEVEL_013_HINT_3: 'Tap the big O in the instruction.',
+
+    LEVEL_014_TITLE: 'MAKE THE SUN APPEAR',
+    LEVEL_014_HINT_1: 'The sun never left.',
+    LEVEL_014_HINT_2: 'Something is in front of it.',
+    LEVEL_014_HINT_3: 'Drag the cloud away from the sun.',
+
+    LEVEL_015_TITLE: 'DON\'T PRESS THE BUTTON',
+    LEVEL_015_HINT_1: 'You can move a button without pressing it.',
+    LEVEL_015_HINT_2: 'What could be under it?',
+    LEVEL_015_HINT_3: 'Drag the button aside and tap what shows up.',
+
+    LEVEL_017_TITLE: 'FIND THE ODD ONE',
+    LEVEL_017_HINT_1: 'Watch calmly.',
+    LEVEL_017_HINT_2: 'They all move together... almost all.',
+    LEVEL_017_HINT_3: 'One grows when the others shrink. Tap it.',
+
+    LEVEL_018_TITLE: 'TURN ON ALL THE LIGHTS',
+    LEVEL_018_HINT_1: 'Only two can stay on. The oldest one always goes out.',
+    LEVEL_018_HINT_2: 'What if none of them were the oldest?',
+    LEVEL_018_HINT_3: 'Turn on two switches at the same time (on a PC, click both very fast), then the third.',
+
+    LEVEL_019_TITLE: 'DON\'T LET THE BALL FALL',
+    LEVEL_019_HINT_1: 'The ball won\'t float forever.',
+    LEVEL_019_HINT_2: 'It needs something under it.',
+    LEVEL_019_HINT_3: 'Drag the platform under the ball before it falls.',
+
+    LEVEL_021_TITLE: 'FIND THE EXIT',
+    LEVEL_021_HINT_1: 'Walls are things too.',
+    LEVEL_021_HINT_2: 'A wall can hide what is behind it.',
+    LEVEL_021_HINT_3: 'Drag the wall and tap the door.',
+
+    LEVEL_022_TITLE: 'MAKE 2 + 2 = 5',
+    LEVEL_022_HINT_1: 'Math doesn\'t change. Numbers do.',
+    LEVEL_022_HINT_2: 'One stick looks a bit loose.',
+    LEVEL_022_HINT_3: 'Move the crooked stick of the second 2 to the right: the 2 becomes a 3.',
+
+    LEVEL_023_TITLE: 'PUT THE FISH IN THE WATER',
+    LEVEL_023_HINT_1: 'This glass is too small for a fish.',
+    LEVEL_023_HINT_2: 'Remember the box and the ball?',
+    LEVEL_023_HINT_3: 'Grow the glass with two fingers (or the mouse wheel), then put the fish in.',
+
+    LEVEL_024_TITLE: 'FIND THE [[w_blue|BLUE]]',
+    LEVEL_024_HINT_1: 'Look everywhere, even outside the scene.',
+    LEVEL_024_HINT_2: 'No object is blue.',
+    LEVEL_024_HINT_3: 'Tap the word BLUE.',
+
+    LEVEL_025_TITLE: 'MAKE RULI SMILE',
+    LEVEL_025_HINT_1: 'Ruli is serious, but has a weak spot.',
+    LEVEL_025_HINT_2: 'Tickles!',
+    LEVEL_025_HINT_3: 'Rub Ruli fast, side to side (with your finger or the feather).',
+
+    LEVEL_026_TITLE: 'SORT FROM [[w_min|SMALLEST]] TO [[w_max|BIGGEST]]',
+    LEVEL_026_HINT_1: 'Count the spots.',
+    LEVEL_026_HINT_2: 'Five spots, three circles. What is missing?',
+    LEVEL_026_HINT_3: 'Put SMALLEST in the first spot, the circles in order, and BIGGEST in the last.',
+
+    LEVEL_027_TITLE: '[[w_open|OPEN]] THE BOX',
+    LEVEL_027_HINT_1: 'This box has no lid and no lock.',
+    LEVEL_027_HINT_2: 'You need a tool. It\'s written down.',
+    LEVEL_027_HINT_3: 'Drag the word OPEN onto the box.',
+
+    LEVEL_028_TITLE: 'TAKE THE STAR [[w_up|UP]]',
+    LEVEL_028_HINT_1: 'The star is too heavy.',
+    LEVEL_028_HINT_2: 'If it won\'t go up...',
+    LEVEL_028_HINT_3: 'Drag the word UP to the star.',
+
+    LEVEL_029_TITLE: 'MAKE IT RAIN',
+    LEVEL_029_HINT_1: 'Clouds need to gather water.',
+    LEVEL_029_HINT_2: 'One tap is not enough.',
+    LEVEL_029_HINT_3: 'Rub the cloud until it gets really dark.',
+
+    LEVEL_030_TITLE: 'DON\'T MOVE RULI',
+    LEVEL_030_HINT_1: 'If Ruli can\'t go to the door...',
+    LEVEL_030_HINT_2: 'The ground is an object too.',
+    LEVEL_030_HINT_3: 'Drag the ground to the left until the door reaches Ruli.'
   }
 };

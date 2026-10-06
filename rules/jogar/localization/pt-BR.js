@@ -101,6 +101,113 @@ RULES.L10N['pt-BR'] = {
     LEVEL_020_TITLE: 'ESPERE.',
     LEVEL_020_HINT_1: 'Paciência também é uma regra.',
     LEVEL_020_HINT_2: 'Cada toque recomeça a contagem.',
-    LEVEL_020_HINT_3: 'Feche esta dica e não toque em nada por 5 segundos.'
+    LEVEL_020_HINT_3: 'Feche esta dica e não toque em nada por 5 segundos.',
+    FB_PRESSED: 'VOCÊ APERTOU!',
+    FB_DONT_MOVE: 'NÃO É PARA MOVER O RULI!',
+    FB_BIGGER: 'TEM UM MAIOR...',
+    FB_SAME: 'ESSE É IGUAL...',
+    FB_NOT_BLUE: 'ISSO NÃO É AZUL',
+    FB_SERIOUS: 'RULI CONTINUA SÉRIO',
+    FB_NOT_UP: 'ELA NÃO SOBE...',
+
+    LEVEL_004_TITLE: 'ACENDA A LUZ',
+    LEVEL_004_HINT_1: 'Toda lâmpada tem um jeito de acender.',
+    LEVEL_004_HINT_2: 'A lâmpada não liga sozinha.',
+    LEVEL_004_HINT_3: 'Toque no interruptor.',
+
+    LEVEL_006_TITLE: 'ENCONTRE A ESTRELA',
+    LEVEL_006_HINT_1: 'Nem tudo está à vista.',
+    LEVEL_006_HINT_2: 'Um dos círculos não está preso.',
+    LEVEL_006_HINT_3: 'Arraste o círculo vermelho e toque na estrela.',
+
+    LEVEL_007_TITLE: 'FAÇA OS DOIS SE ENCONTRAREM',
+    LEVEL_007_HINT_1: 'Encontro é coisa de dois.',
+    LEVEL_007_HINT_2: 'Nenhum deles consegue ir até o fim sozinho.',
+    LEVEL_007_HINT_3: 'Leve cada um até o meio.',
+
+    LEVEL_008_TITLE: 'ENCHA O COPO',
+    LEVEL_008_HINT_1: 'Água não pula da jarra sozinha.',
+    LEVEL_008_HINT_2: 'Jarras precisam inclinar.',
+    LEVEL_008_HINT_3: 'Segure a jarra logo acima do copo até encher.',
+
+    LEVEL_013_TITLE: 'ENCONTRE O MAIOR CÍRCUL[[w_o|O]]',
+    LEVEL_013_HINT_1: 'O maior pode não estar no meio das coisas.',
+    LEVEL_013_HINT_2: 'Uma letra também é redonda.',
+    LEVEL_013_HINT_3: 'Toque no último O da instrução.',
+
+    LEVEL_014_TITLE: 'FAÇA O SOL APARECER',
+    LEVEL_014_HINT_1: 'O sol nunca foi embora.',
+    LEVEL_014_HINT_2: 'Alguma coisa está na frente dele.',
+    LEVEL_014_HINT_3: 'Arraste a nuvem para longe do sol.',
+
+    LEVEL_015_TITLE: 'NÃO APERTE O BOTÃO',
+    LEVEL_015_HINT_1: 'Dá para mexer num botão sem apertar.',
+    LEVEL_015_HINT_2: 'O que será que tem embaixo dele?',
+    LEVEL_015_HINT_3: 'Arraste o botão para o lado e toque no que aparecer.',
+
+    LEVEL_017_TITLE: 'ENCONTRE O DIFERENTE',
+    LEVEL_017_HINT_1: 'Observe com calma.',
+    LEVEL_017_HINT_2: 'Todos se mexem juntos... quase todos.',
+    LEVEL_017_HINT_3: 'Um deles fica grande quando os outros ficam pequenos. Toque nele.',
+
+    LEVEL_018_TITLE: 'ACENDA TODAS AS LUZES',
+    LEVEL_018_HINT_1: 'Só duas aguentam ficar acesas. A mais antiga sempre apaga.',
+    LEVEL_018_HINT_2: 'E se nenhuma fosse a mais antiga?',
+    LEVEL_018_HINT_3: 'Ligue dois interruptores ao mesmo tempo (no PC, clique nos dois o mais rápido que puder) e depois o terceiro.',
+
+    LEVEL_019_TITLE: 'NÃO DEIXE A BOLA CAIR',
+    LEVEL_019_HINT_1: 'A bola não vai ficar parada para sempre.',
+    LEVEL_019_HINT_2: 'Ela precisa de algo embaixo.',
+    LEVEL_019_HINT_3: 'Arraste a plataforma para baixo da bola antes que ela caia.',
+
+    LEVEL_021_TITLE: 'ENCONTRE A SAÍDA',
+    LEVEL_021_HINT_1: 'Paredes também são coisas.',
+    LEVEL_021_HINT_2: 'Uma parede pode esconder o que está atrás.',
+    LEVEL_021_HINT_3: 'Arraste a parede e toque na porta.',
+
+    LEVEL_022_TITLE: 'FAÇA 2 + 2 = 5',
+    LEVEL_022_HINT_1: 'A matemática não muda. Os números, sim.',
+    LEVEL_022_HINT_2: 'Um traço está meio torto, quase solto.',
+    LEVEL_022_HINT_3: 'Mova o traço torto do segundo 2 para a direita: o 2 vira 3.',
+
+    LEVEL_023_TITLE: 'COLOQUE O PEIXE NA ÁGUA',
+    LEVEL_023_HINT_1: 'Esse copo é pequeno para um peixe.',
+    LEVEL_023_HINT_2: 'Lembra da caixa da bola?',
+    LEVEL_023_HINT_3: 'Aumente o copo com dois dedos (ou a rodinha do mouse) e depois coloque o peixe.',
+
+    LEVEL_024_TITLE: 'ENCONTRE O [[w_blue|AZUL]]',
+    LEVEL_024_HINT_1: 'Procure em todo lugar, até fora do cenário.',
+    LEVEL_024_HINT_2: 'Nenhum objeto é azul.',
+    LEVEL_024_HINT_3: 'Toque na palavra AZUL.',
+
+    LEVEL_025_TITLE: 'FAÇA RULI SORRIR',
+    LEVEL_025_HINT_1: 'Ruli é sério, mas tem um ponto fraco.',
+    LEVEL_025_HINT_2: 'Cócegas!',
+    LEVEL_025_HINT_3: 'Esfregue o Ruli rápido, de um lado para o outro (com o dedo ou com a pena).',
+
+    LEVEL_026_TITLE: 'ORGANIZE DO [[w_min|MENOR]] PARA O [[w_max|MAIOR]]',
+    LEVEL_026_HINT_1: 'Conte os lugares.',
+    LEVEL_026_HINT_2: 'Cinco lugares, três círculos. O que falta?',
+    LEVEL_026_HINT_3: 'Coloque MENOR no primeiro lugar, os círculos em ordem e MAIOR no último.',
+
+    LEVEL_027_TITLE: '[[w_open|ABRA]] A CAIXA',
+    LEVEL_027_HINT_1: 'Essa caixa não tem tampa nem fechadura.',
+    LEVEL_027_HINT_2: 'Você precisa de uma ferramenta. Ela está escrita.',
+    LEVEL_027_HINT_3: 'Arraste a palavra ABRA até a caixa.',
+
+    LEVEL_028_TITLE: 'LEVE A ESTRELA PARA [[w_up|CIMA]]',
+    LEVEL_028_HINT_1: 'A estrela é pesada demais.',
+    LEVEL_028_HINT_2: 'Se ela não vai para cima...',
+    LEVEL_028_HINT_3: 'Arraste a palavra CIMA até a estrela.',
+
+    LEVEL_029_TITLE: 'FAÇA CHOVER',
+    LEVEL_029_HINT_1: 'Nuvens precisam juntar água.',
+    LEVEL_029_HINT_2: 'Tocar só uma vez não basta.',
+    LEVEL_029_HINT_3: 'Esfregue a nuvem até ela ficar bem escura.',
+
+    LEVEL_030_TITLE: 'NÃO MOVA RULI',
+    LEVEL_030_HINT_1: 'Se Ruli não vai até a porta...',
+    LEVEL_030_HINT_2: 'O chão também é um objeto.',
+    LEVEL_030_HINT_3: 'Arraste o chão para a esquerda até a porta chegar no Ruli.'
   }
 };
