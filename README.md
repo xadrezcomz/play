@@ -8,7 +8,7 @@ celular ou no computador: **https://xadrezcomz.github.io/play/**
 | `index.html` | Página inicial com os jogos (a lista fica em `jogos.js`) |
 | `rock-orbit/` | Página do Rock Orbit: trailer, imagens e recursos (pt, en, es) |
 | `rock-orbit/jogar/` | O Rock Orbit em si, jogável no navegador |
-| `slide-chess/jogar/` | O Slide Chess, jogável no navegador (com ícone e manifesto para instalar como app) |
+| `slide-chess/jogar/` | O Slide Chess, jogável no navegador (com ícone e manifesto para instalar como app, e `sw.js` para abrir sem internet) |
 | `rules/jogar/` | O RULES (puzzle de instruções, 100 fases), jogável no navegador; detalhes em `rules/README.md` |
 | `privacidade.html` | Política de privacidade do site e dos jogos |
 | `contador.js` | Contagem de visitas e jogadas pelo GoatCounter (sem cookies) |
