@@ -601,6 +601,125 @@ button.perigo{color:#ff9b9b;border-color:rgba(255,120,120,.35);font-weight:500;f
   .sequencia{margin:-2px 0 4px}
   .rodape{gap:6px}
 }
+
+/* ============================================================ tela grande
+
+   O TABLET. No telefone tudo estava do tamanho certo; no tablet as mesmas
+   medidas ficavam perdidas no meio da tela — quem jogava aumentava o zoom
+   para 125%. Aqui é esse aumento, feito pelo jogo: onde há pelo menos
+   700 px nos dois sentidos, letras, botões e listas crescem cerca de um
+   quarto, e o tabuleiro cresce junto (ver `grande` em tela.js). */
+@media (min-width:700px) and (min-height:700px){
+  .tela{gap:18px;padding-top:max(22px,env(safe-area-inset-top))}
+  button{font-size:17px;padding:12px 20px;border-radius:12px}
+
+  .barra{max-width:680px;grid-template-columns:56px 1fr 56px}
+  .barra button{width:56px;height:56px;font-size:24px;border-radius:14px}
+  .barra .voltar{font-size:34px}
+  .barra .titulo b{font-size:25px}
+  .barra .titulo span{font-size:13px}
+
+  /* o início */
+  .vitrine{height:108px}
+  .vitrine img{width:66px;height:66px}
+  .vitrine img.rainha{width:98px;height:98px}
+  .logo{font-size:84px}
+  .chamada{font-size:19px;margin-bottom:22px}
+  .sequencia{font-size:16px;padding:7px 18px}
+  .menu{max-width:470px;gap:12px}
+  .menu .par{gap:12px}
+  button.grande{padding:19px 22px;border-radius:16px}
+  button.grande b{font-size:21px}
+  button.grande small{font-size:15px}
+  button.grande.principal{padding:24px 22px}
+  button.grande.principal b{font-size:26px}
+  .menu .par button.grande{padding:16px 18px}
+  .menu .par button.grande b{font-size:19px}
+  .menu .par button.grande small{font-size:14px}
+  .atalhos{gap:10px}
+  .atalhos button{padding:12px 6px 10px;border-radius:14px}
+  .atalhos button span{font-size:24px}
+  .atalhos button small{font-size:12.5px}
+  .autoria{font-size:16.5px}
+  .rodape{font-size:12px}
+
+  /* as listas */
+  .mundos,.conquistas,.estatisticas{max-width:680px;gap:12px}
+  .mundo{grid-template-columns:74px 1fr auto;gap:16px;padding:13px 18px 13px 13px;border-radius:16px}
+  .mundo .selo{width:74px;height:74px}
+  .mundo .selo img{width:56px;height:56px}
+  .mundo .info b{font-size:21px}
+  .mundo .info small{font-size:15px}
+  .mundo .conta b{font-size:20px}
+  .mundo .conta small{font-size:15px}
+  .progresso{height:7px}
+  .grelha{max-width:580px;gap:12px}
+  .grelha button b{font-size:29px}
+  .grelha button i{font-size:14.5px}
+  .grelha button:disabled b{font-size:21px}
+  .nota{max-width:580px;font-size:15.5px}
+  .conquista{grid-template-columns:58px 1fr auto;gap:15px;padding:13px 18px 13px 13px}
+  .conquista .icone{width:58px;height:58px;font-size:28px}
+  .conquista .icone img{width:40px;height:40px}
+  .conquista .info b{font-size:18.5px}
+  .conquista .info small{font-size:15.5px}
+  .conquista .conta{font-size:15px}
+  .escolhas{max-width:620px;gap:13px}
+  .escolhas h3,.estatisticas h3{font-size:13px}
+  .opcoes button{padding:15px 18px}
+  .opcoes button b{font-size:18.5px}
+  .opcoes.quatro button b{font-size:16px}
+  .opcoes button small{font-size:14px}
+  .opcoes button img{width:56px;height:56px}
+  .xadrezinho{width:52px;height:52px}
+  .amostra{width:min(100%,360px)}
+  .quadros{grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:11px}
+  .quadros div{padding:13px 16px}
+  .quadros dt{font-size:14px}
+  .quadros dd{font-size:26px}
+  .media{grid-template-columns:140px 1fr 42px;font-size:16.5px}
+
+  /* o jogo */
+  .etapas{gap:10px}
+  .etapas li{font-size:16.5px;padding:8px 16px 8px 11px}
+  .etapas li img{width:28px;height:28px}
+  .painel{max-width:540px;gap:13px}
+  .recado{font-size:16.5px;padding:10px 15px}
+  .placar{gap:11px}
+  .placar div{padding:10px 8px;border-radius:12px}
+  .placar dt{font-size:12px}
+  .placar dd{font-size:28px}
+  .metas{font-size:15px}
+  .painel .botoes{gap:12px}
+  .painel .botoes button{min-height:54px;padding:13px 22px;font-size:18px}
+
+  /* os cartões e os avisos */
+  .cartao{max-width:440px;padding:30px 24px 24px;border-radius:20px}
+  .cartao h2{font-size:29px}
+  .cartao p{font-size:18px}
+  .cartao .botoes button{padding:13px 18px;font-size:17px;min-height:52px}
+  .cartao .botoes.extras button{font-size:15px;padding:10px 14px;min-height:44px}
+  .estrelas{font-size:60px}
+  .chaves label{font-size:18.5px;padding:14px 4px}
+  .chaves select{font-size:17px;padding:9px 12px}
+  .regras{font-size:17.5px}
+  .aviso{font-size:17px;padding:13px 22px}
+}
+
+/* Tela grande DEITADA e não muito alta — tablet de lado, notebook. Com
+   tudo empilhado o tabuleiro ficava com a altura que sobrava, que era
+   pouca; de lado ele ocupa a altura inteira. É a mesma arrumação do
+   telefone deitado, com as medidas da tela grande. (`grandeDeLado`, em
+   tela.js, faz a mesma pergunta.) */
+@media (orientation:landscape) and (min-width:900px) and (min-height:521px) and (max-height:900px){
+  body[data-tela="jogo"] #telaJogo{display:grid;grid-template-columns:auto minmax(280px,400px);
+    grid-template-areas:"tab barra" "tab etapas" "tab painel";
+    justify-content:center;align-content:center;align-items:center;column-gap:34px;row-gap:16px}
+  #telaJogo .tabuleiro{grid-area:tab}
+  #telaJogo .barra{grid-area:barra}
+  #telaJogo .etapas{grid-area:etapas}
+  #telaJogo .painel{grid-area:painel}
+}
 </style>
 <!-- cada abertura do jogo conta como uma jogada (GoatCounter, sem cookies) -->
 <script>window.CONTAGEM = '/jogo/slide-chess';</script>
@@ -2103,6 +2222,12 @@ window.SlideSom = (() => {
   /* O telefone deitado: a mesma pergunta que o estilo.css faz para pôr o
      tabuleiro de um lado e o painel do outro. */
   const deitado = window.matchMedia('(orientation: landscape) and (max-height: 520px)');
+  /* O TABLET. Tela grande é a que tem pelo menos 700 px nos dois sentidos:
+     nela tudo cresce (ver "tela grande" em estilo.css). E quando ela está
+     deitada sem ser alta — tablet de lado, notebook —, o tabuleiro também
+     vai para o lado do painel, senão a altura o espremeria. */
+  const grande = window.matchMedia('(min-width: 700px) and (min-height: 700px)');
+  const grandeDeLado = window.matchMedia('(orientation: landscape) and (min-width: 900px) and (min-height: 521px) and (max-height: 900px)');
 
   /* ====================================================== o que se guarda
 
@@ -2694,8 +2819,15 @@ window.SlideSom = (() => {
     /* Em pé, o tabuleiro divide a ALTURA com a barra, as etapas e o painel
        (uns 400 px, contando uma linha de recado); deitado, eles vão para o
        lado e o que ele divide é a largura. */
-    const largura = deitado.matches ? window.innerWidth * 0.5 : Math.min(window.innerWidth - 24, 520);
-    const altura = deitado.matches ? window.innerHeight - 30 : window.innerHeight - 400;
+    /* O teto de largura existia para o tabuleiro não ficar gigante no
+       monitor; no tablet ele deixava o tabuleiro pequeno no meio da tela.
+       Agora o teto sobe com a tela, e quem limita é a altura. */
+    const deLado = deitado.matches || grandeDeLado.matches;
+    const largura = deitado.matches ? window.innerWidth * 0.5
+      : grandeDeLado.matches ? window.innerWidth * 0.56
+      : Math.min(window.innerWidth - 24, grande.matches ? 820 : 520);
+    const altura = deLado ? window.innerHeight - (grandeDeLado.matches ? 48 : 30)
+      : window.innerHeight - (grande.matches ? 470 : 400);
     const casa = Math.max(44, Math.floor(Math.min(largura / estado.larg, altura / estado.alt)));
     elTab.style.setProperty('--casa', casa + 'px');
   }
@@ -3369,6 +3501,8 @@ window.SlideSom = (() => {
 
   window.addEventListener('resize', medir);
   deitado.addEventListener('change', medir);
+  grande.addEventListener('change', medir);
+  grandeDeLado.addEventListener('change', medir);
 
   /* O TEMPO JOGADO conta só com o jogo na tela e a aba à vista. */
   setInterval(() => {
