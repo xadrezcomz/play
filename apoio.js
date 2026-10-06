@@ -19,10 +19,10 @@ window.APOIO = {
     { fichas: 10, nome: 'Modo chefão' }
   ],
   DESBLOQUEIOS: [
-    { nome: 'Rock Orbit no iPhone', obs: 'conta de desenvolvedor da Apple', feito: false },
+    { nome: 'Fases novas no Rock Orbit', obs: 'mais planetas para explorar', feito: false },
     { nome: 'Endereço próprio para o site', obs: 'um domínio só dos jogos', feito: false },
-    { nome: 'Fases novas no Rock Orbit e no Slide Chess', obs: 'mais planetas, mais mundos', feito: false },
-    { nome: 'O próximo jogo', obs: 'ideias não faltam', feito: false }
+    { nome: 'Novos jogos', obs: 'ideias não faltam', feito: false },
+    { nome: 'Materiais de xadrez gratuitos', obs: 'para estudar, ensinar e jogar', feito: false }
   ],
   PLACAR: [
   ]
