@@ -97,7 +97,7 @@
     setState: function (key, value) {
       if (this.state[key] === value) return;
       this.state[key] = value;
-      if (this.type !== 'word') R.Renderers.draw(this);
+      if (R.Renderers.usesState(this)) R.Renderers.draw(this);
       this.engine.emit('state', { obj: this, key: key, value: value });
     },
 

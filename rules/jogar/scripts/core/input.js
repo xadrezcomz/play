@@ -26,7 +26,13 @@
       window.addEventListener('pointermove', this._move, { passive: false });
       window.addEventListener('pointerup', this._up);
       window.addEventListener('pointercancel', this._up);
+      // Se o navegador tirar o toque do jogo, trata como "soltou".
+      this.root.addEventListener('lostpointercapture', this._up);
       this.root.addEventListener('wheel', this._wheel, { passive: false });
+      // iOS/apps: impede que o arraste vire rolagem ou gesto do navegador.
+      this.root.addEventListener('touchmove', function (e) {
+        if (!e.target.closest('[data-ui]') && e.cancelable) e.preventDefault();
+      }, { passive: false });
     },
 
     active: function () { return this.ptrs.size > 0 || !!this.wheelObj; },
@@ -58,10 +64,18 @@
       if (e.button != null && e.button > 0 && e.pointerType === 'mouse') return;
       E.onInput();
 
+      // Um novo primeiro dedo significa que qualquer toque anterior já acabou,
+      // mesmo que o "soltou" dele tenha se perdido.
+      if (e.isPrimary && this.ptrs.size) this.flush();
+
       var p = {
         id: e.pointerId, cx: e.clientX, cy: e.clientY, sx: e.clientX, sy: e.clientY,
         t0: U.now(), obj: this.objAt(e.target), mode: 'pending', lastDir: 0, revs: 0
       };
+      // No celular o toque fica preso ao elemento tocado; se esse elemento for
+      // redesenhado (a porta abrindo, o Ruli mudando de cara), o resto do gesto
+      // se perderia. Capturando na tela do jogo, os eventos sempre chegam.
+      try { this.root.setPointerCapture(e.pointerId); } catch (err) { /* sem captura */ }
 
       if (this.ptrs.size === 1 && !this.pinch) {
         var first = this.ptrs.values().next().value;
@@ -185,6 +199,18 @@
       R.Audio.play('drop');
       E.emit('drop', ev);
       if (o.behaviors.draggable.returnOnDrop && !ev.handled) o.moveTo(p.fromX, p.fromY, 260);
+    },
+
+    // Encerra toques pendurados (soltando o que estava sendo arrastado).
+    flush: function () {
+      var self = this;
+      this.ptrs.forEach(function (p) {
+        clearTimeout(p.holdTimer);
+        if (p.mode === 'drag') self.endDrag(p, true);
+      });
+      if (this.pinch && !this.pinch.denied) this.E.emit('scaleend', { obj: this.pinch.obj });
+      this.ptrs.clear();
+      this.pinch = null;
     },
 
     // Interrompe o arraste de um objeto (por exemplo, quando ele cai num buraco).

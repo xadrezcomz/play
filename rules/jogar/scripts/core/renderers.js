@@ -232,6 +232,14 @@
     types: T,
     register: function (name, def) { T[name] = def; },
 
+    // Só redesenha quando o desenho depende do estado (svg(props, obj)).
+    usesState: function (obj) {
+      if (obj.type === 'word') return false;
+      if (obj.type === 'ruli') return true;
+      var t = T[obj.type];
+      return !!t && t.svg.length >= 2;
+    },
+
     // Cria o conteúdo visual dentro de obj.inner.
     draw: function (obj) {
       if (obj.type === 'word') {

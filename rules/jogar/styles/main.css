@@ -199,6 +199,9 @@ button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-c
 .layer > .obj { position: absolute; left: 0; top: 0; pointer-events: auto; will-change: transform; touch-action: none; }
 .obj-inner { display: block; width: 100%; height: 100%; transform-origin: 50% 50%; }
 .obj svg { display: block; width: 100%; height: 100%; overflow: visible; }
+/* o toque sempre cai na caixa do objeto (que nunca é trocada), nunca no desenho
+   interno, que é redesenhado quando o estado muda (iOS perderia o resto do gesto) */
+.obj svg, .obj svg * { pointer-events: none; }
 .obj.is-passive { pointer-events: none !important; }
 .obj.is-draggable, .obj.is-clickable, .obj-ruli { cursor: grab; }
 .obj.is-clickable { cursor: pointer; }

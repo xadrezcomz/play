@@ -74,7 +74,17 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     for (let i = 0; i < 80; i++) {
       const s = await state();
       if (s.card) { await page.screenshot({ path: SHOTS + 'card-' + id + '.png' }); await tapXY(195, 420); await sleep(300); continue; }
-      if (s.lvl === id && !s.won && s.screen === 'play') { await sleep(250); await page.screenshot({ path: SHOTS + String(id).padStart(2, '0') + '.png' }); return; }
+      if (s.lvl === id && !s.won && s.screen === 'play') {
+        await sleep(250);
+        await page.screenshot({ path: SHOTS + String(id).padStart(2, '0') + '.png' });
+        // o dedo nunca pode cair num pedaço de desenho (ele é trocado quando o estado muda)
+        const bad = await page.evaluate(() => [...RULES.Game.engine.objects.values()].filter(o => !o.hidden && !o.def.passive).filter(o => {
+          const r = o.el.getBoundingClientRect(), el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+          return el && el.closest('svg');
+        }).map(o => o.id));
+        if (bad.length) throw new Error('fase ' + id + ': toque cai dentro do SVG em ' + bad);
+        return;
+      }
       await sleep(100);
     }
     throw new Error('não chegou na fase ' + id);
@@ -95,7 +105,12 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const LEVELS = {
     1: ['TOQUE NO CÍRCULO', async () => { await tapXY(30, 700); await notWon(1, 'toque fora'); await tap('circle'); }],
     2: ['LEVE A BOLA ATÉ A CAIXA', async () => { await tap('ball'); await notWon(2, 'tocar na bola'); await dragTo('ball', 'box'); }],
-    3: ['ABRA A PORTA', async () => { await tap('door'); await notWon(3, 'tocar na porta'); await dragBy('door', 130, 0); }],
+    3: ['ABRA A PORTA', async () => {
+      await tap('door'); await notWon(3, 'tocar na porta');
+      // simula um "soltou" perdido (acontecia no iPhone): o próximo toque precisa destravar
+      await page.evaluate(() => RULES.Game.engine.input.ptrs.set(999, { id: 999, mode: 'pending', obj: null }));
+      await dragBy('door', 130, 0);
+    }],
     4: ['ACENDA A LUZ', async () => { await tap('bulb'); await notWon(4, 'tocar na lâmpada'); await tap('switch'); }],
     5: ['CÍRCULO NO QUADRADO', async () => {
       await dragTo('circle', 'square'); await sleep(400); await notWon(5, 'círculo grande demais');
