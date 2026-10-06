@@ -49,7 +49,9 @@ Object.values(R.Levels.all()).forEach(lv => {
   [lv.instruction].concat(lv.hints || []).forEach(k => langs.forEach(l => { if (!(k in strings(l))) errs.push(`fase ${lv.id}: [${l}] falta ${k}`); }));
   if ((lv.hints || []).length !== 3) warns.push(`fase ${lv.id}: tem ${(lv.hints || []).length} dicas (o padrão é 3)`);
   (lv.objects || []).forEach(o => {
-    if (o.inText) {
+    if (o.inLabel) {
+      langs.forEach(l => { if (!(strings(l)[lv.label] || '').includes('[[' + o.id + '|')) errs.push(`fase ${lv.id}: [${l}] o rótulo não tem a palavra [[${o.id}|...]]`); });
+    } else if (o.inText) {
       langs.forEach(l => { if (!(strings(l)[lv.instruction] || '').includes('[[' + o.id + '|')) errs.push(`fase ${lv.id}: [${l}] a instrução não tem a palavra [[${o.id}|...]]`); });
     } else if (!R.Renderers.types[o.type] && o.type !== 'word') errs.push(`fase ${lv.id}: tipo de objeto desconhecido "${o.type}" (${o.id})`);
     Object.keys(o.behaviors || {}).forEach(b => { if (!R.Behaviors[b.split('#')[0]]) errs.push(`fase ${lv.id}: comportamento desconhecido "${b}" (${o.id})`); });

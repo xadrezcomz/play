@@ -268,6 +268,52 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       await dragTo('key', 'door'); await sleep(400);
       await dragTo('ruli', 'door');
     }],
+    51: ['PEÇA AJUDA', async () => {
+      await tap('ruli'); await notWon(51, 'tocar no Ruli');
+      await page.evaluate(() => RULES.Game.openHint()); await sleep(500);
+      await page.evaluate(() => RULES.Hints.close()); await sleep(200);
+    }],
+    52: ['TENTE OUTRA VEZ', async () => { await tap('chest'); await notWon(52, 'tocar na caixa'); await restart(); await sleep(300); await tap('star'); }],
+    53: ['NÃO LEIA ISTO', async () => {
+      const t = await page.evaluate(() => { const r = document.querySelector('#instr-text').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; });
+      await drag('paper', t[0], t[1]);
+    }],
+    54: ['COLOQUE A FASE NA CAIXA', async () => { await dragTo('star', 'box'); await notWon(54, 'colocar a estrela'); await dragTo('w_fase', 'box'); }],
+    55: ['ESCONDA O RULI', async () => {
+      await dragToBoard('ruli', 76, 86); await notWon(55, 'atrás da árvore');
+      const t = await page.evaluate(() => { const r = document.querySelector('#instr-text').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; });
+      await drag('ruli', t[0], t[1]);
+    }],
+    56: ['TIRE O NÃO', async () => { await tap('star'); await notWon(56, 'tocar na estrela com o NÃO'); await dragBy('w_not', 0, 260); await sleep(200); await tap('star'); }],
+    57: ['ENCONTRE O 7', async () => { await tap('c1'); await notWon(57, 'tocar numa carta'); await tap('w_seven'); }],
+    58: ['GIGANTE NA CAIXA', async () => {
+      await dragTo('w_g', 'box'); await sleep(400); await notWon(58, 'gigante grande demais');
+      await pinch('w_g', 0.3); await sleep(150); await dragTo('w_g', 'box');
+    }],
+    59: ['DO 1 AO 5', async () => {
+      await tap('w_five'); await notWon(59, 'tocar no 5 primeiro');
+      for (const id of ['n1', 'n2', 'n3', 'n4', 'w_five']) { await tap(id); await sleep(120); }
+    }],
+    60: ['RULI ATÉ A PORTA', async () => { await tap('picture'); await notWon(60, 'tocar no quadro'); await dragTo('w_ruli', 'door'); }],
+    61: ['GATO VIRA PATO', async () => { await dragTo('pdec', 'l1'); await notWon(61, 'letra errada'); await dragTo('pnew', 'l1'); }],
+    62: ['USE A PONTE', async () => {
+      await dragBy('ruli', 300, 0); await sleep(700); await notWon(62, 'atravessar sem ponte');
+      await dragTo('w_bridge', 'river'); await sleep(400); await dragBy('ruli', 300, 0);
+    }],
+    63: ['CÉU AZUL', async () => { await dragTo('red', 'sky'); await sleep(300); await notWon(63, 'tinta vermelha'); await dragTo('w_blue', 'sky'); }],
+    64: ['PEQUENO FICAR GRANDE', async () => { await pinch('ball', 2); await notWon(64, 'aumentar a bola'); await pinch('w_small', 3.2); }],
+    65: ['1 + 1 = 1', async () => { await dragTo('d1', 'd2'); }],
+    66: ['ESCREVA O NOME', async () => {
+      await dragTo('x1', 's1'); await notWon(66, 'letra errada');
+      await dragTo('a', 's1'); await dragTo('b', 's2'); await dragTo('c', 's3');
+    }],
+    67: ['APAGUE O X', async () => { await rub('x', 20); await sleep(400); await notWon(67, 'só o X grande'); await rub('w_x', 14); }],
+    68: ['DIA PELA NOITE', async () => { await dragTo('w_day', 'sun'); await sleep(400); await notWon(68, 'levar o DIA'); await dragTo('w_night', 'sun'); }],
+    69: ['NÃO É REDONDO', async () => { await tap('c1'); await notWon(69, 'tocar num círculo'); await tap('w_all'); }],
+    70: ['A PORTA ABRE A CHAVE', async () => {
+      await dragTo('key', 'door'); await sleep(400); await notWon(70, 'chave na porta com a frase ao contrário');
+      await dragTo('w_a', 'w_b'); await sleep(600); await dragTo('key', 'door');
+    }],
     30: ['NÃO MOVA RULI', async () => {
       await dragTo('ruli', 'door'); await sleep(400); await notWon(30, 'arrastar o Ruli até a porta');
       const a = await board(60, 112), b = await board(-25, 112);

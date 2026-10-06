@@ -259,7 +259,8 @@
   } };
   T.sky = { view: '0 0 100 100', stretch: true, svg: function (p, o) {
     var night = o.state.night || p.night;
-    return '<rect width="100" height="100" rx="4" fill="' + (night ? '#2B2D5C' : '#BDE3FF') + '"/>' +
+    var fill = night ? '#2B2D5C' : (o.state.color && (C[o.state.color] || o.state.color)) || p.color || '#BDE3FF';
+    return '<rect width="100" height="100" rx="4" fill="' + fill + '"/>' +
       (night ? '<circle cx="20" cy="30" r="1.6" fill="#fff"/><circle cx="70" cy="18" r="1.2" fill="#fff"/><circle cx="84" cy="56" r="1.4" fill="#fff"/><circle cx="40" cy="70" r="1" fill="#fff"/>' : '');
   } };
   T.clock = { view: '0 0 100 100', svg: function () {

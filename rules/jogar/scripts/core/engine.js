@@ -377,6 +377,18 @@
     state: function (a, e, E) { var o = E.get(a.state); if (o) o.setState(a.key, a.value); },
     toggle: function (a, e, E) { var o = E.get(a.toggle), k = a.key || 'on'; if (o) o.setState(k, !o.state[k]); },
     forget: function (a, e, E) { delete E.memory.tapped[a.forget]; },
+    // troca o texto de duas palavras; a que estava solta volta para o lugar dela
+    swapText: function (a, e, E) {
+      var A = E.get(a.swapText[0]), B = E.get(a.swapText[1]);
+      if (!A || !B) return;
+      var t = A.text; A.text = B.text; B.text = t;
+      A.inner.textContent = A.text; B.inner.textContent = B.text;
+      [A, B].forEach(function (o) {
+        o.setHidden(false);
+        if (!o.inText) { o.scale = o.scale0; o.moveTo(o.x0, o.y0, 260); }
+        o.fx('pop');
+      });
+    },
     cls: function (a, e, E) {
       var o = E.get(a.cls);
       if (!o) return;
