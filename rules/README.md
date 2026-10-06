@@ -8,21 +8,25 @@ simples, e o desafio é descobrir como interpretá-la. Para celular (toque), PC
 ou abrindo `rules/jogar/index.html` direto no navegador. Não tem build nem
 dependência: é HTML, CSS e JavaScript puros.
 
-## Estado: capítulos 1 a 3 (fases 1–30)
+## Estado: 100 fases em 10 capítulos
 
-As 30 primeiras fases do documento de design estão prontas e testadas:
-**Capítulo 1 — Aprenda as regras** (1–10), **Capítulo 2 — Não confie nas
-regras** (11–20) e **Capítulo 3 — Mexa em tudo** (21–30).
+| Capítulo | Fases | Ideia |
+|---|---|---|
+| 1. Aprenda as regras | 1–10 | toque, arraste, pinça, palavra TUDO, espera |
+| 2. Não confie nas regras | 11–20 | a chave foge, o "O" gigante, só duas luzes acesas, gravidade |
+| 3. Mexa em tudo | 21–30 | paredes, palitos 2 + 2 = 5, cócegas, palavras como ferramenta, mover o cenário |
+| 4. Pense diferente | 31–40 | juntar metades, esticar a ponte, dividir a bola, ordem certa, girar o relógio |
+| 5. Quebre as regras | 41–50 | mudar a cor, inverter dentro/fora, empilhar caixas, o final "...OU NÃO." |
+| 6. A tela também joga | 51–60 | dica e reiniciar como solução, peças no rótulo FASE, tirar o NÃO da frase |
+| 7. Palavras que mudam tudo | 61–70 | trocar letras, palavra vira ponte e tinta, trocar palavras de lugar |
+| 8. Física de brinquedo | 71–80 | balão, balança, água que sobe, gangorra, ímã, fogueira, sorvete |
+| 9. Olhe de novo | 81–90 | copos embaralhados, o que mudou, lanterna, espelho, memória |
+| 10. Fora da caixa | 91–100 | desenhar com o dedo, canos, cofre, ficar quieto, a "última" fase |
 
-Mecânicas usadas: toque, arraste, pinça (escala), segurar em cima (despejar),
-toque simultâneo com dois dedos, esfregar, espera, gravidade, encaixe em
-lugares, palavras da instrução como objetos e como ferramentas, objetos que
-fogem, buracos, mover o cenário inteiro e observar uma animação diferente.
-
-Também já funcionam: menu, mapa de fases por capítulo, ajustes (música,
+Também funcionam: menu, mapa de fases por capítulo, ajustes (música,
 efeitos, vibração, reduzir animações, idioma, apagar progresso), dicas em três
 níveis, reiniciar na hora, salvamento local, cartões de capítulo, celebração
-com partículas e som, Ruli (e amigos de outras cores) com 6 expressões e
+com partículas e som, Ruli (e amigos de outras cores) com 7 expressões e
 eventos de analytics.
 
 A numeração mostrada no jogo ("FASE 04") é a posição na ordem de jogo
@@ -103,16 +107,29 @@ RULES.registerLevel({
   área central da tela, então funciona em qualquer proporção.
 - **Tipos de objeto** (`type`): circle, ball, star, cube, box, slot, door,
   doorway, key, platform, hole, button, bulb, switch, sun, cloud, cup, jug,
-  stick, fish, chest, wall, gem, feather, tree, apple, marker (invisível),
-  ruli (com `props.color`: teal, pink, yellow, purple), word.
+  stick, fish, chest, wall, gem, feather, tree, apple, triangle, halftri,
+  plank, plant, can, moon, sky, clock, hand, flag, bucket, divider, shelf,
+  cushion, vase, balloon, rock, seesaw, basket, magnet, clip, glassbox, tank,
+  cork, dark, flashlight, traffic, campfire, twig, icecream, umbrella, pipe,
+  faucet, dial, safe, radio, drop, leaf, xmark, mirrorline, card, cup2, paper,
+  outline, blackout, marker (invisível), ruli (com `props.color`: teal, pink,
+  yellow, purple), word (com `textKey` vira uma palavra solta no cenário).
   Novos visuais: `RULES.Renderers.register('nome', { view, svg })`.
 - **Comportamentos** (`behaviors`): `draggable`, `scalable`, `holdable`,
-  `clickable`, `container`, `door`, `flee`, `fallsInto`, `character`,
-  `mirror`, `group`, `pourer`, `gravity`, `snap`, `receives`, `rubbable`,
-  `carries`. A lista
+  `rotatable`, `clickable`, `container`, `door`, `flee`, `fallsInto`,
+  `character`, `mirror`, `group`, `stackPress`, `pourer`, `gravity`, `snap`,
+  `receives`, `rubbable`, `carries`, `merge`, `splitOnStretch`, `floats`,
+  `magnet`, `tank`, `melts`, `mirrorOf`, `spotlight`, `timer`, `order`,
+  `simon`, `drawZone`, `connect`, `balance`. Dois do mesmo tipo num objeto:
+  `receives` e `'receives#2'`. A lista
   de opções de cada um está no topo de `scripts/puzzles/behaviors.js`.
 - **Condições de vitória** (`win`): `tapped`, `inside`, `touching`, `moved`,
-  `state`, `idle`, `scale`, e as combinações `all`, `any`, `not`.
+  `state`, `idle`, `scale`, `hint`, `text` (cobrir / ficar atrás / sair da
+  instrução), `pos`, `same`, `balanced`, `split`, e as combinações `all`,
+  `any`, `not`.
+- **Extras de fase**: `label` (rótulo "FASE NN" com palavras-objeto, objetos
+  `inLabel: true`), `draw: true` (desenhar com o dedo), `minAttempt` num objeto
+  (só aparece ao tentar de novo), `finale: 'mid'` (o final da fase 50).
 - **Reações** (`reactions`): respondem a eventos (`tap`, `drop`, `hold`,
   `swipe`, `rub`, `rubbing`, `scaledenied`, `flee`, `fell`, `rejected`,
   `snapped`, `used`, `input`...) com ações em sequência: `fx`, `sound`, `say`,
@@ -143,9 +160,10 @@ todas as fases seguintes.
 node rules/ferramentas/valida-fases.js
 npx http-server -p 8123 .                     # na pasta play/
 node rules/ferramentas/testa-fases.js         # precisa do Playwright
+START=71 node rules/ferramentas/testa-fases.js # começa de uma fase
 ```
 
-O teste joga as 30 fases com toque, pinça, toque simultâneo e esfregar de
+O teste joga as 100 fases com toque, pinça, toque simultâneo e esfregar de
 verdade, confere que as soluções "óbvias" não completam (tocar na porta,
 círculo grande demais, Ruli indo até a chave, ligar as luzes uma por vez,
 deixar a bola cair, arrastar o Ruli na fase 30...), que o progresso fica
@@ -169,5 +187,6 @@ para dicas) podem ser ligados depois sem mexer nas fases nem nas telas.
 
 ## Próximos passos (documento de design)
 
-- Etapa 6: testar em celulares de verdade (Android/iOS) e ajustar.
-- Etapa 9: fases 31–50 e o final ("...OU NÃO.").
+- Testar em celulares de verdade (Android/iOS) e ajustar.
+- Capa e entrada na página inicial do site, e lançamento.
+- Etapa 10 do documento: polimento.

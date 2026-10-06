@@ -29,7 +29,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     return [r.left + r.width / 2, r.top + r.height / 2, r.width, r.height];
   }, id);
   const board = (x, y) => page.evaluate(([x, y]) => {
-    const p = RULES.Stage.toPx(x, y), l = RULES.Stage.layer.getBoundingClientRect();
+    const p = RULES.Stage.toPx(x, y), l = RULES.Stage.layer.parentNode.getBoundingClientRect();
     return [l.left + p[0], l.top + p[1]];
   }, [x, y]);
   const unit = () => page.evaluate(() => RULES.Stage.s);
@@ -111,10 +111,15 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     for (let i = 1; i <= 10; i++) { const d = d0 + (d1 - d0) * i / 10; await touch('touchMove', [a, [x + d, y + d, 1]]); await sleep(16); }
     await touch('touchEnd', [a]); await sleep(20); await touch('touchEnd', []); await sleep(60);
   };
+  // gira no sentido horário; começa no ângulo atual do objeto (para pegar peças finas como a rampa)
   const spin = async (id, turns) => {
-    const c = await center(id), r = Math.min(c[2], c[3]) * 0.35, n = Math.round(turns * 24);
-    await touch('touchStart', [[c[0], c[1] - r]]);
-    for (let i = 1; i <= n; i++) { const a = -Math.PI / 2 + i * Math.PI * 2 / 24; await touch('touchMove', [[c[0] + Math.cos(a) * r, c[1] + Math.sin(a) * r]]); await sleep(12); }
+    const c = await center(id), n = Math.max(2, Math.round(turns * 24));
+    const rot = await page.evaluate(id => RULES.Game.engine.get(id).rot, id);
+    const thin = Math.min(c[2], c[3]) < Math.max(c[2], c[3]) * 0.5;
+    const r = thin ? Math.max(c[2], c[3]) * 0.3 : Math.min(c[2], c[3]) * 0.35;
+    const a0 = thin ? rot * Math.PI / 180 : -Math.PI / 2;
+    await touch('touchStart', [[c[0] + Math.cos(a0) * r, c[1] + Math.sin(a0) * r]]);
+    for (let i = 1; i <= n; i++) { const a = a0 + i * Math.PI * 2 / 24; await touch('touchMove', [[c[0] + Math.cos(a) * r, c[1] + Math.sin(a) * r]]); await sleep(12); }
     await touch('touchEnd', []); await sleep(80);
   };
   const drawPath = async (pts) => {
@@ -314,6 +319,75 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       await dragTo('key', 'door'); await sleep(400); await notWon(70, 'chave na porta com a frase ao contrário');
       await dragTo('w_a', 'w_b'); await sleep(600); await dragTo('key', 'door');
     }],
+    71: ['BALÃO', async () => { await tap('rock'); await notWon(71, 'tocar na pedra'); await dragTo('balloon', 'rock'); }],
+    72: ['BALANÇA', async () => {
+      await dragTo('b1', 'panR'); await sleep(300); await dragTo('b2', 'panR'); await sleep(400);
+      await notWon(72, 'duas bolas contra a pedra');
+      await dragToBoard('rock', 50, 104); await sleep(300); await dragToBoard('b2', 22, 74); await sleep(500);
+    }],
+    73: ['CHAVE NO FUNDO', async () => {
+      await dragBy('cork', 0, -200); await notWon(73, 'pegar a chave no fundo');
+      for (const id of ['s1', 's2', 's3', 's4']) { await dragTo(id, 'tank'); await sleep(450); }
+      await sleep(400); await dragToBoard('cork', 50, 40);
+    }],
+    74: ['CESTA', async () => { await dragTo('ball', 'basket'); await sleep(300); await notWon(74, 'levar a bola até a cesta'); await dragTo('rock', 'rend'); }, 4000],
+    75: ['CLIPE', async () => { await tap('glass'); await notWon(75, 'tocar no vidro'); await dragToBoard('magnet', 28, 70); }],
+    76: ['TORRE', async () => { await tap('t2'); await notWon(76, 'tocar nos blocos'); await rub('ground', 16, 40); }],
+    77: ['RAMPA', async () => { await tap('ball'); await notWon(77, 'tocar na bola'); await spin('ramp', 0.12); }],
+    78: ['FOGUEIRA', async () => { await tap('fire'); await notWon(78, 'tocar na lenha'); await rub('fire', 18); }],
+    79: ['SORVETE', async () => { await sleep(1200); await notWon(79, 'esperar no sol'); const s = await center('sun'); await drag('cloud', s[0], s[1]); await sleep(3600); }, 4000],
+    80: ['RULI E O BALÃO', async () => {
+      await dragTo('ruli', 'star'); await sleep(1200); await notWon(80, 'levar o Ruli no ar');
+      await dragTo('balloon', 'ruli'); await sleep(200);
+      await dragToBoard('ruli', 30, 60); await sleep(2500);
+    }, 5000],
+    81: ['ENCONTRE A BOLA', async () => {
+      await sleep(2600); await tap('k1'); await notWon(81, 'tocar num copo');
+      for (const k of ['k1', 'k2', 'k3']) await dragBy(k, 0, -160);
+      await sleep(200); await tap('ball');
+    }],
+    82: ['O QUE MUDOU', async () => { await tap('o3'); await notWon(82, 'tocar antes da mudança'); await sleep(3200); await tap('o1'); await notWon(82, 'tocar no errado'); await tap('o3'); }],
+    83: ['ESCURO', async () => { const k = await center('key'); await drag('lamp', k[0] - 40, k[1] + 50); await sleep(200); await tap('key'); }],
+    84: ['QUANTAS ESTRELAS', async () => { await tap('n4'); await notWon(84, 'contar 4'); await dragBy('cloud', 0, -200); await tap('n5'); }],
+    85: ['SOMBRA', async () => { await dragTo('ruli', 'sh1'); await sleep(900); await notWon(85, 'sombra espelhada'); await dragTo('ruli', 'sh3'); }],
+    86: ['VERDE NA HORA', async () => {
+      await tap('tl'); await notWon(86, 'tocar no vermelho');
+      for (let i = 0; i < 60; i++) { if ((await obj('tl', 'light')) === 'green') break; await sleep(60); }
+      await tap('tl');
+    }],
+    87: ['ESPELHO', async () => { await dragToBoard('ruli', 30, 92); await notWon(87, 'andar no chão'); await dragToBoard('ruli', 14, 34); }],
+    88: ['SEQUÊNCIA', async () => {
+      await sleep(4800);
+      await tap('l1'); await notWon(88, 'ordem errada'); await sleep(5200);
+      for (const id of ['l2', 'l1', 'l3', 'l2']) { await tap(id); await sleep(250); }
+    }, 4000],
+    89: ['MAIS PESADA', async () => { await dragTo('a', 'panL'); await dragTo('b', 'panR'); await sleep(500); await tap('a'); await notWon(89, 'tocar na leve'); await tap('b'); }],
+    90: ['AMIGO', async () => { await tap('t2'); await notWon(90, 'procurar na árvore'); await tap('friend'); }],
+    91: ['DESENHE A PONTE', async () => {
+      await dragBy('ruli', 300, 0); await sleep(700); await notWon(91, 'atravessar sem ponte');
+      await drawPath([[34, 96], [50, 98], [66, 96]]); await sleep(300); await dragBy('ruli', 300, 0);
+    }],
+    92: ['LIGUE OS PONTOS', async () => {
+      await drawPath([[50, 30], [20, 52]]); await notWon(92, 'ordem errada');
+      await drawPath([[50, 30], [72, 88], [20, 52], [80, 52], [28, 88]]);
+    }],
+    93: ['CANOS', async () => {
+      await spin('p1', 0.25); await notWon(93, 'só um cano');
+      await spin('p2', 0.5); await spin('p3', 0.25);
+    }],
+    94: ['COFRE', async () => { await tap('d1'); await notWon(94, 'tocar no disco'); await spin('d1', 0.15); await spin('d2', 0.65); }],
+    95: ['RULI DORMIR', async () => {
+      await tap('switch'); await dragTo('radio', 'box'); await sleep(800); await tap('ruli'); await sleep(2500); await notWon(95, 'acordar o Ruli');
+      await sleep(3500);
+    }, 4000],
+    96: ['NÃO TOQUE (VASO)', async () => { await sleep(2500); await tapXY(60, 700); await sleep(2000); await notWon(96, 'tocar na tela'); await sleep(4200); }, 4000],
+    97: ['TODOS IGUAIS', async () => {
+      await dragTo('pb', 'c1'); await sleep(350); await dragTo('pb', 'c3'); await sleep(400); await notWon(97, 'só a cor');
+      await pinch('c1', 1.66); await pinch('c3', 0.72);
+    }],
+    98: ['FOLHA VERDE', async () => { await dragTo('blue', 'leaf'); await sleep(400); await notWon(98, 'pintar de azul'); await dragTo('blue', 'yellow'); await sleep(500); await dragTo('green', 'leaf'); }],
+    99: ['QUEBRE TODAS', async () => { await tap('star'); await dragBy('box', 0, 60); await sleep(1000); await notWon(99, 'sem esperar'); await sleep(2600); }],
+    100: ['ÚLTIMA FASE', async () => { await tap('door'); await notWon(100, 'tocar na porta'); await dragBy('w_last', 0, 300); }],
     30: ['NÃO MOVA RULI', async () => {
       await dragTo('ruli', 'door'); await sleep(400); await notWon(30, 'arrastar o Ruli até a porta');
       const a = await board(60, 112), b = await board(-25, 112);

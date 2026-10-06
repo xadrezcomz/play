@@ -19,7 +19,9 @@
     init: function (layer, area) { this.layer = layer; this.area = area; this.update(); },
 
     update: function () {
-      var a = this.area.getBoundingClientRect(), l = this.layer.getBoundingClientRect();
+      // mede a tela do jogo (que não anima), não a camada: durante a transição entre
+      // fases a camada fica levemente encolhida e as coordenadas sairiam tortas
+      var a = this.area.getBoundingClientRect(), l = (this.layer.parentNode || this.layer).getBoundingClientRect();
       this.layerRect = l;
       this.s = Math.max(0.1, Math.min(a.width / this.W, a.height / this.H));
       this.ox = a.left - l.left + (a.width - this.W * this.s) / 2;
@@ -29,13 +31,13 @@
     toPx: function (x, y) { return [this.ox + x * this.s, this.oy + y * this.s]; },
 
     fromClient: function (cx, cy) {
-      var l = this.layerRect || this.layer.getBoundingClientRect();
+      var l = this.layerRect || this.layer.parentNode.getBoundingClientRect();
       return [(cx - l.left - this.ox) / this.s, (cy - l.top - this.oy) / this.s];
     },
 
     // Limites da tela inteira em unidades do tabuleiro (para arrastar).
     screenBounds: function () {
-      var l = this.layerRect || this.layer.getBoundingClientRect();
+      var l = this.layerRect || this.layer.parentNode.getBoundingClientRect();
       return {
         x1: -this.ox / this.s, y1: -this.oy / this.s,
         x2: (l.width - this.ox) / this.s, y2: (l.height - this.oy) / this.s
