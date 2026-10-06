@@ -7,6 +7,15 @@ no FLOW, ultrapassa quem estiver pela frente e escolhe o caminho nas bifurcaçõ
 Jogar: **https://xadrezcomz.github.io/play/endless-pace/jogar/** (depois de
 publicado) ou abrir `endless-pace/jogar/index.html` direto no navegador.
 
+Para mandar o jogo para alguém testar (ou jogar sem internet), gere um arquivo só:
+
+```
+node endless-pace/ferramentas/arquivo-unico.mjs saida.html         # tudo embutido (~1,1 MB)
+node endless-pace/ferramentas/arquivo-unico.mjs saida.html --cdn   # three.js e fontes da internet (~220 KB)
+```
+
+O arquivo avulso não conta jogadas no site.
+
 Esta versão responde à pergunta do MVP (GDD §84): **correr é divertido?** Por
 isso tem só o loop principal, bem acabado, e a arquitetura pronta para crescer.
 
