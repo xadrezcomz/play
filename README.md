@@ -38,23 +38,6 @@ Comparar `tentou` com `venceu` mostra as fases difíceis demais. A data da últi
 visita fica só no aparelho (localStorage); nada que identifique a pessoa é enviado.
 Fora do site (apps, arquivo baixado) os eventos não fazem nada.
 
-## Insira uma ficha (apoio por Pix)
-
-A seção "Continue? Insira uma ficha" da página inicial gera o Pix (QR Code e
-"copia e cola", com o valor já preenchido) direto no navegador, sem servidor.
-Tudo o que muda fica no começo de `apoio.js`:
-
-- **DESBLOQUEIOS**: as metas que as fichas ajudam a destravar. Quando uma
-  acontecer, troque `feito: false` por `feito: true`.
-- **PLACAR**: quando alguém mandar um Pix com 3 letras na mensagem, coloque no
-  topo da lista, por exemplo `{ ini: 'ABC', fichas: 3 }` (1 ficha = R$ 5).
-- **pacotes** e **ficha**: quantidades e valor de cada ficha.
-
-No GoatCounter aparecem `site/apoio/abriu`, `site/apoio/escolheu/<n>-fichas`,
-`site/apoio/copiou` e `site/apoio/inseriu` (este último é só o clique em
-"Pronto, inseri!", não confirma pagamento). O QR Code usa `lib/qrcode.js`
-(qrcode-generator, licença MIT).
-
 ## Imagem ao compartilhar o link
 
 Cada página tem as tags `og:` com uma imagem 1200×630 (abaixo de 300 KB, que é
@@ -76,11 +59,22 @@ python3 ferramentas/eventos-slide-chess.py
 
 ## Colocar um jogo novo
 
-1. Crie a pasta do jogo, com o jogo em `<pasta>/jogar/index.html`.
-2. No `<head>` do jogo, antes de `</head>`:
-   ```html
-   <script>window.CONTAGEM = '/jogo/<pasta>';</script>
-   <script src="../../contador.js"></script>
-   ```
-3. Coloque a capa em `img/` (1200×630) e acrescente o jogo em `jogos.js`.
-4. Acrescente o jogo em `ferramentas/prepara-jogo.py` para ganhar as tags de compartilhamento.
+A página inicial monta os cartões a partir de `jogos.js` (2 por linha no
+computador, 1 no celular), então não é preciso mexer no `index.html`.
+
+- **Anunciar antes de sair:** acrescente em `jogos.js`
+  `{ nome: 'Nome', desc: 'Uma frase', emBreve: true }`. Ele aparece na seção
+  "Em breve", sem botão de jogar (uma capa é opcional).
+- **Publicar:**
+  1. Crie a pasta do jogo, com o jogo em `<pasta>/jogar/index.html`.
+  2. No `<head>` do jogo, antes de `</head>`:
+     ```html
+     <script>window.CONTAGEM = '/jogo/<pasta>';</script>
+     <script src="../../contador.js"></script>
+     ```
+  3. Coloque a capa em `img/` (1200×630) e, em `jogos.js`, tire o `emBreve` e
+     preencha `capa`, `jogar`, `contagem` e `selos`.
+  4. Acrescente o jogo em `ferramentas/prepara-jogo.py` para ganhar as tags de
+     compartilhamento.
+  5. Se quiser, refaça `img/compartilhar-site.jpg` (a imagem do link do site)
+     com os jogos novos.

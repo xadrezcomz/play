@@ -1,7 +1,17 @@
-// Lista de jogos da página inicial. Para colocar um jogo novo:
-// 1. crie a pasta dele (com a página do jogo em <pasta>/jogar/index.html);
-// 2. coloque a capa em img/ (1200×630);
-// 3. acrescente um item aqui.
+// Lista de jogos da página inicial, na ordem em que aparecem.
+//
+// Campos de cada jogo:
+//   nome, desc        nome e uma ou duas frases sobre o jogo
+//   capa              imagem 1200×630 em img/ (ex.: img/capa-meu-jogo.jpg)
+//   jogar             pasta onde o jogo roda (ex.: 'meu-jogo/jogar/')
+//   saiba             (opcional) página com mais detalhes do jogo
+//   contagem          (opcional) caminho do GoatCounter, ex.: '/jogo/meu-jogo'
+//   selos             (opcional) etiquetas curtas: gênero, plataformas, idiomas
+//   encaixe, fundoCapa (opcional) 'contain' e uma cor, para a capa não ser cortada
+//
+// Jogo que ainda não saiu: { nome: 'Nome', desc: 'Uma frase', emBreve: true }
+// (a capa é opcional). Ele aparece numa seção "Em breve", sem botão de jogar.
+// Quando o jogo sair, apague o emBreve e preencha os outros campos.
 window.JOGOS = [
   {
     nome: 'Rock Orbit',
