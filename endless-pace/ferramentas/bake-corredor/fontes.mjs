@@ -38,8 +38,8 @@ export const FONTES = [
   ['hair/Hair_Buns.gltf', '7669e686c1f7039d85d917a53f567a5149aaf5f0', HAIR],
   ['hair/Hair_Buns.bin', '22beb1e82d059cb3bd9344e26a61b35dc4c1a34a', HAIR],
   ['ual/UAL1_Standard.glb', 'c3fe59e5e4c21a6d08d060b600458ac466cc12dc', UAL + 'Unreal-Godot/'],
-  ['ual/README.txt', null, UAL],
-  ['ual/License.txt', null, UAL]
+  ['ual/README.txt', '253705248e3ca348226b04fce97929e176a053f0', UAL],
+  ['ual/License.txt', '4e06133f1c77807e55229ef0733f6287295fbf04', UAL]
 ];
 
 export const sha1 = buf => crypto.createHash('sha1').update(buf).digest('hex');

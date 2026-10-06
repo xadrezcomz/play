@@ -132,3 +132,9 @@ Os nomes internos (`run_started`, `run_finished`, `distance_reached`,
 `flow_started`, `flow_lost`, `challenge_started`, `challenge_completed`,
 `route_chosen`...) ficam em `EP.Analytics.log`. No site, alguns viram contagens
 anônimas `ep/…` no GoatCounter (tabela no README do site).
+
+## Créditos dos modelos
+
+Corredores: Universal Base Characters e Universal Animation Library por Quaternius (CC0) — quaternius.com; decodificador
+meshoptimizer (MIT, Arseny Kapoulkine). Licenças em `jogar/modelos/LICENCAS/`; os dados em `jogar/dados/modelos/` são
+gerados por `node ferramentas/bake-corredor.mjs` (ver `ferramentas/ESPEC-corredor.md`).

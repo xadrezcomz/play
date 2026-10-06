@@ -1,789 +1,698 @@
 # ESPEC-corredor — bake spec: Quaternius UBC → ENDLESS PACE runner
 
-Status: spec v1 (2026-10-06). Target: one Node 22 ESM script, `ferramentas/assa-corredor.mjs` (assar = bake). No Blender.
-Output: classic-script JS data files under `jogar/dados/modelos/` + a decoder module. The game must keep running from `file://`
-and as the single HTML built by `ferramentas/arquivo-unico.mjs` (which inlines every `<script src>`; base64 contains no `<`).
+Status: **spec v3 (2026-10-06) — implemented**. §13 lists the v3 changes (review vq1); where a v3 change overrides an
+earlier section, §13 wins. Older text marked **[v2]** still explains the v2 reasoning.
+Every place where v1 was changed during implementation is marked **[v2]** with the reason.
 
-All numbers below were checked on the actual files (prototype scripts in the session scratchpad: `spec/proto.mjs`,
-`spec/slim.mjs`, `spec/sizetest.mjs`). Where a number is a tuning value it says so.
+- Tool: `node ferramentas/bake-corredor.mjs` (Node 22, ESM). Helper modules live in `ferramentas/bake-corredor/*.mjs`. No Blender.
+  **[v2]** v1 called it `assa-corredor.mjs`.
+- Output: classic-script data files `jogar/dados/modelos/{corredor-m,corredor-f,roupas,cabelos}.js`.
+- Runtime decoder: `jogar/js/runner/ModelData.js` (`EP.ModelData`). **[v2]** v1 used `CharData.js` plus a separate
+  `vendor/meshopt-decoder-ref.js`. Now the meshopt reference decoder (vertex and index codecs only) is embedded in
+  `ModelData.js`, so integration needs one `<script>` tag instead of two.
+- Preview: `ferramentas/preview-corredor.html`. It renders through the real decoder with a `SkinnedMesh` on the game bones;
+  Playwright calls `window.render(spec)`.
+- The game must keep running from `file://` and as the single HTML built by `ferramentas/arquivo-unico.mjs`.
+  - The data files contain no `<` at all (base64 + JSON).
+  - `ModelData.js` has `<` only as JS operators; the bundler escapes `</script`.
 
----------------------------------------------------------------------------------------------------------------------
-
-## 0. What is in the source files (inspection results)
-
-Sources (CC0): `verify-ubc/` = `Superhero_{Male,Female}_FullBody.gltf/.bin` + textures, `hair/*.gltf`, `ual/UAL1_Standard.glb`.
-
-### 0.1 Bodies
-
-| | Male | Female |
-|---|---|---|
-| glTF generator | Blender I/O 4.3.47 | same |
-| nodes | `Armature` > {`Eyebrows`(mesh0), `Eyes`(mesh1), body(mesh2), `root`} | same |
-| skin | 1 skin, **65 joints**, identical joint names in both | same |
-| body mesh | `Sphere.005_Retopology.004`, mat `MI_Superhero_Male`: **7281 v / 12566 tris** | `Superhero_Female`: **7376 v / 12812 tris** |
-| body topology (welded at 1e-5) | 6285 v, **0 boundary edges, 0 non-manifold, 1 component** (watertight) | 6408 v, watertight, 1 component |
-| brows/lashes mesh | mesh0 (`Face`, mat `MI_Hair_1`) 984 tris: 2 brow cards × 424 + 2 upper-lash strips × 68 (strips are open: 120 boundary edges) | mesh0 (`Eyebrows`, `MI_Hair_2`) 1480 tris: 2 lash cards × 420 (y 1.649–1.663) + 2 brow cards × 320 (y 1.669–1.687), all closed |
-| eyes | mesh1, `MI_Eyes`, 768 tris = 2 closed spheres × 384, center ≈ (±0.0338, 1.6985, 0.0696), front radius 0.011 | center ≈ (±0.0345, 1.6559, 0.0631), r 0.012 |
-| eye UV | front (iris) vertex uv = (0.496, 0.501); **88 verts with u>1 (up to 1.215), all on the back of the eyeball** | all in [0,1] |
-| bbox (bind) | x ±0.929 (T-pose), y −0.010…1.810, z −0.163…0.128 | x ±0.834, y −0.008…1.767 |
-| other attributes | TEXCOORD_1 (unused lightmap-ish), COLOR_0 = all white, COLOR_1 constant → **ignore all of them** | same (+COLOR_2, TEXCOORD_2..4: ignore) |
-| influences | ≤4, mostly 2 (4335 v); weights float | same |
-
-Bind pose = node rest pose exactly (|inverse(IBM) − node world| = 0). **The mesh is in a strict T-pose**: `upperarm_l`→`lowerarm_l`
-direction = (1.000, 0.000, −0.030). Units are meters, **up = +Y, front = +Z** (toes at +z), character's left (`_l`) at **+X**.
-`root` has the Blender −90° X rotation; pelvis is under it. Use world matrices = `inverse(IBM)`; never trust node order.
-
-Bind joint world positions (glTF frame):
-
-| joint | male | female |
-|---|---|---|
-| pelvis | (0, 0.9491, −0.0430) | (0, 0.9318, −0.0457) |
-| spine_01 / 02 / 03 | y 1.0720 / 1.1778 / 1.3109 | y 1.0546 / 1.1642 / 1.2906 |
-| neck_01 | (0, 1.5205, −0.0414) | (0, 1.4849, −0.0406) |
-| Head | (0, 1.5998, −0.0174) | (0, 1.5496, −0.0109) |
-| clavicle_l | (0.0314, 1.4953, 0.0335) | (0.0293, 1.4305, 0.0160) |
-| upperarm_l | (0.2120, 1.4555, −0.0654) | (0.1516, 1.4181, −0.0543) |
-| lowerarm_l / hand_l | x 0.4630 / 0.7065 | x 0.3919 / 0.6411 |
-| thigh_l | (0.1143, 0.9712, −0.0360) | (0.1114, 0.9441, −0.0518) |
-| calf_l (knee) | (0.1143, 0.5424, −0.0361) | (0.1114, 0.5347, −0.0323) |
-| foot_l (ankle) | (0.1143, 0.0865, −0.0875) | (0.1114, 0.0707, −0.0765) |
-| ball_l / ball_leaf_l | z 0.0547 / 0.1336, y 0.0152 | z 0.0618 / 0.1299, y 0.0148 |
-
-Joint list (65): root, pelvis, spine_01..03, neck_01, Head, clavicle_x, upperarm_x, lowerarm_x, hand_x, {index,middle,ring,pinky,thumb}_{01,02,03,04_leaf}_x, thigh_x, calf_x, foot_x, ball_x, ball_leaf_x (x = l/r).
-Bone local axis convention (Blender): bone points along local +Y; for finger phalanges **local +X is the flexion axis** (positive = curl).
-
-Triangles by dominant joint group (male / female): head 2544/2740, neck 352/380, torso (spine+clavicle) 1360/1653, pelvis 420/427,
-upper arm 604/668, forearm 646/712, **hands 3356/3012**, thigh 880/896, shin 1092/1024, **feet 1312/1300**.
-Mean edge length: torso 3.0 cm, thigh 3.8 cm, upper arm 3.1 cm, head 1.1 cm, hands 0.9 cm, feet 1.7 cm.
-Consequence: garment shells need one subdivision level (§6.6); hands are over-dense (simplify, §10); feet are deleted (§7).
-
-Muscle/underwear: geometry is superhero (huge traps, lats, deltoids, abs, thick neck); **the underwear is modelled in the geometry too**
-(male boxer bulge + waistband ridge; female bra cups + brief edge) and painted dark grey in the albedo.
-
-### 0.2 Textures
-
-| file | size | notes |
-|---|---|---|
-| `T_Superhero_Male_Dark.png`, `T_Superhero_Female_Dark_BaseColor.png` | 2048² RGB | medium-tan skin with baked muscle shading, painted dark underwear, painted eyes in the face island, scalp painted brown, male stubble; female has dark eyeliner wings and freckles |
-| `T_Superhero_{Male,Female}_Normal.png` | 2048² RGBA (A=255) | tangent space, glTF (OpenGL) convention |
-| `*_Roughness.png` | 2048² | **ignore** (our shader sets specular per `mat`) |
-| `T_Eye_Brown.png` | 256² RGBA (A=255) | iris centered at uv (0.5, 0.5) |
-| `T_Hair_1/2_BaseColor.png`, normals | 2048² | strand texture; brows/lashes UVs into it render speckled/white → **never use for brows/lashes** |
-
-UV layout (one 0..1 atlas per gender, glTF convention v down): coverage 71.5 % (m) / 72.2 % (f). Face island top-left, hands and feet
-top-middle, torso/back/limbs as tall strips. **Largest free square with 8 px padding at 1024²: 113 px at (723,163) male,
-122 px at (809,0) female** — enough for the eye tile and the neutral patch (§9). Do **not** hard-code UV rectangles: every
-texture edit uses the texel→3D "position atlas" (§9.1).
-
-JPEG sizes measured: skin 1024² q88 ≈ 60 KB, normal 512² q88 ≈ 43 KB.
-
-### 0.3 Hair parts (`hair/*.gltf`, each skinned 100 % to `Head`, 65-joint skeleton)
-
-Head bind is identical to the matching body: male hairs use Head (0, 1.5998, −0.0174), female hairs Head (0, 1.5496, −0.0109)
-(the male hair files carry a slightly different arm skeleton; irrelevant, only Head matters).
-
-| file | skeleton | tris | welded v / boundary edges / components | content |
-|---|---|---|---|---|
-| Hair_SimpleParted | male | 1301 | 695 / 87 / 1 | short side-parted |
-| Hair_Buzzed | male | 830 | 466 / 100 / 1 | buzz cap |
-| Hair_BuzzedFemale | female | 830 | 466 / 100 / 1 | buzz cap |
-| Hair_Long | female | 2906 | 1521 / 124 / 7 | center part, straight, ends at y 1.501 (≈ trapezius); comps: back mass 1552, inner layer 430, 5 front strands 164–204 |
-| Hair_Buns | female | 3284 | 1699 / 92 / 9 | scalp cap 1712 (centroid z −0.052), face-framing layer 480 (front, down to y 1.53), **two side buns 332 each, centroid (±0.108, 1.711, −0.089)**, 4 small bang strands |
-| Hair_Beard | male | 1034 | 596 / 158 / 1 | optional, not used in v1 |
-| Eyebrows_Regular / _Female | m / f | 984 / 1480 | = mesh0 of the bodies | redundant with the body files' mesh0 |
-
-All hair shells are open (FrontSide shows holes from below) → §8.6 back-face strips.
-
-### 0.4 UAL1_Standard.glb
-
-43 animations, same 65 joint names. `Jog_Fwd_Loop` has a runner's fist: phalanges `_02`/`_03` ≈ quaternion (0.62334, 0, 0, 0.78195)
-= 77° about local +X; `_01` and thumbs differ more. Used only as the **source of the relaxed-fist finger pose** (§4).
+Nothing in the game is wired yet. Integration (`index.html`, `RunnerRig.js`, `BodyModel.js`) is a separate step, see §11.5.
 
 ---------------------------------------------------------------------------------------------------------------------
 
-## 1. Re-posing (T-pose → arms down) — method
+## 0. Sources, cache, dependencies
 
-Do it on the UBC skeleton, then linear-blend-skin the mesh once and take the result as the new rest mesh.
+### 0.1 Command line
 
-1. Local transforms `L_j` = node TRS of each joint. Override (before FK):
-   - fingers and thumbs `{index,middle,ring,pinky,thumb}_0{1,2,3}_x`: `slerp(L_rest.rot, UAL_jog_mean.rot, 0.8)` (§4);
-   - `hand_x`: `slerp(L_rest.rot, UAL_jog_mean.rot, 0.5)`.
-2. FK: `W_j = W_parent · L_j` (root = node world of `root`).
-3. World-space subtree rotations about the joint pivot, in this order, both sides (sx = +1 for `_l`, −1 for `_r` in glTF frame):
-   - `clavicle_x`: rotate subtree about axis (0,0,1) by **−sx·8°** (drops the shoulder girdle; tuning).
-   - `upperarm_x`: minimal rotation taking dir(`upperarm`→`lowerarm`) to `t = normalize(sx·sin α, −cos α, 0)`,
-     **α = 10° male, 13° female** (abduction so the fist clears the thigh). Adaptive rule: after §6 is built, if the minimum distance
-     between hand vertices and the outer surface of the loosest bottom garment (short) is < 15 mm, add 1° and redo (max 16°).
-   - `lowerarm_x`: rotate so the forearm is collinear with the upper arm, then flex **8° forward** (towards +Z glTF / −Z game)
-     about `normalize(cross(upperDir, (0,0,1)))` with the sign chosen so the wrist moves forward (assert wrist.z increases).
-   - Palms must face the thigh (medial). Check: palm normal of `hand_l` (cross of (index_01−pinky_01) and (middle_01−hand)) has
-     x-component < −0.7·|n| for the left hand in glTF frame. (Verified: the plain swing-down already gives this.)
-4. Skin matrices `S_j = W'_j · IBM_j`; posed position `p' = Σ w_k S_k p`; normal `n' = normalize(Σ w_k R(S_k) n)` (rigid
-   matrices, no scale). Apply to body, eyes and brows/lashes meshes (they are Head-only, so unchanged).
-5. Measured on the prototype (α 10/13, clavicle 8°): male fist–thigh gap 43 mm, female 12 mm (rises after slimming, §2).
-   Visual result: natural standing figure, fists beside the thighs (`spec/pm.png`, `pf.png`).
+    node ferramentas/bake-corredor.mjs [--cache DIR] [--saida DIR] [--so m|f] [--baixar] [--rapido]
 
-Hairs are authored in the T-pose bind but the head never moves in this re-pose → hair positions are used as-is (then §1.6 frame).
+- `--cache`: a folder **outside the repository** (the tool refuses a path inside it). Default `$EP_BAKE_CACHE` or
+  `~/.cache/endless-pace-bake`. It contains:
+  - `fontes/`: the CC0 sources;
+  - `node_modules/`: the npm dependencies.
+- `--saida`: default `jogar/dados/modelos`.
+- `--so m|f`: bake one gender only. Writes only that gender's data and skips the checks; use it for debugging.
+- `--baixar`: re-download every source even if it is already cached.
+- `--rapido`: 8 AO rays instead of 20–24. Use it only for iteration; the committed data is a full bake.
 
-### 1.6 Final frame (applied to everything at the end of geometry processing)
+Run time is about 35 s for a full bake (v3). Output is deterministic: two runs produce byte-identical files (checked by SHA-1).
 
-    game = ( −x·s ,  (y − y_floor)·s + LIFT ,  −z·s )        // 180° about Y, uniform scale, lift onto the shoe sole
+### 0.2 Sources (`bake-corredor/fontes.mjs`)
 
-- 180° about +Y (not a mirror): glTF front +Z → game front −Z; UBC `_l` (glTF +X) → game −X = game `armL/legL` (matches
-  `BodyModel.bonePos`: armL at negative x). Winding is preserved.
-- `y_floor` = min y of the re-posed barefoot body (−0.010 m / −0.008 f).
-- **Scale choice (documented): both genders baked in "1.76 space"** — barefoot height (skull top − sole) = **1.76 m for both**:
-  `s_m = 1.76 / (1.810 + 0.010) = 0.96703`, `s_f = 1.76 / (1.767 + 0.008) = 0.99155`.
-  The runtime formula `body.scale = height/1.76` stays unchanged and gives 1.76 m (m) and 1.68 m (f).
-  Data also carries `heightReal` (1.76 / 1.68) for anyone who needs true meters.
-- `LIFT = 0.022` m: shoe sole thickness under the heel (§7). Feet of the body stand on the insole at y = 0.022; the shoe outsole
-  bottom is at **y = 0** (contract "feet on y = 0" refers to the shoe).
+Missing sources are downloaded and checked against a SHA-1 table.
 
----------------------------------------------------------------------------------------------------------------------
+- **Mirror 1 (everything):** `raw.githubusercontent.com/MateusJuni0/worldrpgs/main/art/models/`
+  - `quaternius-base-characters/Universal Base Characters[Standard]/`:
+    - `Base Characters/Godot - UE/`: bodies and textures;
+    - `Hairstyles/Rigged to Head Bone/glTF (Godot -Unreal)/`: hair;
+    - `License_Standard.txt`.
+  - `quaternius-animation-library/Universal Animation Library[Standard]/`: `Unreal-Godot/UAL1_Standard.glb`, `README.txt` and
+    `License.txt`.
+- **Mirror 2 (bodies and textures only):** `raw.githubusercontent.com/ryanfitzpatrickio/threejs-playground/main/assets-source/universal-base-characters/gltf/`.
 
-## 2. Fit-runner body (muscle reduction) — runs after §1, before §3
+Every file was verified git-blob-identical to the research copies.
 
-All in the re-posed glTF frame (before §1.6), on welded vertices, then copied to UV-split duplicates.
+| file | SHA-1 |
+|---|---|
+| Superhero_Male_FullBody.gltf / .bin | 00a1aca7… / 1850f127… |
+| Superhero_Female_FullBody.gltf / .bin | 612acbae… / 05c11dd4… |
+| T_Superhero_Male_Dark.png / T_Superhero_Female_Dark_BaseColor.png | 38d8b5e1… / a274b4d4… |
+| T_Superhero_{Male,Female}_Normal.png | c7512229… / 31ba6e36… |
+| T_Eye_Brown.png, T_Hair_1/2_BaseColor.png | 5d93178f…, 766f8805…, 6ecd00f6… |
+| hair/Hair_{SimpleParted,Buzzed,BuzzedFemale,Long,Buns}.gltf/.bin | see `FONTES` in `fontes.mjs` |
+| ual/UAL1_Standard.glb | c3fe59e5… |
 
-### 2.1 Radial girth reduction per joint segment
-For each vertex and each of its UBC influences `j` (weight `w`): segment `a = pos(j)`, `b = pos(child(j))` (table below);
-`c` = closest point on segment ab; `r = p − c`; scaled point `q_j = c + (r.x·kx, r.y·(kx+kz)/2, r.z·kz)`.
-New position = `Σ w·q_j` (joints not in the table contribute `p`). Factors (tuning values, validated visually):
+### 0.3 Dependencies
 
-| joint (child for the axis) | male kx, kz | female kx, kz |
-|---|---|---|
-| upperarm (→lowerarm) | 0.84, 0.86 | 0.93, 0.93 |
-| lowerarm (→hand) | 0.90, 0.90 | 0.95, 0.95 |
-| clavicle (→upperarm) | 0.80, 0.85 (traps) | 0.90, 0.90 |
-| neck_01 (→Head) | 0.84, 0.88 | 0.90, 0.92 |
-| spine_03 (→neck_01) | 0.88, 0.95 (lats) | 0.95, 0.94 (bust) |
-| spine_02 (→spine_03) | 0.92, 0.95 | 0.96, 0.98 |
-| spine_01 (→spine_02) | 0.95, 0.96 | 0.97, 0.98 |
-| pelvis (→spine_01) | 0.97, 1.00 | 0.96, 1.00 |
-| thigh (→calf) | 0.92, 0.94 | 0.93, 0.95 |
-| calf (→foot) | 0.94, 0.95 | 0.96, 0.97 |
+The npm dependencies come only from registry.npmjs.org and are installed automatically into `<cache>/node_modules`:
 
-### 2.2 Taubin smoothing (removes abs/serratus/vein relief without shrinking)
-Uniform-Laplacian Taubin, λ = 0.5, μ = −0.53, **8 iterations**, per-vertex strength `m` = sum of UBC weights on
-{spine_*, pelvis, clavicle_*, upperarm_*, lowerarm_*, thigh_*, neck_01}; head, hands and feet get m = 0 (untouched).
-Extra: underwear ridges/bulge — vertices whose texel (§9.1) is in the underwear mask get 6 extra Taubin iterations
-(flattens the male bulge and the waistband/bra-edge ridges so tight garments do not show them).
-Result (prototype `spec/sm.png`, `sf.png`): male reads as a fit recreational runner; female keeps a feminine figure, slimmer thighs.
+- `meshoptimizer@1.3.0` (MIT): simplifier, encoder, and the reference decoder that `ModelData.js` copies;
+- `pngjs@7.0.0`;
+- `jpeg-js@0.4.4`.
 
-### 2.3 Texture/normal de-emphasis — see §9.3 (albedo high-pass attenuation + normal-map flattening).
+Playwright for the renders is `/opt/node-tools/node_modules/playwright`; the driver script is not part of the repository.
 
-### 2.4 Female face softening (texture + small geometry), see §9.4. Brow cards: scale each female brow card about its centroid
-by (1, 0.82, 1) (thinner); brows tinted from hair color (never black).
+### 0.4 Source facts (inspection, still valid)
+
+- **Bodies:**
+  - 65-joint skin; bind pose = node rest pose, error < 5e-7. Mesh roles are identified by material: `*Eyes*` = eyes,
+    `*Hair*` = brows/lashes, otherwise the body.
+  - Strict T-pose. Up +Y, front +Z, `_l` at +X.
+  - Male 7281 v / 12566 tris, female 7376 / 12812. Both watertight once welded.
+- **Hair parts:** positions are bind-world, 100 % Head. The Head rotation is identity in both skeletons, so a cross-gender
+  refit is translate + scale.
+- **UAL `Jog_Fwd_Loop`:** source of the fist pose.
 
 ---------------------------------------------------------------------------------------------------------------------
 
-## 3. Bones: mapping UBC → game, positions
+## 1. Re-pose (T → arms down), relaxed fist, final frame (`body.mjs`)
 
-### 3.1 Bone list (contract order + hair springs). Rest rotations identity, positions parent-relative.
+1. **Local transforms.** Finger and thumb `_01.._03` take `slerp(rest, UAL jog mean, 0.8)`; `hand_x` takes
+   `slerp(rest, jog, 0.5)`. The jog mean is the sign-aligned mean quaternion over all keys. Rotations only.
+2. **FK** from the node TRS.
+3. **Arm rotations (world space)**, on both sides:
+   - `clavicle_x`: −sx·8° about +Z.
+   - `upperarm_x`: minimal rotation onto `(sx·sin α, −cos α, 0)`.
+   - `lowerarm_x`: made collinear, then flexed 8° forward. The sign is chosen so that the wrist z grows; the tool asserts it.
+4. **Palm check [v2].** The v1 cross-product test was handedness-dependent and gave a false failure on one side. Now the
+   curled-finger direction (middle_03 − middle_01, made perpendicular to the hand axis) must point medially:
+   `−dir.x·sx ≥ 0.7`. Measured 0.99 (m) and 0.99 (f).
+5. **Adaptive abduction [v2].** v1 decided α after building the garments. Now the pose → skin → slim chain runs in a loop:
+   α starts at 10° (m) or 13° (f) and grows by 1° until the fist–thigh vertex gap is ≥ 30 mm, up to 16°. This leaves room
+   for the short. Result: **α = 10° male, 16° female**. Measured gaps:
+   - male: fist–thigh 38 mm, fist–short 21 mm;
+   - female: fist–thigh 38 mm, fist–short 28 mm.
+6. **Skinning:** `S_j = W'_j·IBM_j`, linear blend of positions and normals, applied to body, eyes and brows.
+7. **Final frame:** `game = (−x·s, (y − y_floor)·s + 0.022, −z·s)`.
+   - The barefoot skull top − sole is **1.760 m for both genders** ("1.76 space"): s_m = 0.96725, s_f = 0.99152. At runtime
+     `body.scale = height/1.76` gives 1.76 / 1.68 m. `heightReal` is stored for anyone who needs true meters.
+   - `LIFT = 0.022`: the shoe outsole is at y = 0, the barefoot sole at 0.022, the skull top at 1.782.
 
-| idx | name | parent | rest position source (world, final frame) |
+## 2. Fit-runner body (`body.mjs` `slimBody`, `skin.mjs`)
+
+- **Radial girth reduction per segment:** the v1 §2.1 tables, female unchanged. **[v2]** The male upper body is slimmer
+  than v1, because the first renders still read broad and superhero-like (traps, deltoids, lats):
+
+  | segment | v1 (kx, kz) | v2 (kx, kz) |
+  |---|---|---|
+  | upperarm | 0.84, 0.86 | 0.80, 0.83 |
+  | lowerarm | 0.90, 0.90 | 0.88, 0.88 |
+  | clavicle | 0.80, 0.85 | 0.74, 0.82 |
+  | neck_01 | 0.84, 0.88 | 0.82, 0.86 |
+  | spine_03 | 0.88, 0.95 | 0.85, 0.94 |
+  | spine_02 | 0.92, 0.95 | 0.90, 0.95 |
+- **Taubin smoothing:** λ 0.5 / μ −0.53, 8 iterations, masked by trunk/limb weight. Vertices whose albedo texel is
+  underwear (dark, low saturation, in the pelvis/trunk/thigh joints) get 6 more iterations. The mask is dilated 2 rings
+  at 0.6.
+- **Textures:** see §9. Muscle shading is attenuated to 45 % and the normal map is flattened.
+- **Female face:**
+  - Eyeliner lift. Texels 6–24 mm from each eye centre that are darker than 0.6 × the local blur are lifted 70 % towards it.
+  - Lash cards are scaled (0.88, 0.6) about their centroid **[v2]**, because the card geometry itself carries the eyeliner
+    "wing".
+  - Brow cards are scaled 0.82 in y.
+  - Mouth corners: not done.
+
+## 3. Bones (contract order + 4 hair springs; rest rotations identity; positions parent-relative)
+
+`names = hips, torso, head, armL, elbowL, armR, elbowR, legL, kneeL, footL, legR, kneeR, footR, pony, pony2, hairA, hairA2`.
+`parent = [-1,0,1,1,3,1,5,0,7,8,0,10,11,2,13,2,15]`.
+
+| bone | source | male world (m) | female world (1.76 space) |
 |---|---|---|---|
-| 0 | hips | – | midpoint of `thigh_l` and `thigh_r` (hip joints) |
-| 1 | torso | hips | `spine_01` (lumbar pivot; old rig had it at hips — moving it up gives a real waist bend) |
-| 2 | head | torso | `neck_01` (neck base) |
-| 3 | armL | torso | `upperarm_l` after §1 (shoulder) |
-| 4 | elbowL | armL | `lowerarm_l` after §1 |
-| 5 | armR | torso | `upperarm_r` |
-| 6 | elbowR | armR | `lowerarm_r` |
-| 7 | legL | hips | `thigh_l` |
-| 8 | kneeL | legL | `calf_l` |
-| 9 | footL | kneeL | `foot_l` (ankle) |
-| 10–12 | legR, kneeR, footR | | mirrored |
-| 13 | pony | head | ponytail root (§8.3) |
-| **14** | **pony2** | pony | mid ponytail (§8.3) — new spring bone |
-| **15** | **hairA** | head | back of head, ear level (§8.4) — new spring bone for `longo` |
-| **16** | **hairA2** | hairA | 13 cm below hairA (§8.4) — new spring bone |
+| hips | mid of hip joints (x=0) | (0, 0.971, 0.035) | (0, 0.966, 0.051) |
+| torso | spine_01 (x=0) | (0, 1.068, 0.007) | (0, 1.076, 0.015) |
+| head | neck_01 (neck base, x=0) | (0, 1.502, 0.040) | (0, 1.503, 0.040) |
+| armL | upperarm_l | (−0.198, 1.415, 0.063) | (−0.147, 1.420, 0.054) |
+| elbowL | lowerarm_l | (−0.240, 1.176, 0.063) | (−0.213, 1.191, 0.054) |
+| legL | thigh_l | (−0.111, 0.971, 0.035) | (−0.110, 0.966, 0.051) |
+| kneeL | calf_l | (−0.111, 0.556, 0.035) | (−0.110, 0.560, 0.032) |
+| footL | foot_l (ankle) | (−0.111, 0.115, 0.085) | (−0.110, 0.100, 0.076) |
+| pony | rabo cap: ray from skull centre along (0, .45, 1) + 12 mm | (0, 1.768, 0.093) | (0, 1.768, 0.101) |
+| pony2 | pony + (0, −0.12, 0.035) | (0, 1.648, 0.128) | (0, 1.648, 0.136) |
+| hairA | longo: ray along (0, −.15, 1) + 10 mm | (0, 1.710, 0.124) | (0, 1.709, 0.133) |
+| hairA2 | hairA + (0, −0.13, 0.02) | (0, 1.580, 0.144) | (0, 1.579, 0.153) |
 
-Expected world positions (final frame, prototype values, ±5 mm after tuning):
+The R side mirrors L. The table matches the v1 prototype values to ≤ 1 mm, except the female elbow (α is now 16°).
 
-| | male | female (1.76 space) |
-|---|---|---|
-| hips | (0, 0.971, 0.035) | (0, 0.966, 0.051) |
-| torso | (0, 1.068, 0.007) | (0, 1.076, 0.015) |
-| head (neck base) | (0, 1.502, 0.040) | (0, 1.502, 0.040) |
-| armL | (−0.198, 1.415, 0.063) | (−0.147, 1.419, 0.054) |
-| elbowL | (−0.240, 1.176, 0.063) | (−0.201, 1.187, 0.054) |
-| wrist (anchor) | (−0.281, 0.946, 0.030) | (−0.256, 0.949, 0.019) |
-| legL | (−0.111, 0.971, 0.035) | (−0.110, 0.966, 0.051) |
-| kneeL | (−0.111, 0.556, 0.035) | (−0.110, 0.560, 0.032) |
-| footL | (−0.111, 0.115, 0.085) | (−0.110, 0.100, 0.076) |
-| toe tip (anchor) | (−0.111, 0.046, −0.129) | (−0.110, 0.045, −0.129) |
+- **Weight collapse:** as v1 §3.3. Hand and fingers go to elbowX; there is no wrist bone. Each vertex keeps its top 4
+  weights as Uint8 with the sum exactly 255.
+- **Rig contract signs** (verified in the preview test pose):
+  - `rotation.x > 0` swings a hanging arm or leg forward (−Z);
+  - `knee.x < 0` bends the shin back;
+  - `elbow.x > 0` bends the forearm forward.
+- **[v2] Hair-spring sign.** The hair hangs *behind* the head (+Z), so `rotation.x > 0` on pony/pony2/hairA/hairA2 swings it
+  forward *into* the head. Trailing behind while running is a **negative** `rotation.x`.
+  - Suggested runtime limits: pony/pony2 x ∈ [−1.2, 0.15]; hairA/hairA2 x ∈ [−0.6, 0.1].
+  - v1 §8.4 gave [−0.25, 0.6], which had the wrong sign.
+  - The old `_ponyStep` drives a positive x, so its target needs a minus sign.
 
-Note the new hip height (0.97) is higher than the old `HIP_H = 0.91`: the runtime must read `measures.hipY` (§11) instead.
+## 4. Relaxed fist: as in §1.1. The fists render as loose runner fists (render R7/R5).
 
-### 3.2 Joint position checks (no silent changes)
-For knee, ankle, elbow and wrist compute the centroid of the welded ring of limb vertices within ±1 cm along the bone axis; report the
-perpendicular offset joint↔centroid. Keep the UBC joint unless the offset > 15 mm (then move only the perpendicular components to
-the centroid and log it). UBC joints are expected to pass (weights were authored for them).
+## 5. Labeling, regions, cover masks (`label.mjs`)
 
-### 3.3 Weight collapse (UBC 65 → game)
+- **Per-vertex attributes:** position, normal, the 17 collapsed weights, sA, sL, wArm, wLeg, UBC hand/Head/neck weight.
+  They are computed on the welded body and are linearly interpolatable, so garment cut points reuse them.
+- **Regions:** the 17 ids of v1 §5.2.
+- **Landmarks [v2]:**
+  - `Ybra` (female under-bust) uses ray-cast front profiles at x = ±0.08 instead of vertex bins, which were too sparse on
+    3 cm edges. Result Ybra = 1.268 with the bust apex at 1.338.
+  - `cz` is the torso centre z at chest height (rays front and back).
+- **Torso slices [v2]:** exact horizontal sections (triangle–plane intersections, arms and head excluded) every 1 cm,
+  from H.y − 0.2 to S.y + 0.05. Vertex binning left holes in the convex hull and made the skirt and the drape wrong.
+- **Garment regions R_g:** v1 §5.3 terms, plus:
+  - all tops have a `noHead` term (UBC Head ≥ 0.5 → no fabric; without it the shirt covered the chin);
+  - **corta-vento** hem is at H.y − 0.05 **[v2]** (v1 had −0.075, which crossed the crotch and made the hem jagged);
+  - **top** (sports bra) is rebuilt **[v2]**. v1's neck/armhole/racer terms produced spikes and floating straps. Now:
+    - `R = smax(smin(smax(hem(Ybra−0.02), line), smax(strap, hem)), noArm, noHead)`;
+    - `line` is the top edge as a function of the angle around the torso: apex + 0.035 at the front, Ybra + 0.075 under the
+      arm, Ybra + 0.05 at the back;
+    - `strap` is the 3-D distance − 0.017 to a polyline per side. The polyline is cup top → upper chest → over the
+      trapezius at x ±0.10 → upper back → converging at the spine. It is resampled every 8 mm and snapped to the skin,
+      which gives a racerback.
+- **Body cover masks:**
+  - **Garment bits:** bit g is set if all three welded vertices have R_g ≤ −0.015.
+  - **Hair bits 11–16:** a welded head or neck vertex whose normal ray hits that style's hair within 4 cm.
+  - **Cells:** body triangles are sorted by (mask, region) into cells; LOD0 has 65 (m) / 72 (f).
+  - Feet inside the shoes are deleted permanently (§7), so bit 10 (`tenis`) is never set.
+- **Garment-under-garment cells [v2, new].** Every *bottom* triangle carries a mask of the tops that fully cover it
+  (all 3 vertices with R_top ≤ −0.02 at the vertex's body base point). Socks carry the same mask for the bottoms.
+  - The assembler drops bottom cells hidden by the equipped top.
+  - This removes the shorts waistband under the shirt, the main source of poke-through at LOD1/2 and in bends.
+  - The skirt extra is never culled.
 
-| UBC joints | game bone |
-|---|---|
-| root, pelvis | hips |
-| spine_01, spine_02, spine_03, clavicle_l, clavicle_r | torso |
-| neck_01, Head | head |
-| upperarm_x | armX |
-| lowerarm_x, hand_x, all finger/thumb joints of side x | elbowX (hand is rigid with the forearm; no wrist bone) |
-| thigh_x | legX |
-| calf_x | kneeX |
-| foot_x, ball_x, ball_leaf_x | footX |
+## 6. Clothing (`garments.mjs`)
 
-Sum duplicates, keep the 4 largest, renormalize, quantize to Uint8 with **sum exactly 255** (add the rounding remainder to the
-largest). Side `x`: `_l` → L (−X), `_r` → R. Hair/spring weights per §8. Clavicle→torso means the shoulder girdle never shrugs
-(fine for running ±45°; the `celebrate` arms-up pose will pinch at the deltoid — known LBS limit, see §11.7).
+### 6.1 Representation [v2]
 
-Bind identity check (assert): with all game bones at rest (identity rotations), skinning the output reproduces the stored positions
-with max error < 1e-5 m.
+Garments are **explicit parts**: positions, normals, joints/weights, attributes. v1's derived barycentric records are not
+used.
 
----------------------------------------------------------------------------------------------------------------------
+- **Why:** a uniform decoder, no dependency on body triangle order, and room for exact color cuts with seams. It costs
+  about 30 % more data but stays within budget (`roupas.js` = 738 KB for 18 garments).
+- **Weights** are still the barycentric blend of the base body point's weights, computed at bake time.
+- **Extras** (skirt, windbreaker collar) carry their own weights.
 
-## 4. Relaxed fist
+### 6.2 Build per garment (male and female separately)
 
-Source: `UAL1_Standard.glb` → animation `Jog_Fwd_Loop` → per finger/thumb joint the **sign-aligned mean quaternion over all keys**
-(normalize the sum, flipping keys whose dot with key 0 is negative). Joints: `{index,middle,ring,pinky}_0{1,2,3}_x`,
-`thumb_0{1,2,3}_x`, `hand_x`. Apply as in §1 step 1: fingers/thumbs `slerp(rest, jog, 0.8)` (≈ 62° per phalanx — relaxed,
-not clenched), wrist `slerp(rest, jog, 0.5)`. Copy **rotations only**, never translations (bone lengths stay UBC).
-Then collapse hand/finger weights to `elbowX` (§3.3).
-Checks: (a) no fingertip vertex inside the palm by > 2 mm (closest-point sign test against the hand's own triangles excluding the
-finger's own chain); (b) close-up render §12 R7.
+1. **Cut.** Marching-triangle clip of the welded body at R_g = 0. Cut points are welded per body edge, and attributes are
+   interpolated.
+2. **Subdivide** once (1 → 4).
+3. **Smooth the base surface [v2].** Taubin on the base positions with the border fixed (8 iterations for tops, 4 for
+   bottoms), then recompute the normals. Without this, the navel, abdominals and other small dips printed through the
+   fabric as spikes.
+4. **Offset:** v1 §6.3 thicknesses, flares, folds and waist bands.
+   - Loose legs flare radially from the leg axis, weighted by smoothstep(0.35, 0.75, wLeg).
+   - **Drape:** non-arm vertices are pushed out to the torso slice hull, using the v1 wfill rules. The radial push field is
+     smoothed (4 iterations).
+5. **Inner-thigh clamp** for short, bermuda and saia: the flare towards the other leg is at most gap/2 − 3 mm.
+6. **Collision:** BVH closest point; the signed distance must be ≥ 1.5 mm (cotton) or 1.0 mm (tech), pushed along the
+   interpolated body normal.
+7. **Layering [v2].** The order is socks → bottoms → tops, and each garment is tested against *all* lower garments of the
+   gender, including the skirt and the lips.
+   - For each vertex, a ray goes from its body base point outward along the body normal. The first hit is the lower layer's
+     thickness at that point. It counts only if the hit is ≤ 35 mm out and the hit normal faces the same way (dot ≥ 0.4).
+   - The required offset is that thickness + **4.5 mm** (tops) or **2 mm** (bottoms). It is dilated over 2 rings of the
+     shell graph so that lower-garment *edges* are covered, then applied, then collision runs again.
+   - v1 used closest-point layering, which missed edges (dark lines through the shirt) and grabbed far surfaces (spikes).
+8. **Relax [v2].** Each displacement is clamped to 1.6 × its neighbours' mean + 3 mm, the field is smoothed twice, and
+   collision runs again. This removes isolated spikes at hems.
+9. **Color slots by exact cuts [v2].** Each slot rule is a continuous field. The shell is cut along each field's zero line
+   (marching triangles), and every triangle gets one slot from the signs of the fields. Vertices on a slot border are
+   duplicated (a seam). The result is crisp trims, stripes, zipper and bands at any LOD; per-vertex slots smeared colors
+   across triangles. Fields, all in meters, negative = inside the band:
+   - camiseta: trim = min(δneck − .016, δsleeve − .018, δhem − .018). The chest logo was dropped: too small for the vertex
+     budget.
+   - regata: trim = min(δneck − .014, δarmhole − .012, δhem − .018).
+   - top: trim = min(δR − .008, y − (Ybra + .02)), i.e. the edges plus the under-band.
+   - manga-longa: trim at cuffs .025, neck .016 and hem .018; accent on the raglan line.
+   - corta-vento: zip (|x| < 6 mm, front), cuffs/hem trim .02, reflective band at S.y − 0.12 ± 6 mm (accent).
+   - short / bermuda / saia-short: waistband .035 and leg hem .015 → shortsTrim; outer-leg stripe (arc distance from the
+     outer line ≤ 7.5 mm) → shortsAccent.
+   - legging: waistband .045, hem .012, stripe 6 mm.
+   - meia: top .018 → sockTrim.
+10. **Simplify.** All LODs are index subsets of the LOD0 vertices.
+    - **LOD0:** meshopt `LockBorder + ErrorAbsolute`, error 2.5 mm, target = v1 target − hem-lip triangles.
+    - **LOD1 [v2]:** `Permissive` (color seams may collapse), error 12 mm, **no hem lip**. Socks use no lock.
+    - **LOD2:** no lock, error 0.05.
+11. **Hem lip [v2].** Each boundary loop gets a strip folded inward along the body normal by `min(cur − under, 8 mm)`.
+    Its slot is the slot of the adjacent shell triangle; flags bit0 is set. It is in LOD0 only. v1 folded down to the body,
+    which spanned the crotch with long spikes. The windbreaker neck loop has no lip because the collar covers it.
+12. **AO:** 24 cosine rays against body + garment, `ao = 1 − 0.6·occluded`. Lips × 0.8, skirt lining × 0.6.
+13. **Normals:** area-weighted on the color-welded LOD0, so seams don't break the shading; lips get the outward tangent.
 
----------------------------------------------------------------------------------------------------------------------
+### 6.3 Extras
 
-## 5. Body labeling: regions, coordinates, cover masks
+- **Skirt (saia-short) [v2]:**
+  - 28 around × 6 rows.
+  - Top at H.y − 0.04, so it emerges just under a shirt hem.
+  - Radius per row = max(waist hull + 13 mm + 45 mm·t^1.2, row-slice hull + 22 mm + 20 mm·t). The second term keeps the hips
+    and the short inside.
+  - Inner layer 2 mm in (lining, flags bit1); the last row is shortsTrim.
+  - Weights: hips 0.55 + legL/legR 0.45·σ.
+  - In LOD0 and LOD1; dropped at LOD2.
+- **Windbreaker collar:**
+  - The neck loop is resampled to 36 points, then 3 rows rise 35 mm, closing to the neck radius + 12 mm.
+  - Inner face shirtTrim, zipper strip accent.
+  - Weights torso 1 → 0.6 / head 0 → 0.4 with height.
 
-All in the final frame (§1.6), on the processed body (after §2, feet removed per §7.1).
+## 7. Shoes and socks (`shoes.mjs`) [v2: rebuilt]
 
-### 5.1 Per-vertex coordinates
-- Collapsed game weights `w[bone]`.
-- `wArm = w[armX] + w[elbowX]`, `wLeg = w[legX] + w[kneeX] + w[footX]`, X = side of the vertex (`x < 0` → L).
-- Arm parameter `sA` (meters from the shoulder joint along the limb): if `wArm < 0.5` → −1; else if `w[elbowX] < 0.5`:
-  `sA = dot(p − S, û)`, û = normalize(E − S); else `sA = |E−S| + dot(p − E, f̂)`, f̂ = normalize(Wr − E). (S, E, Wr = shoulder,
-  elbow, wrist of that side.)
-- Leg parameter `sL` analogous from the hip joint (legX) through knee (kneeX) to ankle (footX); −1 if `wLeg < 0.5`.
-- Torso slice data: for each 1 cm y-bin, centroid `c(y)` (xz) and 2D convex hull of non-arm vertices (`wArm < 0.3`).
-- Landmarks: H = hips bone, T = torso bone, N = head bone (neck base), S/E/Wr, L/K/A (hip/knee/ankle), `Ychest` = male S.y − 0.12,
-  female = y of the bust apex (most −z vertex with |x| in [0.04, 0.12] and y in [S.y − 0.25, S.y − 0.05]), `Ybra` = female
-  under-bust line = lowest y below the apex where the front z-profile (min z per bin at |x| 0.06–0.1) has receded 60 % back to the
-  ribcage (fallback S.y − 0.20).
+v1's single-SDF idea and a first SDF implementation gave a slipper or clog look with a messy collar. The shoe is now a
+**lofted parametric surface per foot**.
 
-### 5.2 Region ids (per vertex = from the dominant collapsed bone + rules; per triangle = majority, ties → lower id)
+- **Foot measurements** (final frame), from foot-dominant vertices below 0.14 m:
+  - heel = max z, toe = min z, and the axis and lateral direction between them;
+  - per station (24): lateral min/max and top;
+  - leg ellipse at y 0.085–0.14, within 7.5 cm of the ankle.
+- **Loft:** 26 stations (cosine spacing) × 28 around, closed with end-cap fans. The shoe runs from 20 mm behind the heel to
+  17 mm past the toe.
+  - Section: superellipse (exponent 8 below, so the base is flat; 2.6 above).
+  - Half-width: measured + 6 mm, kept at the forefoot max towards the toe for a round toe box.
+  - Height profile: heel collar 96 mm → sides 82 → tongue 94 → forefoot → toe 42 mm.
+  - Each section radius is raised to the **foot's polar hull + 5.5 mm** (foot vertices within ±3 % of the station, binned
+    by angle, ±1 bin), then smoothed. This guarantees the foot never shows (check: 0–1 foot vertices outside, all < 1 mm).
+  - Midsole step: +3.5 mm outward below the midsole top. Toe spring: 12 mm·smoothstep(0.78, 1, s)².
+- **Collar opening:** the top of the loft inside the leg ellipse (+5 mm, kept ≥ 7 mm inside the heel back) and above
+  55 mm is removed. A lining wall (two rings, down to y = 0.042) and an insole fan close it.
+- **Slots by exact cuts:**
+  - outsole: y < 7.5 mm (+spring);
+  - midsole: up to midTop (22 → 16 mm);
+  - collar ring (≤ 11 mm from the opening) → shoeAccent; lining → lining;
+  - laces: top band sin φ > 0.9, s 0.47–0.78, alternating 9.5 mm lace/shoe;
+  - heel counter (s < 0.16, y < 65 mm) → shoeAccent;
+  - diagonal side stripe (s 0.30 → 0.70, y 30 → 62 mm, 14 mm wide) → shoeAccent.
+- **Weights:** footX 1, plus kneeX up to 0.25 near the collar (smoothstep around the ankle height).
+- **AO:** shoe + leg. **mat** 4.
+- **LODs:** 1300 / 350 / 110 per shoe (LOD2 uses `Permissive`).
+- **Feet deleted:** body triangles with all 3 vertices inside the shoe (ray-parity test against the shell), below 0.11 m,
+  and outside the leg ellipse unless below 0.045. That is 964 (m) / 1050 (f) triangles. The leg continues into the lined
+  opening.
+- **Socks:** a garment (`meia`) from 2 cm below the ankle joint to 10 cm above it.
+  - The lower loop (inside the shoe) has no lip.
+  - Runtime rule unchanged: socks are on unless the bottom is `legging`.
 
-| id | name | rule |
-|---|---|---|
-| 0 | cabeca | UBC Head weight dominant |
-| 1 | pescoco | UBC neck_01 dominant |
-| 2 | troncoSup | torso, y ≥ Ychest − 0.06 |
-| 3 | troncoInf | torso, y < Ychest − 0.06 |
-| 4 | quadril | hips dominant |
-| 5 / 8 | bracoL / bracoR | armX dominant |
-| 6 / 9 | antebracoL / R | elbowX dominant and UBC hand+finger weight < 0.5 |
-| 7 / 10 | maoL / R | UBC hand+finger weight ≥ 0.5 |
-| 11 / 14 | coxaL / R | legX |
-| 12 / 15 | canelaL / R | kneeX |
-| 13 / 16 | peL / R | footX (only the collar band survives §7.1) |
+Three sneaker kinds (tenis / tenis-corrida / tenis-pro) share one mesh; only the runtime colors differ.
 
-### 5.3 Garment region functions R_g(p) (negative = inside fabric; ≈ signed meters)
-Combine terms with smooth max `smax(a,b,k=0.01)`. Terms:
-- `hem(Y) = Y − y` (fabric above Y); `top(Y) = y − Y` (fabric below Y).
-- `sleeve(L) = sA − L` (arm vertices; for `sA = −1` the term is −1).
-- `legEnd(L) = sL − L` (leg vertices; −1 when `sL = −1`).
-- `noArm = wArm ≥ 0.5 ? +1 : −1`; `noLeg = wLeg ≥ 0.5 ? +1 : −1`.
-- `neck(r, drop)`: `dx = x − N.x, dz = z − N.z, ρ = sqrt(dx² + (1.6·dz)²)`, `front = clamp(−dz/0.07,0,1)`, `back = clamp(dz/0.06,0,1)`,
-  `cut = N.y − 0.022 − drop·front² + 0.012·back + 1.4·max(0, ρ − r)`, term = `y − cut`.
-- `armhole(c, rx, ry, rz) = 0.04·(1 − |(p − c)/(rx,ry,rz)|²)` (positive inside the ellipsoid = no fabric), center
-  `c = S + (sideSign·0.01 towards the body, −0.07, 0)`.
-- `racerback`: if `z > N.z + 0.02` and `y > Ybra + 0.04`: `(|x| − 0.032 − max(0, (S.y + 0.03) − y)·0.75)·0.5`, else −1.
+## 8. Hair (`hair.mjs`)
 
-| kind (cover bit) | R_g (male / female where different) |
-|---|---|
-| camiseta (0) | smax(hem(H.y − 0.035 / −0.030), neck(0.068, 0.030), sleeve(0.135 / 0.115)) |
-| regata (1) | smax(hem(H.y − 0.035), neck(0.075, 0.09 / 0.10), armhole(rx .075/.070, ry .15/.14, rz .115/.11), noArm) |
-| top (2, female only) | smax(hem(Ybra − 0.02), neck(0.08, 0.12), armhole(.08,.16,.12), racerback, noArm) |
-| manga-longa (3) | smax(hem(H.y − 0.035), neck(0.066, 0.025), sleeve(|E−S| + |Wr−E| − 0.015)) |
-| corta-vento (4) | smax(hem(H.y − 0.075), neck(0.075, 0.005), sleeve(|E−S| + |Wr−E| + 0.005)) |
-| short (5) | smax(top(T.y − 0.012), legEnd(0.25 / 0.135), noArm) |
-| bermuda (6) | smax(top(T.y − 0.012), legEnd(|K−L| − 0.035), noArm) |
-| legging (7) | smax(top(T.y + 0.02) (high waist), legEnd(|K−L| + |A−K| − 0.045), noArm) |
-| saia-short (8, female only) | as female short (skirt is an explicit extra, §6.8) |
-| meia (9) | smax(−(sL − (|K−L| + |A−K| − 0.10)), sL − (|K−L| + |A−K| + 0.02)) on leg vertices, +1 elsewhere |
-| tenis (10) | shoe collar band: leg vertices with y < collarTop(z) (§7); bit kept for completeness |
+- **Placement:** sources are used in bind-world. Cross-gender pieces are scaled about the skull box centre by the per-axis
+  skull size ratio (Head-dominant vertices above the eye line), then the target frame is applied.
+- **Clearance:** ≥ 2 mm over the scalp and ≥ 8 mm from neck and shoulders, pushed along the body normal. The push field is
+  averaged over the welded shell, smoothed 3 times, and its magnitude is kept at least the original.
+- **Tone:** no hair texture at runtime. Per vertex, the luminance of T_Hair_1/2 (256² downsample, 5-tap) is divided by the
+  texture mean and clamped to [0.7, 1.15].
+  - `A.ao = ao × tone / 1.15`. Runtime color = hairColor × ao, and the mat-3 strand shader stays.
+- **Back faces:** reversed copies of the triangles within 3 cm (graph distance) of an open border; tone × 0.7, flags bit1.
+- **Styles:**
+  - curto: m = SimpleParted; f = **bob** (Hair_Long cut by marching triangles at Hc.y − 0.085, front 1.5 cm higher, ±6 mm
+    noise).
+  - raspado: Buzzed / BuzzedFemale + 1.5 mm. **[v2] mat 1 (matte)**, because the mat-3 specular made a shiny helmet.
+  - cacheado: the buzz cap subdivided once; the female nape stretched 1.6× below the ear line. Displacement:
+    `vol·(0.75 + 0.25·edge falloff)`, plus Worley curl bumps (16 mm cells, 9 mm), plus 4 mm noise; vol = 20 mm (m) / 30 mm (f).
+    Tone 0.78 + 0.22·bump.
+  - rabo: Hair_Buns minus its two side buns (components with |x| > 0.07 behind the skull centre), plus a generated ponytail
+    and hair tie.
+    - Ponytail: Catmull-Rom tube, 14 rings × 14 around + tip.
+    - **[v2] Radius** 22 → 38 mm at t = 0.22 → 8 mm at the tip (v1's 20/30/6 read as a thin spike); section 1.0 × 0.85,
+      ±12 % noise, 0.6 rad twist.
+    - Tie: 12×4 torus, slot hairTie.
+    - Weights as v1 (head → pony → pony2).
+  - coque: the cap + one bun rotated so its axis points along (0, .55, 1), centred 35 mm out from the scalp, scaled 1.15.
+  - longo: Hair_Long. Below the ear line it is stretched by k = 1 + (kmax − 1)·backness, with kmax set so the back reaches
+    N.y − 0.07 (kmax ≈ 2.7). Spring weights as v1 §8.4.
+- **LODs:** 3000 / 900 / 250 (LOD1 and LOD2 may use `Permissive`).
 
-Tops never include leg-dominant vertices below the crotch because their hem (H.y − 0.035) is above the crotch (≈ H.y − 0.09):
-assert the hem slice at `Yhem` is a single closed loop.
+Measured LOD0 tris (m / f): curto 1883 / 2810, cacheado 2999, rabo 3000, coque 3000, longo 3000, raspado 1330 / 1320.
 
-### 5.4 Cover masks for skin culling
-Per body triangle, `mask` (Uint32): bit g set if **all three vertices have R_g ≤ −0.015** (1.5 cm margin; triangles crossing a hem
-stay, they are under the fabric). Hair bits 11..16 (curto, cacheado, rabo, coque, longo, raspado): set if, from each of the three
-vertices, a ray along the vertex normal hits that hairstyle's shell within 4 cm (scalp hidden). Male and female computed separately.
-Body triangles are **sorted by (mask, region)** into cells; within each cell the triangle order comes from
-`MeshoptEncoder.reorderMesh` on the compacted cell submesh; then vertices are renumbered by first use over the concatenated
-index (fetch order). The cell table (§11) lists `[mask, region, triCount]` in order.
-Runtime: `coverMask = bit(top) | bit(bottom) | (socks ? bit9 : 0) | bit(11 + hairIndex)`; draw only triangles whose cell mask
-`& coverMask == 0`.
+**Brows / lashes:**
 
----------------------------------------------------------------------------------------------------------------------
+- Connected components above the eye line + 12 mm are brows, the rest are lashes.
+- **[v2] mat 1** (matte, flat tint), slot brow or lash. mat 3's strand streaks made the brows look like carved wood.
+- **LOD0:** brows simplified to 160 triangles per card. Lashes: 120 per card (f) or all 68 (m), plus back faces.
+- **LOD1:** brows only, 40 per card. **LOD2:** none.
 
-## 6. Clothing shells
+**Eyes:**
 
-### 6.1 Representation ("derived garment")
-A garment vertex is **a barycentric point on a body triangle plus an offset**: `(tri: Uint16, b1: Uint8, b2: Uint8)` →
-`base = (1 − b1/255 − b2/255)·P[c0] + b1/255·P[c1] + b2/255·P[c2]` where `c0,c1,c2` are the corners of body triangle `tri` **as the
-decoder returns them** (the meshopt index codec may rotate corners: the baker must encode, decode back, and compute barycentrics
-against the decoded corner order). `pos = base + off` (`off`: Int16×3, 0.1 mm units). Skin weights = barycentric blend of the three
-corners' weights, top-4, renormalized (computed at runtime, deterministic). Normals = runtime `computeVertexNormals` (garment
-vertices are welded, so the shell is smooth; hem lips have their own vertices → crisp edge). No UVs (runtime fills the neutral UV).
+- 2 × 384 triangles at LOD0, 2 × 64 at LOD1, none at LOD2.
+- mat 5, slot eye (runtime white).
+- UVs remapped into the eye tile. The male back-of-eye u > 1 is clamped.
 
-### 6.2 Build steps per garment g (male and female separately)
-1. **Cut**: take every body triangle with any vertex `R_g < 0`; clip each against `R_g = 0` with marching triangles (R linear on edges);
-   keep the inside polygons, triangulated. Every new point lies on a body edge → valid barycentric record. Weld cut points shared by
-   neighbouring triangles (same body edge + same t).
-2. **Subdivide once** (midpoint 1→4, also splitting the clipped polygons): edges ≈ 1.5 cm on the torso, enough for folds. New points
-   stay inside their source body triangle (record = barycentric in that triangle; on shared edges either triangle).
-3. **Offset** (`off` vector): `d(p)·n̂` with `n̂` = smooth body normal at the base point, plus kind-specific terms (§6.3–6.5).
-4. **Drape fill** (tops; not `top`, see table): for each non-arm vertex, in its y-bin, `rv` = xz distance to `c(y)`, `rh` = distance from
-   `c(y)` to the slice hull along the same direction; push radially by `max(0, rh − rv)·wfill(y)`. Then smooth the push field over the
-   shell graph (4 Laplacian iterations, λ 0.5). This removes abdomen/spine concavity: the shirt falls straight from chest/bust.
-5. **Folds** (displacement along n̂, see table) — noise = 3D value noise with a per-garment seed (mulberry32), deterministic.
-6. **Collision**: closest point on the body (BVH); if signed distance < `dmin` (1.5 mm cotton, 1.0 mm tech) push along the body normal
-   to `dmin`. Sleeve vertices are also tested against torso triangles and pushed out with `dmin`.
-   Inner thighs (loose bottoms): clamp each leg's radial flare to half the gap to the other leg's surface minus 3 mm.
-7. **Layering**: for every body base point inside both a top and a bottom region, top offset ≥ (max offset of all bottoms of that gender
-   at that point) + 3 mm; same for bottoms over socks (+1.5 mm). Skirt (§6.8) counts as a bottom.
-8. **Hem lip**: for each boundary loop, duplicate the boundary vertices and add a strip folded inwards: lip vertex offset =
-   `max(1.5 mm, maxUnderlayOffset + 1.5 mm)`·n̂ (stays outside any lower layer). Lip slot = the band slot of that hem. Flags bit0.
-9. **Slots** (§6.4), **AO** (§6.7).
-10. **Simplify** LOD0 to the per-kind target with `MeshoptSimplifier.simplify(…, ['LockBorder'])`, target error 0.002 (relative);
-    LOD1 at the LOD1 target, error 0.01. Simplified indices reference the same vertex records.
+## 9. Textures (`skin.mjs`)
 
-### 6.3 Per-kind parameters (d in meters; "flare" is radial from the limb axis, perpendicular to it)
+1. A position atlas at 1024² comes from rasterizing the body UVs (barycentric per texel).
+2. **Underwear:**
+   - Mask: texels in quadril, troncoInf, the upper thigh (y > H.y − 0.2) and the female chest below the shoulders, with
+     V < 0.32 and S < 0.35. Dilated 3 px.
+   - Filled by push-pull inpainting.
+   - Grain is added back from the texel 6–20 cm higher, found through a 1 cm spatial hash of texel positions, at 50 %.
+3. **Muscle shading:** D ← B + 0.45(D − B) with a masked Gaussian (σ = 10 px) on the trunk, limbs and neck.
+4. **Female eyeliner lift** (§2).
+5. **Detail map:** D = T / M (median skin over the trunk and limbs), 65 % chroma, clamped to [0, 1.9]. Stored as sRGB(D·0.5),
+   so D = 1 is sRGB 188.
+6. **Free square:** the largest one at 1024² with 8 px padding, (723,165,114) m and (812,8,115) f.
+   - Eye tile: 96², `T_Eye_Brown` stored as sRGB(lin·2·0.5).
+   - Neutral patch: 16², exactly 188, placed at (x + 97, y).
+7. **Padding:** push-pull outside the islands. **Encoding:** JPEG q88, 1024². Size 72 KB (m) / 70 KB (f).
+8. **Normal map 512²:**
+   - Box-averaged from 2048 and renormalized.
+   - Flattened with k = 0.65 on the body, 0.3 on the neck, 0 on the head and hands, 1 under the underwear mask.
+   - The eye tile and neutral patch are flat.
+   - Push-pull padding, JPEG q88. Size 38 / 30 KB.
+   - Orientation is glTF/OpenGL; the preview uses `normalScale (0.8, 0.8)`.
+9. **Runtime:** material color (2,2,2); `map` = skin (sRGB); vertex color = palette[slot] × ao.
+   - Skin: D × tone. Non-skin parts use `uvNeutral`, giving palette × ao.
 
-| kind | mat | d (base) | drape `wfill(y)` | folds | LOD0 / LOD1 tris |
-|---|---|---|---|---|---|
-| camiseta | 1 cotton | 6 mm m / 5 mm f; sleeves 6 mm + 10 mm·smoothstep(0.03, Lsleeve, sA); last 6 cm of hem +4 mm | 0.9·smoothstep(Ychest, Ychest − 0.12, y) (f: from bust apex, 0.6→1 under bust) | waist ripples: amp 2 mm·smoothstep(Yhem + 0.14, Yhem + 0.03, y), λ 5 cm, horizontal, noise-warped; sleeve hem flare | 4000 / 1600 |
-| regata | 1 | 5 mm | as camiseta | waist ripples 1.5 mm | 3000 / 1200 |
-| top | 2 tech | 2.5 mm; under-band 3.5 mm | **bust bridge only**: front (z < c.z) & |x| < 0.06 & y in [Ybra, apex+0.03]: weight 1 (bridges cleavage), else 0 | none | 1800 / 700 |
-| manga-longa | 1 | 5 mm; sleeves 5 mm, +2 mm last 4 cm (cuff) | 0.7 × camiseta | elbow bunching amp 1.5 mm, λ 3.5 cm, |sA − |E−S|| < 0.06; waist ripples 1.5 mm | 5000 / 2000 |
-| corta-vento | 2 | 12 mm; sleeves 14 mm; last 3 cm of hem/cuffs taper to 6 mm (elastic) | 1.0 from Ychest down | big folds amp 3 mm, λ 4 cm (torso diagonal + sleeve rings) | 5500 / 2200 |
-| short (m) | 1 | waist part 8 mm; leg flare `8 mm + 24 mm·smoothstep(0.03, 0.25, sL)` | – | 6–7 vertical folds around each leg, amp 2.5 mm·smoothstep(0.08, 0.25, sL) | 3000 / 1200 |
-| short (f) | 1 | 6 mm; flare `4 mm + 10 mm·smoothstep(0.03, 0.135, sL)` | – | vertical folds 1.5 mm | 2400 / 1000 |
-| bermuda | 1 | 8 mm; flare `6 mm + 16 mm·smoothstep(0.05, Lend, sL)` | – | vertical folds 2 mm, slight bunching at hem | 3500 / 1400 |
-| legging | 2 | 2.5 mm; knee band ±6 cm 3 mm | – | creases behind the knee amp 0.8 mm λ 3 cm; ankle bunching 1 mm | 4000 / 1600 |
-| saia-short (f) | 1 | as short f | – | as short f | 2400 / 1000 (+ skirt 480 / 200) |
-| meia | 1 | 1.8 mm; top rib 2.5 mm | – | rib: amp 0.4 mm, 40 ribs around (top 1.8 cm only) | 400 / 160 |
+## 10. LODs and budgets (measured, v3)
 
-Waist bands: bottoms' top 3.5 cm (legging 4.5 cm) get +1.5 mm (elastic band thickness).
-
-### 6.4 Color slots (per vertex), by band distance `δ = −R_g` of the relevant term (meters)
-
-Slot ids (shared by every part, §11.3): `skin 0, brow 1, lash 2, eye 3, hair 4, hairTie 5, shirt 6, shirtTrim 7, shirtAccent 8,
-shorts 9, shortsTrim 10, shortsAccent 11, sock 12, sockTrim 13, shoe 14, shoeAccent 15, sole 16, midsole 17, lace 18, lining 19`.
-
-| kind | rules (first match wins) |
-|---|---|
-| camiseta | neck δ < 0.016 → shirtTrim; sleeve hem δ < 0.018 → shirtTrim; bottom hem δ < 0.018 → shirtTrim; chest logo (x ∈ [−0.095, −0.05], y ∈ [S.y − 0.17, S.y − 0.13], front) → shirtAccent; else shirt |
-| regata | neck/armhole δ < 0.014 → shirtTrim; hem δ < 0.018 → shirtTrim; else shirt |
-| top | under-band δ < 0.035 → shirtTrim; neck/armhole/racerback δ < 0.010 → shirtTrim; else shirt |
-| manga-longa | cuffs δ < 0.025, neck δ < 0.016, hem δ < 0.018 → shirtTrim; raglan seam line (|wArm − 0.5| < 0.08 and y > S.y − 0.08, 6 mm wide) → shirtAccent; else shirt |
-| corta-vento | zipper strip |x| < 0.006 & front → shirtAccent; reflective band at y = S.y − 0.12 ± 0.006 (front and back) → shirtAccent; cuffs/hem δ < 0.02 → shirtTrim; else shirt |
-| short / bermuda / saia-short | waistband δ < 0.035 → shortsTrim; leg hem δ < 0.015 → shortsTrim; side stripe (outer side of each leg: angle φ about the leg axis, |φ|·r < 0.0075) → shortsAccent; else shorts |
-| legging | waistband δ < 0.045 → shortsTrim; hem δ < 0.012 → shortsTrim; side stripe 6 mm half-width full length → shortsAccent (runtime paints it = shorts color when the item has no stripe); else shorts |
-| meia | top δ < 0.018 → sockTrim; else sock |
-
-(Old palette rules stay valid: shirtTrim/shirtAccent/shortsTrim/shortsAccent derived from the item colors in `RunnerRig`.)
-
-### 6.5 Arm/neck/leg holes — they are simply the `R_g = 0` contours of §5.3 (sleeve ends, neckline, armholes, racerback,
-leg hems, waist). Hems are exact (cut, not snapped), with a lip (§6.2.8) so the fabric reads as having thickness.
-
-### 6.6 Why subdivide-then-simplify: torso edges are 3 cm; one midpoint subdivision allows 4–5 cm folds and clean drape, then meshopt
-removes vertices where the shell is flat, keeping the budget.
-
-### 6.7 AO for garments: 32 cosine-weighted hemisphere rays per vertex, max distance 0.25 m, against body + this garment
-(ignore other garments); `ao = 1 − 0.6·occluded_fraction`, stored Uint8.
-
-### 6.8 Explicit extras (stored as full explicit parts inside the garment)
-- **Skirt (saia-short)**: cone from y = H.y − 0.01 (top hidden under any top's hem; layering rule adds 3 mm to tops there) radius
-  = hull radius at that height + 6 mm, to hem at y = H.y − 0.17 with +45 mm flare; 24 around × 5 rows, plus an inner layer (2 mm
-  inside, reversed winding, slot shorts, ao 0.6) and a 1.5 cm hem band (shortsTrim). Weights: hips 0.55 + legL/legR 0.45·σ, σ =
-  smoothstep(−0.3, 0.3, ±x/rHip) for the side.
-- **Windbreaker collar (corta-vento)**: band around the neck from the neckline up 35 mm, radius = neck radius + 12 mm, 24 around ×
-  3 rows, inner face shirtTrim, outer shirt, zipper strip shirtAccent; weights torso 0.6 / head 0.4.
-
----------------------------------------------------------------------------------------------------------------------
-
-## 7. Shoes and socks
-
-### 7.1 Feet are replaced, not covered
-Delete body triangles with all three vertices below `collarTop(z) − 0.015` and `wLeg` dominant by footX/kneeX (the foot inside the
-shoe). Keep the band between that line and the collar top (cover bit 10 for completeness). The body sits on the insole (LIFT, §1.6).
-
-### 7.2 Parametric sneaker (one geometry; tenis / tenis-corrida / tenis-pro differ only in runtime colors)
-Measure each re-posed bare foot (final frame, before deleting): heel point (max z of foot vertices), toe tip (min z), length `Lf`,
-ball half-width `wb` at the ball joint, heel half-width `wh`, instep height at u = 0.55, ankle (footX) position.
-Shoe space: `u ∈ [0,1]` heel→toe along the foot axis, `θ` around the foot. Build:
-- **Upper**: 22 stations × 24 around, superellipse sections (exponent 2.6), half-width `w(u) = footHalfWidth(u) + 6 mm`
-  (sampled from the foot, then smoothed), top line `h(u)`: toe box 45 mm, rising to `instep + 8 mm` at the throat (u 0.45–0.75),
-  collar top `collarTop`: heel tab 105 mm (pull tab +8 mm), dipping to 75 mm at the ankle sides (u 0.2–0.35, below the malleoli),
-  tongue top 110 mm at u 0.45. All heights above y = 0. Closed under by the insole plane y = LIFT.
-- **Midsole** wall: from y = 8 mm to LIFT (22 mm) under the heel, 16 mm at the forefoot; overhang 4 mm outside the upper;
-  **toe spring**: bottom rises by 12 mm·smoothstep(0.80, 1.0, u)².
-- **Outsole**: y 0…8 mm slab with the same outline, lug pattern as slots only.
-- **Inner collar lining**: the collar rim rolled inward 10 mm (slot lining).
-- Triangles ≈ 1300 per shoe LOD0, 350 LOD1, 110 LOD2.
-- Slots: outsole → sole; midsole wall → midsole; collar rim top 12 mm → shoeAccent, lining → lining; heel counter (u < 0.22 and
-  y < 75 mm) → shoeAccent; side stripe (both sides, diagonal band from (u 0.32, y 25 mm) to (u 0.72, y 60 mm), 14 mm wide) →
-  shoeAccent; laces: throat region |θ_top| < 0.18 rad, u ∈ [0.45, 0.78], alternating 11 mm bands lace/shoe; tongue → shoe; rest → shoe.
-- Weights: footX 1.0; collar ring above `A.y − 0.01`: footX 0.75 + kneeX 0.25.
-- mat 4. AO: rays against shoe + leg.
-- Socks (§6.3 `meia`) run from 2 cm below the ankle joint (inside the shoe) to 10 cm above it. Runtime: socks on unless bottom is
-  `legging` (current rule); `tenis-pro` paints the sock from the shoe color (current rule).
-
----------------------------------------------------------------------------------------------------------------------
-
-## 8. Hair
-
-### 8.1 Common processing
-- Put each source hair in **Head-local space** (`inverse(HeadBind_src)`), then into the target body: same gender → `HeadBind_tgt`
-  (identical); cross gender → about the skull bbox center with per-axis scale `S = skull_tgt / skull_src` (skull bbox = Head-dominant
-  body vertices above the eye centers), then `HeadBind_tgt`.
-- **Clearance**: closest point on the head/neck/shoulders (BVH); push hair vertices to ≥ 2 mm above the scalp (≥ 8 mm from neck,
-  shoulders and back); smooth the push field (3 Laplacian iterations).
-- **Tint**: no hair texture at runtime. Per-vertex `ao` byte = AO (rays vs head+hair) × tone, tone = luminance of `T_Hair_1/2`
-  averaged over the vertex's adjacent UV triangles (16 samples each), divided by the texture's mean luminance, clamped [0.7, 1.15].
-  Runtime color = hairColor × ao; the shader's `mat 3` strand streaks stay. mat 3, slot hair.
-- Simplify to LOD0 ≤ 3000 tris, LOD1 ≤ 1000, LOD2 ≤ 250.
-- Frame §1.6.
-
-### 8.2 Style mapping
-
-| style | male | female |
-|---|---|---|
-| curto | `Hair_SimpleParted` as is | **bob**: `Hair_Long` cut at jaw level: clip plane y = Hc.y − 0.085 (front strands 1.5 cm higher), ±6 mm noise, hem lip 4 mm inwards |
-| raspado | `Hair_Buzzed`, +1.5 mm offset | `Hair_BuzzedFemale`, +1.5 mm |
-| cacheado | procedural on `Hair_Buzzed` (§8.5), volume 20 mm | procedural on `Hair_BuzzedFemale`, volume 30 mm, nape extended 4 cm |
-| rabo | cap = `Hair_Buns` minus the two bun components, refit to the male head, + generated ponytail (§8.3) | cap = `Hair_Buns` minus buns + ponytail |
-| coque | cap (as rabo) + one bun relocated (§8.3) | same |
-| longo | `Hair_Long` refit to the male head, lengthened (§8.4) | `Hair_Long` lengthened (§8.4) |
-
-Bun components = components of `Hair_Buns` with |centroid.x| > 0.07 and centroid.z < −0.03 (glTF) — the two 332-tri pieces.
-
-### 8.3 Ponytail and bun
-- Head center `Hc` = centroid of skull vertices (Head-dominant, above the eye line). Scalp point in direction `d` = first hit of a ray
-  from Hc along d against the hair cap, + 12 mm outward.
-- **pony** bone = scalp point for `d = normalize(0, 0.45, +1)` (final frame; +Z = back). **pony2** = pony + (0, −0.12, +0.035).
-- Tube along a Catmull-Rom path: pony, pony + (0, −0.02, 0.045), pony + (0, −0.12, 0.06), pony + (0, −0.24, 0.04); 14 rings × 12
-  around + tip cap; radius r(t) = 20 mm at t=0 → 30 mm at t=0.25 → 6 mm at t=1, sections flattened (x 1.0, z 0.8), per-ring angular
-  radius noise ±12 %, twist 0.6 rad along the length (strand look). Elastic: 12×4 torus at t = 0.03, +4 mm, slot hairTie.
-  Assert ≥ 15 mm clearance from the neck at rest.
-- Weights: t < 0.04 → head 1; t ∈ [0.04, 0.55]: head→pony→pony2 with `w_pony2 = smoothstep(0.30, 0.60, t)`,
-  `w_head = 1 − smoothstep(0.0, 0.10, t)`, `w_pony = 1 − w_head − w_pony2` (clamped ≥ 0); t > 0.55 → pony2 (and a little pony:
-  0.15). Tone: 0.85 near the root → 1.0, AO.
-- **Bun (coque)**: take one bun component; rotate so its axis (Head center → bun centroid) aligns with `d = normalize(0, 0.55, +1)`
-  (final frame), place its centroid at the scalp point + 35 mm along d, scale 1.15. Weight head 1.
-
-### 8.4 Long hair (`longo`) and springs
-- Lengthen: Head-local vertices below the ear line `y_ear = HeadJoint.y`: `y' = y_ear + (y − y_ear)·k`, `k = 1 + (kmax − 1)·b`,
-  backness `b = smoothstep(−0.02, 0.04, z − Hc.z)` (final frame); choose `kmax` so the lowest back vertex reaches `N.y − 0.07`
-  (upper back). Then collision push vs neck/shoulders/back (+8 mm) and smoothing.
-- **hairA** = scalp point for `d = normalize(0, −0.15, +1)` + 10 mm; **hairA2** = hairA + (0, −0.13, +0.02).
-- Weights: `h = clamp((hairA.y + 0.03 − y)/0.30, 0, 1)`; `w_spring = smoothstep(0, 0.35, h)·(0.35 + 0.65·b)`;
-  `share = smoothstep(0.40, 0.85, h)`; hairA = w_spring·(1 − share), hairA2 = w_spring·share, head = 1 − w_spring.
-  (Face-framing strands, b ≈ 0, swing at most 35 %.)
-- Runtime (for the rig agent): hairA/hairA2 driven by the same damped spring as `_ponyStep`, limits rotation.x ∈ [−0.25, 0.6] rad
-  so the hair never enters the back.
-
-### 8.5 Curly (`cacheado`) procedural
-Subdivide the buzz cap once (830 → 3320 tris). For female first extend the nape: vertices below the ear line stretched ×1.6 down.
-Displace along the normal: `vol·(0.75 + 0.25·smoothstep(hairline, hairline + 0.03, dist))` + curl bumps
-`0.009·(1 − clamp(F1/0.011, 0, 1))²` (Worley F1, 16 mm cells, seed fixed) + 4 mm low-frequency noise. Tone = 0.78 + 0.22·bump.
-Simplify to the LOD0 target. Weight head 1.
-
-### 8.6 Open shells
-For hair triangles within 3 cm (graph distance) of a boundary edge, add a back-face copy (reversed winding, normals flipped,
-ao × 0.7). Same for the male open lash strips. Counted in the budgets.
-
-### 8.7 Brows, lashes, eyes
-- Brows/lashes: from body mesh0; **flat tint** (no texture): slot brow / lash, mat 3, ao from AO only. Female brows thinned (§2.4).
-  Simplify: brows to 160 tris per card, lashes 120 (female) / keep 68 (male) + back faces. LOD1: brows 40 per card, lashes dropped.
-  LOD2: none.
-- Eyes: keep 384 tris each at LOD0, 64 at LOD1, none at LOD2 (the skin texture has painted eyes). mat 5, slot eye (runtime white),
-  UVs remapped into the eye tile (§9.5); male back-of-eye vertices with u outside [0,1] get the sclera texel UV.
-
----------------------------------------------------------------------------------------------------------------------
-
-## 9. Textures
-
-### 9.1 Position atlas (tool used by every edit)
-Rasterize the processed body's UV triangles at 1024² (and 512² for normals) storing per texel: rest position (final frame), region id,
-collapsed weights. Texels outside islands = empty. All masks below are defined in 3D and read through this atlas.
-
-### 9.2 Skin base color → tintable detail map (per gender, 1024² JPEG)
-1. Decode PNG (pngjs), convert sRGB→linear, 2×2 box downsample to 1024².
-2. **Underwear removal**: mask = texels in regions {quadril, troncoInf, coxa top 15 cm, (female) troncoSup bust band} whose HSV
-   value < 0.32 and saturation < 0.35, dilated 3 px. Fill with push-pull (pyramid) inpainting from the surrounding skin; then add
-   high-frequency skin grain copied from the texel 6 cm higher in the same island (or from the abdomen) at 50 % strength.
-3. **Muscle shading attenuation** (§2.3): on regions troncoSup/Inf, quadril, braco, antebraco, coxa, canela, pescoco (not head, hands):
-   `D ← B + 0.45·(D − B)`, B = Gaussian σ = 10 px.
-4. Mean skin `M` = median linear RGB over island texels excluding lips/eyes/brows/scalp (head texels above the hairline and within 2 cm
-   of eye centers excluded). Detail `D = T / M` per channel; chroma retention: `D = lerp(lum(D), D, 0.65)`; clamp [0, 1.9].
-5. Store **`sRGB(D · 0.5)`** (so D = 1 → linear 0.5 → sRGB 188). Runtime: material color = (2, 2, 2) linear, map sRGB-decoded,
-   vertex color = skin tone (linear) × ao → final albedo = D × tone. Neutral patch (§9.5) = exactly D = 1.
-6. **Island padding**: before JPEG, extend island borders 8 px into empty space (push-pull), to avoid seams in mips/JPEG chroma.
-7. JPEG via jpeg-js, quality 88, 1024². Scalp keeps its painted hair (always under a hair cap).
-
-### 9.3 Normal map (per gender, 512² JPEG, tangent space, glTF/OpenGL convention)
-Downsample 2048 → 512 by averaging decoded normals and renormalizing. Flatten: `n = normalize(lerp(n, (0,0,1), k))`, k = 0.65 on
-torso/arms/legs/pelvis, 0.3 neck, 0 head/hands; k = 1 in the underwear mask. Neutral patch and eye tile = flat (128,128,255). Pad
-islands. Runtime uses it only on non-lite quality, `normalScale (0.8, 0.8)`; orientation must be confirmed by render R9 (if relief
-is inverted, use `(0.8, −0.8)`).
-
-### 9.4 Female face softening (texture)
-Using the position atlas around each eye center (female): texels at 6–22 mm from the eye center, outside the eye opening, with
-luminance < 0.6 × local mean (σ 8 px) → lift towards the local blur by 70 % (removes the eyeliner wings). Nasolabial band (Head-local
-|x| ∈ [0.015, 0.045], y between mouth and nose base, front): dark detail −40 %. Lips: saturation −20 %. Optional, default **off**:
-mouth-corner lift 1.0 mm (vertices within 6 mm of the lip corners). Male: no edits.
-
-### 9.5 Atlas extras (inside each gender's 1024² skin texture, in the largest free square found automatically with 8 px padding)
-- Eye tile 96×96: `T_Eye_Brown` resized (Lanczos), stored as `sRGB(linear(eye) · 0.5)` (true color after ×2). Eye UVs remapped:
-  `u' = u0 + u·96/1024`, `v' = v0 + v·96/1024`.
-- Neutral patch 16×16 of sRGB 188 (linear 0.5). All non-skin parts (garments, hair, shoes, brows, lashes) use its center UV.
-- Both written into the normal map as flat.
-
----------------------------------------------------------------------------------------------------------------------
-
-## 10. LODs (meshoptimizer only, offline)
-
-Tools: `meshoptimizer@1.3.0` npm tarball (MIT): `MeshoptSimplifier.simplify(indices, positions, 3, targetIndexCount, targetError,
-flags)` and `MeshoptEncoder` (reorderMesh, encodeVertexBuffer, encodeIndexBuffer). **All LODs are index subsets of the LOD0 vertex
-buffers** (simplify never invents vertices) → LOD1/LOD2 cost only index data.
-
-| part | LOD0 | LOD1 (NPC near, ~6–8k total) | LOD2 (NPC far, ~2k total) |
+| part | LOD0 | LOD1 | LOD2 |
 |---|---|---|---|
-| body | per cell, LockBorder; hands cells ratio 0.45 error 0.0006 (fists are over-dense); others untouched | per cell, LockBorder, ratio 0.45 (head 0.35), error 0.01 | **per NPC cover mask**: union of visible cells simplified as one mesh, LockBorder (hem borders stay matched), target 700 tris, error 0.05 |
-| garments | §6.3 targets | §6.3 targets | ratio to ≈ 300 (top) / 280 (bottom) / 40 (socks), LockBorder |
-| hair | ≤ 3000 | ≤ 1000 | ≤ 250 |
-| shoes | ~1300 each | 350 | 110 |
-| eyes | 2×384 | 2×64 | – |
-| brows/lashes | §8.7 | brows only | – |
+| body (all cells) | 9614 m / 9980 f (hands at 0.45) | 4024 / 4154 (ratio 0.38, head 0.30, LockBorder) | per street mask (16 per gender): 744–860 (head 250 @ 4 mm, limbs, trunk; §13.1) |
+| shoes (pair) | ~3200 (incl. laces, lining) | ~680 | 128 |
+| eyes | 768 | 128 | 128 |
+| brows + lashes | 592 m / 800 f | 80 | – |
+| garments (m / f) | camiseta 3682/3604, regata 2860/2768, top –/2452, manga-longa 4474/4358, corta-vento 5346/5260, short 2337/2538, bermuda 2796/3008, legging 3654/3711, saia-short –/3580, meia ~900 | 950–2160 | 230–310 (main colour only) |
+| hair | ≤ 3000 (cacheado 3711/3746) | 690–885 (sloppy, inflated) | 260–370 |
 
-NPC cover masks for body LOD2 = those of `RunnerRig.NPC_OUTFITS` (the baker reads the same list from a config constant and asserts
-it matches the file `jogar/js/runner/RunnerRig.js` by regex). Unknown combos fall back to body LOD1 at runtime.
-Budget asserts (male and female, every top × bottom × hair combo at LOD0): ≤ 25 000 visible triangles (expected worst ≈ 21–22k:
-body visible 4–7k + top ≤ 5.5k + bottom ≤ 4k + hair ≤ 3k + shoes 2.6k + socks 0.4k + eyes 0.77k + brows ≤ 0.8k).
+**Visible-triangle checks** (`ModelData.assemble`, all top × bottom × hair combos), worst case:
 
----------------------------------------------------------------------------------------------------------------------
+- **LOD0:** 21 896 (m, corta-vento + bermuda + cacheado) / 24 228 (f, top + saia-short + cacheado). Limit 25 000.
+- **LOD1:** street outfits 6.3–7.4k (limit 8k). The worst player combo is 7.1k (m) / 8.6k (f); LOD1 is meant for NPCs.
+- **LOD2:** street outfits 1.77–1.96k (limit 2.2k), socks on and off. Other combos fall back to LOD1 body cells (warning).
 
-## 11. Output files, data format, decoder
+The NPC outfit list is a constant in `pipeline.mjs`; it is checked by regular expression against `RunnerRig.NPC_OUTFITS`.
 
-### 11.1 Files
-- `jogar/dados/modelos/corredor-m.js`, `corredor-f.js` — body (vertices, LOD index sets, cells), eyes, brows/lashes, shoes, bones,
-  anchors, measures, textures. (Socks are a derived garment in `roupas.js`.)
-- `jogar/dados/modelos/roupas.js` — derived garments for both genders (+ explicit extras).
-- `jogar/dados/modelos/cabelos.js` — 6 styles × 2 genders, explicit parts with LOD index sets.
-- `jogar/vendor/meshopt-decoder-ref.js` — `meshopt_decoder_reference.js` from the same meshoptimizer 1.3.0 tarball (pure JS, sync,
-  `ready = Promise.resolve()`), wrapped as a classic script: license header kept, the trailing `export { MeshoptDecoder };` replaced by
-  `window.MeshoptDecoder = MeshoptDecoder;`, whole file inside `(function () { … })();`. ~15 KB. (No WASM, no fetch.)
-- `jogar/js/runner/CharData.js` — the decoder/assembler (§11.5), IIFE, namespace `EP`.
-- `index.html`: add after `dados/aparencia.js`: the four data files; after `vendor/three-0.128.0.min.js`: `vendor/meshopt-decoder-ref.js`;
-  `js/runner/CharData.js` before `js/runner/BodyModel.js`/`RunnerRig.js`. `arquivo-unico.mjs` needs no change (inlines all `src`).
-- `jogar/modelos/LICENCAS/`: `Quaternius-UBC-License_Standard.txt` (copy of `License_Standard.txt`),
-  `Quaternius-UAL-Readme.txt` (copy of the UAL readme), `meshoptimizer-LICENSE.md` (MIT notice for the vendored decoder),
-  `LEIA-ME.txt` (one paragraph: what came from where, CC0, modified by us). Credits line in `endless-pace/README.md`:
-  "Corredores: Universal Base Characters e Universal Animation Library por Quaternius (CC0) — quaternius.com; decodificador
-  meshoptimizer (MIT, Arseny Kapoulkine)." Each data file starts with a one-line comment with the same credit.
-- Report: `ferramentas/saida-ver/relatorio.json` (gitignored).
+## 11. Output format
 
-Each data file:
+### 11.1 Files and sizes (full bake)
 
-    // ENDLESS PACE — corredor masculino (Quaternius UBC, CC0). Gerado por ferramentas/assa-corredor.mjs — não editar.
-    (function (EP) {
-      'use strict';
-      var M = EP.data.models = EP.data.models || {};
-      M.corredor = M.corredor || {};
-      M.corredor.m = { /* §11.2 */ };
-    })(window.EP);
+| file | bytes |
+|---|---|
+| `jogar/dados/modelos/corredor-m.js` | 343 120 |
+| `jogar/dados/modelos/corredor-f.js` | 333 051 |
+| `jogar/dados/modelos/roupas.js` | 957 990 |
+| `jogar/dados/modelos/cabelos.js` | 499 187 |
+| **total** | **2.13 MB** (limit 3 MB) |
+| `jogar/js/runner/ModelData.js` | ≈ 20 KB |
 
-(`roupas.js` sets `M.roupas = { m: {...}, f: {...} }`, `cabelos.js` sets `M.cabelos = { m: {...}, f: {...} }`.)
+Each data file starts with two comment lines (generated-by, credits) and has this shape:
+
+    (function (EP) { 'use strict'; var M = EP.data.models = EP.data.models || {};
+      M.corredor = M.corredor || {}; M.corredor.m = {…}; })(window.EP);
+
+`roupas.js` sets `M.roupas = { m: {…}, f: {…} }` and `cabelos.js` sets `M.cabelos = { m: {…}, f: {…} }`.
+
+**Licenses** go in `jogar/modelos/LICENCAS/`:
+
+- `Quaternius-UBC-License_Standard.txt`, `Quaternius-UAL-Readme.txt`, `Quaternius-UAL-License.txt`;
+- `meshoptimizer-LICENSE.md` (for the decoder embedded in `ModelData.js`);
+- `LEIA-ME.txt`.
+
+The credit line is in `endless-pace/README.md`. The report goes to `ferramentas/saida-ver/relatorio.json` (git-ignored),
+together with the debug images `pele-m.png` and `pele-f.png`.
 
 ### 11.2 Objects
 
-**Buffer** (string): standard base64 (RFC 4648, with padding) of a meshopt-encoded stream. Which codec is implied by the field:
-vertex streams use the meshopt **vertex codec** (`decodeVertexBuffer(target, count, stride, src)`), `I` uses the **index codec**
-(`decodeIndexBuffer(target, count, 2, src)`, Uint16 output). Encoder: `encodeVertexBuffer` / `encodeIndexBuffer` (default version;
-the reference decoder accepts vertex 0xa0/0xa1 and index 0xe1). No meshopt filters.
+**Stream** (string): RFC 4648 base64 of a meshopt-encoded buffer (`encodeVertexBuffer` / `encodeIndexBuffer`, default
+version, no filters).
 
-**Part** (explicit mesh: body, eyes, brows, shoes, hair, extras):
+- Vertex streams decode with the meshopt vertex codec; headers 0xa0/0xa1.
+- `I` decodes with the index codec (0xe1) to Uint16, and the corner order may rotate within a triangle.
+
+**Part** (body, eyes, brows, shoes, every garment, every hair):
 
     {
-      n: 6624,                 // vertex count
-      q: [x0,y0,z0, x1,y1,z1], // position box (meters, final rest frame)
-      P: "…",  // n×8  B: Uint16 qx,qy,qz,0     → p = q0 + (q/65535)·(q1 − q0)
-      N: "…",  // n×4  B: Int8 ox,oy,0,0        → octahedral normal (decode below)
-      T: "…",  // n×4  B: Uint16 u,v / 65535    (glTF convention, v down; texture.flipY = false)
-      J: "…",  // n×4  B: Uint8 bone indices (0..16, §3.1)
-      W: "…",  // n×4  B: Uint8 weights, sum = 255 (unused slots 0)
-      A: "…",  // n×4  B: Uint8 mat, slot, ao (0..255 → 0..1), flags (bit0 hem lip, bit1 back-face copy)
-      lods: [ { t: 12000, I: "…", cells: [[mask, region, triCount], …] },   // LOD0 (cells only on the body)
-              { t: 5200,  I: "…", cells: […] },                             // LOD1
-              { t: 2000,  I: "…" } ],                                       // LOD2 (non-body parts)
-      lod2ByMask: { "1569": { t: 700, I: "…" }, … }                         // body only (§10)
+      n: vertexCount,
+      q: [x0,y0,z0, x1,y1,z1],      // position box, final rest frame (meters, 1.76 space)
+      P: stream n×8 B,   Uint16 qx,qy,qz,0        → p = q0 + q/65535·(q1 − q0)
+      N: stream n×4 B,   Int8 ox,oy,0,0          → octahedral normal: x=ox/127, y=oy/127, z=1−|x|−|y|,
+                                                  t=max(−z,0), x+=x≥0?−t:t, y+=y≥0?−t:t, normalize
+      T: stream n×4 B,   Uint16 u,v /65535        (body and eyes only; glTF convention v down, texture.flipY = false)
+      J: stream n×4 B,   Uint8 bone indices (0..16, §3)
+      W: stream n×4 B,   Uint8 weights, sum = 255
+      A: stream n×4 B,   Uint8 mat, slot, ao (0..255 → 0..1), flags (bit0 hem lip, bit1 back face / lining, bit2 skirt)
+      lods: [ { t: triCount, I: stream, cells?: [[mask, region, triCount], …] }, … ],
+      lod2ByMask?: { "<coverMask>": { t, I } }   // body only
     }
 
-Octahedral decode: `x = ox/127, y = oy/127, z = 1 − |x| − |y|; t = max(−z, 0); x += x ≥ 0 ? −t : t; y += y ≥ 0 ? −t : t;` normalize.
-Encode: `n /= |x|+|y|+|z|; if z < 0: (x, y) = ((1 − |y|)·sgn x, (1 − |x|)·sgn y)` with sgn(0) = +1; round(·127).
-Body `T` exists; other parts may omit `T` (runtime fills the neutral UV). Eyes have `T` (eye tile).
+- Body: `lods` = [LOD0, LOD1]. `cells` partition the index list into contiguous runs, in order. **[v3]** LOD0 and LOD1
+  have their own cell lists (the hair cover bits differ per LOD, §13.1).
+- Garments and hair: `lods` = [LOD0, LOD1, LOD2]. Eyes and brows: [LOD0, LOD1]. A part is absent at a LOD index ≥ `lods.length`.
+- **[v3]** A LOD may use vertices that LOD0 does not (garments, shoes: every LOD is cut separately; hair: inflated LOD1/2
+  copies). Vertex order is first use over LOD0, then LOD1, then LOD2; the decoder is unchanged.
+- Garment parts also carry `kind`, `mat`, `coverBit`, `layer` (socks 1, bottoms 2, tops 3) and `bodyId`.
+  - Bottoms and socks have `cells` per LOD: `[maskOfCoveringGarments, 0, triCount]`. The mask holds top bits for bottoms and
+    bottom bits for socks.
+- Hair parts carry `style` and `bodyId`.
 
-**Garment** (derived, §6.1):
+**Character** (`EP.data.models.corredor.m|f`):
 
-    {
-      kind: "camiseta", mat: 1, coverBit: 0, layer: 3,     // layer: socks 1, bottoms 2, tops 3
-      n: 2210,
-      G: "…",  // n×8 B: Uint16 tri, Uint8 b1, Uint8 b2, Uint8 slot, Uint8 ao, Uint8 flags, Uint8 0
-      O: "…",  // n×8 B: Int16 dx,dy,dz (0.1 mm), Int16 0
-      lods: [ { t, I }, { t, I }, { t, I } ],
-      extra: Part | null,                                  // skirt / collar
-      bodyId: "m-3f9a1c2e"                                 // must equal corredor.m.id (hash of the body P/T/J/W/LOD0-I streams)
-    }
-
-`tri` indexes the **body LOD0 triangle list as decoded** (corner order as returned by the decoder).
-
-**Character** (`EP.data.models.corredor.m`):
-
-    {
-      v: 1, id: "m-3f9a1c2e", gender: "m",
-      space: 1.76, heightReal: 1.76, lift: 0.022,
-      bones: { names: [17 names §3.1], parent: [-1,0,1,1,3,1,5,0,7,8,0,10,11,2,13,2,15],
-               pos: [[x,y,z] × 17 parent-relative] },
-      measures: { hipY, thigh, shin, ankleY, footLen, shoulderW, hipW },            // final frame, for the gait/IK agent
-      anchors: {                                // bone-local positions for accessories (replace HC/HIP_H constants)
-        skull: { bone: "head", center: [..], radii: [rx, ry, rz], top: y },          // caps, bands, beanies
-        eyes:  { bone: "head", center: [..], spacing: d, front: z },                  // glasses
-        ears:  { bone: "head", left: [..], right: [..] },                             // headphones
-        wristL:{ bone: "elbowL", pos: [..], radius: r },                              // watch
-        back:  { bone: "torso", pos: [..] },                                          // pacer flag
-        waist: { bone: "hips", y: .., rx: .., rz: .. }
-      },
-      slots: ["skin","brow","lash","eye","hair","hairTie","shirt","shirtTrim","shirtAccent","shorts","shortsTrim",
-              "shortsAccent","sock","sockTrim","shoe","shoeAccent","sole","midsole","lace","lining"],
-      mats: ["skin","cotton","tech","hair","shoe","eye"],
+    { v: 1, id: "m-<8 hex>", gender, space: 1.76, heightReal: 1.76|1.68, lift: 0.022,
+      bones: { names[17], parent[17], pos[17][3] (parent-relative) },
+      measures: { hipY, thigh, shin, ankleY, footLen, shoulderW, hipW, upperArm, foreArm, neckY, headTop },
+      anchors: { skull{bone,center,radii,top}, eyes{bone,center,spacing,front}, ears{bone,left,right},
+                 wristL{bone,pos,radius}, back{bone,pos}, waist{bone,y,rx,rz,cz} },   // bone-local, rest
+      slots: [skin,brow,lash,eye,hair,hairTie,shirt,shirtTrim,shirtAccent,shorts,shortsTrim,shortsAccent,
+              sock,sockTrim,shoe,shoeAccent,sole,midsole,lace,lining],
+      mats: [skin,cotton,tech,hair,shoe,eye],
       coverBits: { camiseta:0, regata:1, top:2, "manga-longa":3, "corta-vento":4, short:5, bermuda:6, legging:7,
-                   "saia-short":8, meia:9, tenis:10, "hair:curto":11, "hair:cacheado":12, "hair:rabo":13,
-                   "hair:coque":14, "hair:longo":15, "hair:raspado":16 },
-      textures: { skin: "data:image/jpeg;base64,…", normal: "data:image/jpeg;base64,…",
-                  uvNeutral: [u, v], eyeTile: [u0, v0, u1, v1] },
-      body: Part, eyes: Part, brows: Part, shoes: Part
-    }
+                   "saia-short":8, meia:9, tenis:10, "hair:curto":11, …, "hair:raspado":16 },
+      textures: { skin: dataURI JPEG 1024², normal: dataURI JPEG 512², uvNeutral:[u,v], eyeTile:[u0,v0,u1,v1] },
+      body, eyes, brows, shoes }
 
-`cabelos.js`: `M.cabelos.m.curto = Part` (… 6 styles × 2 genders; `rabo` includes the hair tie; spring weights inside J/W).
-`roupas.js`: `M.roupas.m.camiseta = Garment` (male: camiseta, regata, manga-longa, corta-vento, short, bermuda, legging, meia;
-female: + top, saia-short).
+### 11.3 Runtime API (`EP.ModelData`, implemented)
 
-### 11.3 Decoder / assembler API (`jogar/js/runner/CharData.js`, IIFE, `EP.CharData`)
+    ok()                        both genders loaded
+    char(g)                     character header (the object above)
+    part(g, 'body'|'eyes'|'brows'|'shoes'), hair(g, style), garment(g, kind)   → Mesh (vertex arrays decoded once, cached)
+    index(mesh, lod)            → Uint16Array (decoded once)
+    normOutfit(g, outfit)       same defaults as RunnerRig: f → top/legging/rabo, m → camiseta/short/curto;
+                                m: top→regata, saia-short→short; socks = bottom ≠ legging
+    coverMask(g, outfit)        → bits of top | bottom | (socks ? meia) | hair
+    assemble(g, outfit, lod)    → one Mesh (body cells culled, LOD2 per-mask body if available, garment cells culled,
+                                eyes/brows absent at LOD2, neutral UV filled, unused vertices dropped), cached by key.
+                                [v3] At LOD2 the body UVs all point at the neutral patch (vertex colour only, §13.1);
+                                a LOD2 request whose mask was not pre-baked logs one console.warn and uses LOD1 body cells.
+    geometry(mesh)              → THREE.BufferGeometry: position, normal, uv, skinIndex (Uint8), skinWeight, mat (Uint8)
+    texture(g, 'skin'|'normal') → THREE.Texture (flipY false, sRGB/Linear, anisotropy 4), created once from the data URI
 
-    EP.CharData.ok()                       // true when EP.data.models.corredor.{m,f} and window.MeshoptDecoder exist
-    EP.CharData.char(g)                    // → character header (bones, anchors, measures, textures, slots, coverBits)
-    EP.CharData.part(g, name, lod)         // name: 'body'|'eyes'|'brows'|'shoes' → Mesh (cached; vertex arrays decoded once per part)
-    EP.CharData.hair(g, style, lod)        // → Mesh
-    EP.CharData.garment(g, kind, lod)      // → Mesh (derived: needs body; positions/weights/normals resolved)
-    EP.CharData.assemble(g, outfit, lod)   // outfit {top, bottom, hair, socks:boolean} → Mesh with everything concatenated,
-                                           //   culled body (cells, or lod2ByMask), uv filled, key string; cached by key
-    EP.CharData.texture(g, kind)           // 'skin'|'normal' → THREE.Texture (flipY false, skin sRGBEncoding, normal Linear,
-                                           //   anisotropy 4, mipmaps), created lazily from the data URI, shared
+    Mesh = { n, position, normal, uv, skinIndex, skinWeight, mat, slot, ao, flags, index, key, outfit, coverMask }
 
-    Mesh = { n, position: Float32Array(n*3), normal: Float32Array(n*3), uv: Float32Array(n*2),
-             skinIndex: Uint8Array(n*4), skinWeight: Float32Array(n*4), mat: Uint8Array(n), slot: Uint8Array(n),
-             ao: Float32Array(n), index: Uint16Array|Uint32Array, key }
+Decoding everything (both genders, all parts) takes ≈ 130–155 ms in Node with the pure-JS reference decoder; one assembly decodes
+only what it uses.
 
-Decode steps for a Part: base64 → Uint8Array (`atob`), `MeshoptDecoder.decodeVertexBuffer` into `Uint8Array(n·stride)`, view as the
-typed array of the stream, dequantize (P, T, N, W/255, ao/255). Index: `decodeIndexBuffer(new Uint8Array(t·3·2), t·3, 2, src)` →
-Uint16Array. Garment: decode G and O, then per vertex resolve base point and weights from the body (§6.1), `pos = base + O·1e-4`,
-normals by area-weighted face normals over the garment index. Assembly concatenates and, for NPC LODs, compacts unreferenced vertices.
-Total decode for both genders + all garments + hairs: target < 60 ms on a mid phone (pure JS); decode lazily per part to spread it.
+**[v3] Textures load asynchronously.** `texture()` returns the `THREE.Texture` before its data-URI image has loaded
+(`needsUpdate` is set in `onload`). The game must keep its render loop running, or re-render after the image loads; a
+single render right after creation draws the skin black. The preview waits for `texReady()` (image complete and
+`texture.version > 0`) before its first render. **Next step for integration:** add `ModelData.js` and the four data files to `index.html`.
 
-### 11.4 Size budget (base64, measured codec ratios: positions 54 %, normals 49 %, UV 74 %, joints 23 %, weights 54 %, index ≈ 1.1–1.4 B/tri)
+### 11.5 Runtime integration notes (for the RunnerRig agent)
 
-| item | estimate |
+1. Replace the BodyModel sculpt with `EP.ModelData`.
+   - Bones: `char(g).bones` (17 names; the new springs are pony2, hairA, hairA2).
+   - `HIP_H` → `measures.hipY` (0.971 m / 0.966 f, in 1.76 space).
+   - `HC` and accessory offsets → `anchors`.
+2. Material: add `map = texture(g,'skin')`, `color (2,2,2)`, and `normalMap` on non-lite quality; keep `vertexColors` and the
+   `mat` attribute shader.
+   - Color = palette[slot] × ao (skin slot = tone; eye slot = white).
+   - One material per gender (different skin maps).
+3. **Springs:** pony→pony2 (rabo) and hairA→hairA2 (longo). Mind the **sign** (§3): trailing = negative x.
+4. The skirt accessory `ACC.skirt` is obsolete (baked). `outfitOf` should keep `saia-short` for females.
+5. Known LBS limit: arms raised overhead (`celebrate`) pinch at the deltoid, because the clavicle has no game bone.
+   **[v3]** Cap the raise at **2.2 rad** (`RunnerRig._idle` uses π·0.95 ≈ 2.98, the stretch pose up to 2.7). At 2.2 rad the
+   sleeves and straps stay on the shoulder (render `zcel22`, preview pose `celebrate22`); at π·0.95 the sleeve still lifts.
+6. **[v3] NPCs at LOD2** must use the exact `NPC_OUTFITS` objects (hair included). The body LOD2 is pre-baked for each
+   street outfit with socks on and off (16 masks). Any other combination falls back to the LOD1 body (~4–5k tris) and
+   `ModelData` logs a warning once per key.
+7. **[v3] Material:** mat 2 (technical fabric) specular 0.16 / shininess 9 and mat 3 (hair) specular 0.3 × AO /
+   shininess 16 in the preview (was 0.7/22 and 1.1/36, which read as latex and plastic). The preview passes `ao` as the
+   `aov` attribute so hair specular dies in the inner layers. Use the same values in `Materials.js`.
+8. **[v3] Brows:** palette brow = hair × 0.65 blended 15 % to skin, then clamped to ≤ 40 % of the skin luminance (dark
+   skin tones no longer get light-brown brow stickers).
+
+## 12. Verification
+
+### 12.1 Automatic checks (`bake-corredor/checks.mjs`)
+
+These run after writing the files, through the real `ModelData.js` in a Node `vm`. Any failure gives exit code 1. Last
+full bake: **0 failures**.
+
+| check | result |
 |---|---|
-| bodies (2 × ~6.6k v, LOD0–2 indices) | 2 × 130 KB |
-| garments (20, derived) | ≈ 500 KB |
-| hairs (12) | ≈ 480 KB |
-| shoes, eyes, brows (2 genders) | ≈ 110 KB |
-| textures (2 × skin 1024 JPEG ~60 KB + normal 512 ~43 KB) | ≈ 275 KB |
-| decoder + CharData | ≈ 25 KB |
-| **total** | **≈ 1.65 MB** (hard fail at 3.0 MB) |
+| bone hierarchy reproduces the world positions | error ≤ 1.2e-5 |
+| bones vs the §3 table | ≤ 0.8 mm |
+| **[v3] skull holes:** 1500 Fibonacci rays from the skull anchor against the assembled mesh, every hair style × LOD 0/1/2 (camiseta/short and every street outfit); a ray that exits above the neck base with no hit fails | 0 rays |
+| **[v3] LOD2 body pre-baked** for every street outfit, socks on and off | pass |
+| every vertex: weight sum 255, bone index < 17, no NaN; every LOD index in range | pass |
+| barefoot height | 1.760 (both) |
+| outsole min y | 0.0000 |
+| fist–thigh / fist–short | 37.8 / 21.2 mm (m), 37.8 / 28.1 mm (f) |
+| garment vertices inside the body (excl. lips and inside the shoe), all LODs | report only. **[v3]** tops 2.5–7 % by design (the allowance of §13.2, only where the skin underneath is culled); bottoms ≤ 2 %, under-short of saia-short ≈ 10 % within 2 mm (hidden by the skirt) |
+| budgets per combo | §10 |
+| total size | ≤ 3 MB (2.13 MB in v3) |
+| NPC outfit list | matches `RunnerRig.NPC_OUTFITS` |
+| determinism | two full bakes byte-identical |
 
-### 11.5 Runtime integration notes (for the RunnerRig agent; not part of the bake)
-1. `BodyModel` is replaced by a thin shim over `EP.CharData` keeping `BONES` (now 17), `C` (slot ids = §6.4 names), `MAT`,
-   `bonePos(g)` (from `char(g).bones.pos`), `ready/has` (always true once decoded), `prepare(cb)` (sync decode, then cb),
-   `assemble` → `Mesh`. The Worker and Sculpt.js are no longer needed for the runner.
-2. `HIP_H` → `char(g).measures.hipY`; `HC`/accessory offsets → `anchors`; `hairClass` → skull radii per style (store a per-style
-   `capScale` in `cabelos` parts: radius growth of the hair over the skull).
-3. Material `runnerSkin`: add `map = texture(g,'skin')`, `color = (2,2,2)`, `normalMap` (non-lite), keep `vertexColors` and the
-   `mat` attribute shader; skinIndex as `Uint8` attribute (non-normalized) and skinWeight Float32 (or Uint8 normalized) both work
-   in r128. Paint: `color = palette[slot] × ao` (skin slot = skin tone; eye slot = white; neutral-UV parts = palette color).
-   One material per gender (different skin texture) or swap `map` per mesh via `onBeforeRender`.
-4. Springs: `pony`+`pony2` (rabo), `hairA`+`hairA2` (longo) — same damped spring as `_ponyStep`, child gets ~1.6× the parent's
-   lag. Unused bones stay at rest.
-5. Skirt accessory (`ACC.skirt`) is obsolete (baked skirt); `outfitOf` must keep `saia-short` for females, map it to `short` for males.
-6. Old LOD API (0/1/2) maps 1:1.
-7. Known limit: arms raised overhead (`celebrate`, π·0.95) pinch at the deltoid (clavicle has no game bone). Suggest capping the
-   celebrate arm raise at ~2.3 rad or accepting it.
+### 12.2 Renders
+
+Renders come from `ferramentas/preview-corredor.html?driver`, driven by Playwright with SwiftShader WebGL.
+
+| set | content |
+|---|---|
+| R1 | front/side/back |
+| R2 | garment sheets |
+| R3 | 6 hair styles × 3 views × 2 genders, plus the 5 hair colors |
+| R4 | 5 skin tones (face and body) |
+| R5 | run cycle at 4/10/16/21 m/s |
+| R6 | contract test pose and hair springs |
+| R7 | faces |
+| R8 | LOD strips at rest and running |
+
+### 12.3 Known gaps (v2)
+
+- **Shoes:** they read as clean low sneakers at game distance, but up close they are simple. There is no separate tongue,
+  no eyelets, and the throat is an elliptic opening.
+- **Garments:**
+  - small notches can remain where a color cut meets a hem;
+  - loose shorts show the natural gap between the thighs up to the crotch;
+  - `celebrate` deformation is untested.
+- **Female top:** the strap junction at the back is slightly zig-zag.
+- **Female face:** the painted eyeliner is reduced but still present.
+- **Not implemented from v1:**
+  - the per-vertex pose sweep (§12.1 v1) and the "kept-but-covered" magenta check (R10);
+  - female mouth-corner lift;
+  - the beard (Hair_Beard is not used).
+- **Garment simplification:** LOD1 uses `Permissive`, so trims and stripes may wobble at mid distance.
 
 ---------------------------------------------------------------------------------------------------------------------
 
-## 12. Verification plan
+## 13. v3 changes (review vq1)
 
-### 12.1 Automatic checks in the baker (fail the bake on violation; write `relatorio.json`)
-- Bind identity (§3.3), weight sums = 255, bone indices < 17, parents valid, no NaN.
-- Heights: barefoot skull top − sole = 1.760 ± 0.002 (both, 1.76 space); shoe outsole min y = 0 ± 0.0005.
-- Bone positions within ±0.01 of the §3.1 table (after tuning, update the table and the test together).
-- Fist: fist–thigh and fist–bottom-garment gap ≥ 15 mm; palm-facing test (§1).
-- Garments: at rest, every garment vertex is outside the body by ≥ dmin (BVH signed distance); hem slices closed; layering rule holds
-  for all top×bottom pairs; no garment triangle with area < 1e-8.
-- Pose sweep (CPU LBS replicating three.js): 24 poses sampled from `RunnerRig.animate()` math at speeds 4/10/16/21 m/s × 6 phases
-  + idle + celebrate; for each, kept-but-covered skin triangles (cells with mask bits of the equipped garment's hem band,
-  i.e. R_g ∈ (−0.015, 0)) must not pierce the garment: segment test of body vertices against the posed garment surface
-  (count < 0.5 % of those vertices; report worst).
-- Budgets: per-combo triangle counts (LOD0 ≤ 25k, LOD1 ≤ 8k, LOD2 ≤ 2.2k), file sizes (total ≤ 3.0 MB), texture sizes
-  (skin ≤ 1024², normal ≤ 512²).
-- Decoder round trip in Node: import the vendored decoder (strip the IIFE), decode every buffer, compare with pre-encode arrays
-  (exact for quantized data; garment barycentrics resolve to the same positions within 0.1 mm).
-- Determinism: two runs → identical output bytes.
+All changes are in `ferramentas/bake-corredor/*`, `jogar/js/runner/ModelData.js` and `ferramentas/preview-corredor.html`.
+`RunnerRig.js` is untouched (see §11.5 for the runtime asks). Full bake ≈ 35 s, still byte-deterministic.
 
-### 12.2 Renders (Playwright 1.56 at `/opt/node-tools/node_modules/playwright`, chromium headless, WebGL via SwiftShader)
-Harness: `ferramentas/ver-corredor.html` loads `vendor/three-0.128.0.min.js`, the decoder, the four data files and `CharData.js`
-(the real runtime module), builds `SkinnedMesh`es with the game's bone hierarchy and a copy of the runner material (map + vertex
-colors + `mat` shader), neutral grey background, key light (0.5, 1, 0.8) + hemisphere fill. Driver: `ferramentas/ver-corredor.mjs`
-writes PNGs to `ferramentas/saida-ver/` (gitignored). Each render must be looked at; acceptance in brackets.
+### 13.1 Scalp holes (blocker) and LODs
 
-| id | render | accept |
-|---|---|---|
-| R1 | rest pose front/side/back, orthographic, m and f, default outfit (m camiseta+short+curto, f top+legging+rabo), 1200×800 | arms hang beside the body, fists by the thighs, nothing floating, shoes flat on y=0, proportions = fit runner (compare with `spec/sm.png`, `sf.png`) |
-| R2 | garment sheet: each top with the default bottom and each bottom with the default top, 3/4 view, both genders (≈ 20 tiles) | hems clean with visible lip, no skin through fabric, trims/stripes where specified, drape hides abs, skirt/collar right |
-| R3 | hair sheet: 6 styles × 2 genders × {front, side, back}, hair color #4b2f1c; plus one row of the 5 hair colors on `rabo` | no scalp holes, no forehead clipping, ponytail/bun placed at the back, long hair rests on the back, curly reads as curls |
-| R4 | skin tones: 5 tones × 2 genders, face close-up and full body | uniform tinting, no leftover underwear tint, lips/cheeks plausible on every tone |
-| R5 | run cycle: 4 phases × speeds 4/10/16/21 m/s, side and 3/4 views, both genders, outfits camiseta+short and manga-longa+legging | no garment tearing, elbows/knees bend in the right direction (elbow forward, shin back), feet plant, hands stay fists |
-| R6 | spring hair: rabo and longo, 8 frames of a 1 s run + stop, side view | hair swings and settles, never enters the back/neck |
-| R7 | face close-ups m/f, front and 3/4, at 600×600 | brows/lashes flat-tinted (no speckles/white), eyes looking forward (iris centered), female expression softer than `shots/female_face.png` |
-| R8 | LOD strip: LOD0/1/2 side by side at 3 m, 10 m, 25 m, each NPC combo | silhouettes consistent; LOD2 has no holes at hems |
-| R9 | normal-map orientation: male forearm and face under a top light with/without normal map | relief lit from the top (else flip normalScale.y) |
-| R10 | debug overlay: kept-but-covered skin triangles painted magenta, run cycle frames of R5 | magenta pixel count < 0.1 % of character pixels |
-| R11 | in-game: `jogar/index.html` via `file://` and the single HTML from `node ferramentas/arquivo-unico.mjs` (also `file://`), character creation screen and 10 s of running, hero + NPCs | loads with no network and no console errors; FPS not lower than the old rig on the same machine |
+- **Hair cover bits** (`hair.mjs`): a welded head/neck vertex is covered only when
+  - five rays (along the skin normal, and tilted ±45° on both tangent axes) all hit that style's hair within 4/6 cm, and
+  - fringe/part styles (curto, rabo, coque, longo) never cover the forehead or temples (z in front of the skull centre −15 mm,
+    above eye height − 3 cm), and
+  - the cover is eroded by one ring.
+  A body triangle gets the bit only when, in addition, its 3 corners, 3 edge midpoints and centroid are all behind the
+  hair as seen from **both** skull centres (hair-fit centre and the `anchors.skull` centre).
+- **Per-LOD bits:** LOD0 cells use the LOD0 hair; LOD1 cells (also the base of LOD2) require the LOD1 **and** LOD2 hair.
+- **Hair LOD1/LOD2:** `simplifySloppy` over the front faces (900 / 380 tris) instead of edge collapse, which opened bald
+  strips between separate locks. Each LOD1/2 vertex that sits under the LOD0 hair (seen radially from the skull centre)
+  gets an inflated copy 1 mm above it (max 15 mm, welded positions inflate together); `rep.cabelo_<style>_inflado`.
+- **Check:** `checks.mjs` `skullHoles()` — see §12.1. Result: 0 rays for all 6 styles × 3 LODs × both genders and every
+  street outfit (vq1 measured up to 27 % at f curto LOD2).
+- **LOD2 body:** simplified per group (head 250 tris at 4 mm error, each arm, each leg, trunk) with borders locked, so
+  the face keeps its shape and no triangle bridges arm and trunk. Pre-baked for every street outfit with socks on and
+  off. At LOD2 the runtime uses vertex colour only for the skin (no skin texture: the decimated UVs smeared the eyes).
+- **LOD2 garments:** main colour only (no trim/stripe), no cuts. Eyes keep their LOD1 sphere at LOD2.
 
-### 12.3 CLI and dependencies
-    npm install --no-save --prefix ferramentas/.deps meshoptimizer@1.3.0 pngjs@7.0.0 jpeg-js@0.4.4   # tarballs from the npm registry
-    node ferramentas/assa-corredor.mjs --fonte <dir with verify-ubc contents> [--saida jogar/dados/modelos] [--relatorio] [--so m|f]
-    node ferramentas/ver-corredor.mjs [--r R1,R2,…]
-Sources are not committed (≈ 30 MB of PNG); the script checks SHA-256 of the glTF/bin/texture files against a table in the script
-and refuses unknown inputs. `ferramentas/.deps/` and `ferramentas/saida-ver/` go in `.gitignore`.
-Random: mulberry32 seeded per part name → deterministic output.
+### 13.2 Garments (`garments.mjs`, `label.mjs`)
 
-### 12.4 Order of implementation (each step ends with its render)
-1. Load + re-pose + fist + frame (R1 bare, no garments). 2. Slimming + weight collapse + bones (R1, R5 bare). 3. Textures (R4, R7, R9).
-4. Regions/cells + garments (R2, R10). 5. Shoes/socks (R1, R5). 6. Hair (R3, R6). 7. LODs + encoding + data files + decoder (R8,
-size report). 8. Game integration check (R11).
+- **Body proxy for tops:** tops are cut from a smoothed copy of the body (Taubin 30 iterations for fitted tops, 120 for
+  the windbreaker, which also flattens the arms); the female bust gets 10/16 extra pure-Laplacian iterations. In the
+  pipeline the real torso is also pre-smoothed (female bust, male pecs/abs), so nipples no longer print.
+- **Collision allowance:** under a top, far from any skin that stays visible (graph distance > 3 cm), the fabric may sit
+  up to 25 mm (f) / 15 mm (m) inside the real body; that skin is culled by the cover mask anyway. Near visible skin the
+  allowance fades to 0.
+- **Offsets:** camiseta 6.5–7.5 mm, regata/manga-longa 6.5 mm, corta-vento 22 mm (trunk) / 16 mm (sleeve); layering margin
+  over bottoms 6 mm. Layering rays now consider every surface of the lower garment along the ray.
+- **Colour bands:** the shell is simplified **first**, then each LOD is cut. Before cutting, triangles crossed by a colour
+  line are refined by longest-edge bisection (LEPP) to ≤ 5 mm (LOD0) / 10 mm (LOD1); fields are evaluated exactly at new
+  points. Fields:
+  - trims/hems/cuffs/waistbands: Euclidean distance (in base-body space) to the polyline of the matching boundary loop
+    (neck, sleeve, hem, waist, leg, sock top) minus the width — the line runs parallel to the real edge;
+  - side stripe: `|u| − half width`, where `u` is the signed distance to a smoothed lateral seam polyline per leg
+    (outermost point of each 1 cm slice, moving average ±4 cm, snapped to the skin);
+  - corta-vento: zipper `max(|x| − 6 mm, z − cz)`, reflective band **back only** (no more "+" on the chest);
+  - manga-longa: raglan band removed (it produced the shoulder slivers);
+  - top: trim by distance to the shell border (no more specks at the cup/strap junction).
+- **Islands:** any colour island smaller than 1.5 cm² (LOD0) / 4 cm² (LOD1) goes to the neighbouring slot with the longest
+  shared border. A 0.6 mm (LOD1: 1.5 mm) border-locked simplification then removes cut slivers.
+- **Hem lips:** boundary loops are smoothed along the loop (20 iterations) before lips are built; the lip folds towards
+  the base point on the body (not along the normal) and is skipped where the shell bridges a gap > 2 cm (crotch).
+- **Leg hem plane:** short/bermuda/saia leg ends are planes perpendicular to the thigh axis (the `sL` field rose in a
+  "V" at the gluteal fold).
+- **Sports top:** the racerback polyline continues into the band (two extra points) and the strap/band blend radius is
+  18 mm, so the junction is one strip.
+- **Skirt (saia-short):** starts at the waistband (T.y + 2 mm). Radius per direction = outermost surface (short shell or
+  body without arms) sampled every 3 mm, accumulated top-down + 4.5 mm; a fitted yoke down to the T-shirt hem height, then
+  +17 mm and a 5 cm flare; the radius also clears the inflated LOD1 short. 12 rows (trim row duplicated for a hard
+  edge). Weights: those of the closest point on the under-short (thigh/hips), blended to pure hips over the top 2–11 cm,
+  then smoothed over the skirt mesh (6 iterations, the lining copies the outer face) — a raised thigh carries the skirt
+  instead of cutting through it. The under-short of `saia-short` is tight (4.5 mm, no flare). Skirt vertices have flags bit2; the yoke 2 cm inside a top's hem is culled under
+  that top (cells), and tops ignore the skirt when layering.
+- **Shoulder weights for raised arms:** in tops, the torso→arm weight transition is spread over the shell (8 Laplacian
+  iterations on welded positions, only where arm weight is mixed, dilated 2 rings).
+
+### 13.3 Body and face (`body.mjs`, `pipeline.mjs`)
+
+- **Male slimming v3:** upperarm (0.70, 0.74), clavicle (0.62, 0.76), spine_03 (0.80, 0.92), neck (0.80, 0.85); the whole
+  arm moves 20 mm towards the body; 10 extra Taubin iterations over clavicle/upperarm/spine_03/neck. α stays 10°
+  (fist–thigh 32 mm).
+- **Thumb:** after the fist pose, the thumb chain is rotated (search + 4 CCD rounds on thumb_02/01) until the tip is
+  ~9 mm from the side of the index finger near the palm; then the index chain curls (6 CCD rounds) until its tip meets
+  the thumb's distal phalanx (11–15 mm). No more "OK" ring (render `zhand`).
+- **Brows:** cards 0.72 (m) / 0.66 (f) in height, outline smoothed (8 iterations along the border), pushed to 0.3–0.6 mm
+  above the skin, normals copied from the skin under them.
+
+### 13.4 Hair (`hair.mjs`)
+
+- **Inner layers:** AO × (1 − 0.35 × over) where `over` = another lock above the vertex along the radial direction (5 cm);
+  faces turned towards the head × 0.7–1; downward faces × 0.85. Hair specular is scaled by AO in the shader (§11.5).
+- **Ponytail:** 6-point path with a smooth exit from the tie, 22 rings × 16 sides, radius 18 → 32 mm (body) → 22 mm with a
+  rounded (elliptic) tip, shallow strand grooves; weights blend head → pony → pony2 over t 0–0.85.
+- **Cacheado:** the cap is subdivided twice; curls are 2.4 cm Worley domes (12 mm) plus a finer 1.1 cm level (3 mm),
+  valleys darker (tone 0.6–1.0); LOD0 budget 3800 tris.
+- **Raspado:** hairline loop smoothed (12 iterations, first inner ring follows half way) and the border vertices take the
+  skin slot, so the cap fades into the skin across one triangle row.
+
+### 13.5 Shoes and socks (`shoes.mjs`)
+
+- Loft radius = foot hull + clearance as a floor, then a smooth envelope (local max, 3 blur passes, 8 floor-clamped
+  Laplacian passes): no toe/instep lumps.
+- Each LOD simplifies the open shell first (LOD0 760 tris with the opening locked, LOD1 130, LOD2 56) and is cut after;
+  LOD1/2 have only sole/midsole/upper colours.
+- Collar trim = Euclidean distance to the opening polyline (9 mm). Accent stripe = band between two smooth curves,
+  tapering at both ends. Heel counter accent below 6 cm, back 10 %.
+- **Laces:** 6 raised bars (3 mm, `lace` slot) across the tongue in LOD0.
+- Lining: only on the ankle opening loop (LOD0 wall + insole, LOD1 single wall, LOD2 a cap).
+- **Collar weights** follow the knee/foot weights of the ankle skin nearby (above 5 cm, blended to 9 cm), like the sock.
+- **Foot deletion:** inside the ankle opening ellipse, all body triangles below 7.5 cm are deleted (heel skin no longer
+  shows when the ankle flexes); elsewhere the inside test as before.
+
+### 13.6 Sources
+
+`ual/README.txt` and `ual/License.txt` are now SHA-1 pinned (253705248e3c…, 4e06133f1c77…).
+
+### 13.7 Known gaps (v3)
+
+- Raising the arms to π·0.95 still lifts the T-shirt sleeve off the shoulder (LBS without a clavicle bone). Fixing it in the
+  bake would need a helper bone; the recommended fix is the 2.2 rad cap in `RunnerRig` (§11.5 item 5).
+- The female camiseta/manga-longa still follow the bust shape (by design, no more nipple points); the corta-vento reads
+  loose.
+- The hair still uses the source geometry; at close range the locks read as cards, not strands.
+- `Materials.js` (game) still has the old mat 2/3 specular values; the preview shows the intended ones.

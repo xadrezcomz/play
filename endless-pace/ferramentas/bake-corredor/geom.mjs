@@ -220,18 +220,23 @@ export class BVH {
     const res = { d: maxD, x: 0, y: 0, z: 0, tri: -1, u: 0, v: 0, w: 0 };
     if (this.empty) return res;
     let best2 = maxD === Infinity ? Infinity : maxD * maxD;
-    const stack = [0], nb = this.nb, pos = this.pos, idx = this.idx;
-    while (stack.length) {
-      const n = stack.pop(), o = n * 6;
-      const dx = Math.max(nb[o] - px, 0, px - nb[o + 3]), dy = Math.max(nb[o + 1] - py, 0, py - nb[o + 4]), dz = Math.max(nb[o + 2] - pz, 0, pz - nb[o + 5]);
-      if (dx * dx + dy * dy + dz * dz >= best2) continue;
+    const nb = this.nb, pos = this.pos, idx = this.idx, st = STACK, R = SCR;
+    const box2 = n => { const o = n * 6; const dx = Math.max(nb[o] - px, 0, px - nb[o + 3]), dy = Math.max(nb[o + 1] - py, 0, py - nb[o + 4]), dz = Math.max(nb[o + 2] - pz, 0, pz - nb[o + 5]); return dx * dx + dy * dy + dz * dz; };
+    let sp = 0;
+    st[sp++] = 0;
+    while (sp) {
+      const n = st[--sp];
+      if (box2(n) >= best2) continue;
       if (this.nc[n]) {
-        for (let q = this.ns[n]; q < this.ns[n] + this.nc[n]; q++) {
+        for (let q = this.ns[n], e = q + this.nc[n]; q < e; q++) {
           const t = this.tris[q];
-          const r = closestOnTri(px, py, pz, pos, idx[t * 3], idx[t * 3 + 1], idx[t * 3 + 2]);
-          if (r[0] < best2) { best2 = r[0]; res.tri = t; res.x = r[1]; res.y = r[2]; res.z = r[3]; res.u = r[4]; res.v = r[5]; res.w = r[6]; }
+          closestOnTri(px, py, pz, pos, idx[t * 3], idx[t * 3 + 1], idx[t * 3 + 2], R);
+          if (R[0] < best2) { best2 = R[0]; res.tri = t; res.x = R[1]; res.y = R[2]; res.z = R[3]; res.u = R[4]; res.v = R[5]; res.w = R[6]; }
         }
-      } else { stack.push(this.nl[n], this.nr[n]); }
+      } else {
+        const l = this.nl[n], r = this.nr[n], dl = box2(l), dr = box2(r);
+        if (dl < dr) { if (dr < best2) st[sp++] = r; if (dl < best2) st[sp++] = l; } else { if (dl < best2) st[sp++] = l; if (dr < best2) st[sp++] = r; }
+      }
     }
     res.d = Math.sqrt(best2);
     return res;
@@ -241,9 +246,9 @@ export class BVH {
     if (this.empty) return null;
     let best = tmax, bt = -1, bu = 0, bv = 0;
     const ix = 1 / dx, iy = 1 / dy, iz = 1 / dz, nb = this.nb, pos = this.pos, idx = this.idx;
-    const stack = [0];
-    while (stack.length) {
-      const n = stack.pop(), o = n * 6;
+    const stack = STACK2; let sp = 0; stack[sp++] = 0;
+    while (sp) {
+      const n = stack[--sp], o = n * 6;
       let t0 = (nb[o] - ox) * ix, t1 = (nb[o + 3] - ox) * ix;
       let tmin = Math.min(t0, t1), tmx = Math.max(t0, t1);
       t0 = (nb[o + 1] - oy) * iy; t1 = (nb[o + 4] - oy) * iy;
@@ -270,14 +275,15 @@ export class BVH {
           const tt = (e2x * qx + e2y * qy + e2z * qz) * inv;
           if (tt > 1e-6 && tt < best) { best = tt; bt = t; bu = u; bv = v; }
         }
-      } else stack.push(this.nl[n], this.nr[n]);
+      } else { stack[sp++] = this.nl[n]; stack[sp++] = this.nr[n]; }
     }
     return bt < 0 ? null : { t: best, tri: bt, u: bu, v: bv };
   }
 }
 
-// Ericson, "Real-Time Collision Detection" 5.1.5 — devolve [d², x, y, z, wa, wb, wc]
-function closestOnTri(px, py, pz, pos, ia, ib, ic) {
+const STACK = new Int32Array(256), STACK2 = new Int32Array(256), SCR = new Float64Array(7);
+// Ericson, "Real-Time Collision Detection" 5.1.5 — escreve em out [d², x, y, z, wa, wb, wc]
+function closestOnTri(px, py, pz, pos, ia, ib, ic, out) {
   const a = ia * 3, b = ib * 3, c = ic * 3;
   const ax = pos[a], ay = pos[a + 1], az = pos[a + 2];
   const abx = pos[b] - ax, aby = pos[b + 1] - ay, abz = pos[b + 2] - az;
@@ -307,7 +313,7 @@ function closestOnTri(px, py, pz, pos, ia, ib, ic) {
   }
   const x = ax + abx * wb + acx * wc, y = ay + aby * wb + acy * wc, z = az + abz * wb + acz * wc;
   const dx = px - x, dy = py - y, dz = pz - z;
-  return [dx * dx + dy * dy + dz * dz, x, y, z, wa, wb, wc];
+  out[0] = dx * dx + dy * dy + dz * dz; out[1] = x; out[2] = y; out[3] = z; out[4] = wa; out[5] = wb; out[6] = wc;
 }
 
 // direções no hemisfério (cosseno), determinísticas
@@ -328,9 +334,10 @@ export function basis(nx, ny, nz) {
   return [[ux, uy, uz], [ny * uz - nz * uy, nz * ux - nx * uz, nx * uy - ny * ux]];
 }
 // oclusão por raios: ao = 1 - k * fração ocluída
-export function rayAO(bvhs, pos, nor, nv, { rays = 24, maxD = 0.25, k = 0.6, offset = 0.0015, seed = 7 } = {}) {
-  const dirs = hemiDirs(rays, seed), ao = new Float32Array(nv);
+export function rayAO(bvhs, pos, nor, nv, { rays = 24, maxD = 0.25, k = 0.6, offset = 0.0015, seed = 7, only = null } = {}) {
+  const dirs = hemiDirs(rays, seed), ao = new Float32Array(nv).fill(1);
   for (let i = 0; i < nv; i++) {
+    if (only && !only[i]) continue;
     const nx = nor[i * 3], ny = nor[i * 3 + 1], nz = nor[i * 3 + 2];
     const [tu, tv] = basis(nx, ny, nz);
     const ox = pos[i * 3] + nx * offset, oy = pos[i * 3 + 1] + ny * offset, oz = pos[i * 3 + 2] + nz * offset;
@@ -342,4 +349,51 @@ export function rayAO(bvhs, pos, nor, nv, { rays = 24, maxD = 0.25, k = 0.6, off
     ao[i] = 1 - k * occ / rays;
   }
   return ao;
+}
+
+// ---------------------------------------------------------------- malha de um campo (surface nets)
+// field(x, y, z) < 0 dentro; box = [x0, y0, z0, x1, y1, z1]; h = célula. Triângulos com a frente para fora.
+export function surfaceNets(field, box, h) {
+  const x0 = box[0] - h, y0 = box[1] - h, z0 = box[2] - h;
+  const nx = Math.ceil((box[3] - box[0]) / h) + 3, ny = Math.ceil((box[4] - box[1]) / h) + 3, nz = Math.ceil((box[5] - box[2]) / h) + 3;
+  const nxy = nx * ny, grid = new Float32Array(nxy * nz);
+  for (let k = 0; k < nz; k++) for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) grid[i + j * nx + k * nxy] = field(x0 + i * h, y0 + j * h, z0 + k * h);
+  const cellV = new Int32Array(nxy * nz).fill(-1), P = [];
+  const corner = [[0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0], [0, 0, 1], [1, 0, 1], [0, 1, 1], [1, 1, 1]];
+  const edges = [[0, 1], [2, 3], [4, 5], [6, 7], [0, 2], [1, 3], [4, 6], [5, 7], [0, 4], [1, 5], [2, 6], [3, 7]];
+  const cv = new Float32Array(8);
+  for (let k = 0; k < nz - 1; k++) for (let j = 0; j < ny - 1; j++) for (let i = 0; i < nx - 1; i++) {
+    let inside = 0;
+    for (let c = 0; c < 8; c++) { cv[c] = grid[(i + corner[c][0]) + (j + corner[c][1]) * nx + (k + corner[c][2]) * nxy]; if (cv[c] < 0) inside++; }
+    if (inside === 0 || inside === 8) continue;
+    let sx = 0, sy = 0, sz = 0, cnt = 0;
+    for (const [a, b] of edges) {
+      const va = cv[a], vb = cv[b];
+      if ((va < 0) === (vb < 0)) continue;
+      const t = va / (va - vb);
+      sx += corner[a][0] + (corner[b][0] - corner[a][0]) * t; sy += corner[a][1] + (corner[b][1] - corner[a][1]) * t; sz += corner[a][2] + (corner[b][2] - corner[a][2]) * t;
+      cnt++;
+    }
+    cellV[i + j * nx + k * nxy] = P.length / 3;
+    P.push(x0 + (i + sx / cnt) * h, y0 + (j + sy / cnt) * h, z0 + (k + sz / cnt) * h);
+  }
+  const I = [];
+  const quad = (a, b, c, d, flip) => { if (a < 0 || b < 0 || c < 0 || d < 0) return; if (flip) I.push(a, c, b, a, d, c); else I.push(a, b, c, a, c, d); };
+  for (let k = 1; k < nz - 1; k++) for (let j = 1; j < ny - 1; j++) for (let i = 1; i < nx - 1; i++) {
+    const idx = i + j * nx + k * nxy, in0 = grid[idx] < 0;
+    if ((grid[idx + 1] < 0) !== in0) quad(cellV[idx], cellV[idx - nx], cellV[idx - nx - nxy], cellV[idx - nxy], !in0);
+    if ((grid[idx + nx] < 0) !== in0) quad(cellV[idx], cellV[idx - nxy], cellV[idx - 1 - nxy], cellV[idx - 1], !in0);
+    if ((grid[idx + nxy] < 0) !== in0) quad(cellV[idx], cellV[idx - 1], cellV[idx - 1 - nx], cellV[idx - nx], !in0);
+  }
+  // projeta na superfície pelo gradiente
+  const n = P.length / 3, pos = new Float64Array(P), eps = h * 0.25;
+  for (let it = 0; it < 2; it++) for (let v = 0; v < n; v++) {
+    const px = pos[v * 3], py = pos[v * 3 + 1], pz = pos[v * 3 + 2], d0 = field(px, py, pz);
+    let gx = field(px + eps, py, pz) - field(px - eps, py, pz), gy = field(px, py + eps, pz) - field(px, py - eps, pz), gz = field(px, py, pz + eps) - field(px, py, pz - eps);
+    const g2 = (gx * gx + gy * gy + gz * gz) / (4 * eps * eps);
+    if (g2 < 1e-12) continue;
+    const s = Math.max(-h * 0.5, Math.min(h * 0.5, d0 / Math.sqrt(g2))), gl = Math.sqrt(gx * gx + gy * gy + gz * gz);
+    pos[v * 3] -= gx / gl * s; pos[v * 3 + 1] -= gy / gl * s; pos[v * 3 + 2] -= gz / gl * s;
+  }
+  return { pos, idx: Uint32Array.from(I), n };
 }

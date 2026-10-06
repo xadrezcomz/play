@@ -1,26 +1,277 @@
 {
  "versao": 1,
- "inicio": "2026-10-06T18:00:34.766Z",
+ "inicio": "2026-10-06T22:12:09.797Z",
  "generos": {
-  "m": {
-   "bindErr": 3.7853860324066346e-7,
-   "palm_l": 0.996,
-   "palm_r": 0.994,
-   "altura": 1.76,
-   "escala": 0.96725
-  },
   "f": {
    "bindErr": 4.318840167855109e-7,
-   "palm_l": 0.987,
-   "palm_r": 0.985,
+   "abducao": 14,
+   "punhoCoxaPose": 0.0328,
+   "palm_l": 0.986,
+   "polegar_l": {
+    "f": 1.2,
+    "antes": 0.0443,
+    "depois": 0.0089,
+    "indicador": [
+     0.0481,
+     0.0116
+    ]
+   },
+   "palm_r": 0.984,
+   "polegar_r": {
+    "f": 1.2,
+    "antes": 0.0443,
+    "depois": 0.0089,
+    "indicador": [
+     0.0481,
+     0.0116
+    ]
+   },
    "altura": 1.76,
-   "escala": 0.99152
+   "alturaTopo": 1.782,
+   "escala": 0.99152,
+   "marcos": {
+    "Ychest": 1.33,
+    "Ybra": 1.272,
+    "Sy": 1.42,
+    "cz": -0.004
+   },
+   "procurador": {
+    "ms": 6682,
+    "topoMovidos": 1327,
+    "cascaBaixo": 102542,
+    "virilhaY": 0.905
+   },
+   "roupa_meia": {
+    "v": 2678,
+    "tris": [
+     423,
+     182,
+     36
+    ],
+    "ms": 183
+   },
+   "roupa_short": {
+    "v": 15944,
+    "tris": [
+     2005,
+     699,
+     251
+    ],
+    "ms": 1046
+   },
+   "roupa_bermuda": {
+    "v": 19180,
+    "tris": [
+     2594,
+     942,
+     251
+    ],
+    "ms": 1363
+   },
+   "roupa_legging": {
+    "v": 24323,
+    "tris": [
+     3513,
+     1313,
+     252
+    ],
+    "ms": 1846
+   },
+   "roupa_saia-short": {
+    "v": 16555,
+    "tris": [
+     4151,
+     2963,
+     252
+    ],
+    "ms": 1056
+   },
+   "roupa_camiseta": {
+    "v": 14317,
+    "tris": [
+     3394,
+     1286,
+     270
+    ],
+    "ms": 587
+   },
+   "roupa_regata": {
+    "v": 14754,
+    "tris": [
+     2316,
+     857,
+     270
+    ],
+    "ms": 476
+   },
+   "roupa_top": {
+    "v": 14461,
+    "tris": [
+     1624,
+     568,
+     234
+    ],
+    "ms": 544
+   },
+   "roupa_manga-longa": {
+    "v": 12615,
+    "tris": [
+     4119,
+     1459,
+     287
+    ],
+    "ms": 607
+   },
+   "roupa_corta-vento": {
+    "v": 21388,
+    "tris": [
+     5142,
+     2092,
+     306
+    ],
+    "ms": 761
+   },
+   "tenis": {
+    "L": {
+     "v": 4729,
+     "tris": [
+      1568,
+      354,
+      64
+     ],
+     "comprimento": 0.299
+    },
+    "R": {
+     "v": 4697,
+     "tris": [
+      1570,
+      336,
+      64
+     ],
+     "comprimento": 0.299
+    }
+   },
+   "cabeloLongoK": 2.776,
+   "cabelo_curto_inflado": [
+    0.015,
+    0.015
+   ],
+   "cabelo_curto": {
+    "v": 3599,
+    "tris": [
+     2810,
+     881,
+     322
+    ]
+   },
+   "cabelo_cacheado_inflado": [
+    0.015,
+    0.015
+   ],
+   "cabelo_cacheado": {
+    "v": 9596,
+    "tris": [
+     3746,
+     754,
+     350
+    ]
+   },
+   "cabelo_rabo_inflado": [
+    0.015,
+    0.015
+   ],
+   "cabelo_rabo": {
+    "v": 4575,
+    "tris": [
+     3000,
+     840,
+     365
+    ]
+   },
+   "cabelo_coque_inflado": [
+    0.015,
+    0.015
+   ],
+   "cabelo_coque": {
+    "v": 4387,
+    "tris": [
+     3000,
+     855,
+     258
+    ]
+   },
+   "cabelo_longo_inflado": [
+    0.015,
+    0.015
+   ],
+   "cabelo_longo": {
+    "v": 4199,
+    "tris": [
+     3000,
+     874,
+     300
+    ]
+   },
+   "cabelo_raspado_inflado": [
+    0.0054,
+    0.0054
+   ],
+   "cabelo_raspado": {
+    "v": 1447,
+    "tris": [
+     1320,
+     830,
+     361
+    ]
+   },
+   "corpo": {
+    "celulas": 58,
+    "tris": [
+     9972,
+     4030
+    ],
+    "lod2": {
+     "top+legging+rabo": 802,
+     "top+legging+rabo+meia": 824,
+     "regata+short+rabo": 850,
+     "regata+short+rabo-meia": 804,
+     "camiseta+legging+coque": 764,
+     "camiseta+legging+coque+meia": 786,
+     "top+short+curto": 856,
+     "top+short+curto-meia": 810
+    },
+    "peApagado": 1184
+   },
+   "textura": {
+    "pele": 71823,
+    "normal": 30941,
+    "livre": [
+     812,
+     8,
+     115
+    ],
+    "M": [
+     0.4131,
+     0.1915,
+     0.0876
+    ],
+    "roupaDeBaixoTexels": 36186
+   },
+   "sobrancelhas": {
+    "cartoes": 2,
+    "cilios": 2,
+    "tris": [
+     800,
+     80
+    ]
+   }
   }
  },
  "arquivos": {
-  "corredor-m.js": 257088,
-  "corredor-f.js": 259562
+  "corredor-f.js": 332087,
+  "roupas.js": 450778,
+  "cabelos.js": 260792
  },
- "totalBytes": 516650,
- "segundos": 1.8
+ "totalBytes": 1043657,
+ "segundos": 22.9
 }

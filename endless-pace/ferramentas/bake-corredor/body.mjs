@@ -26,15 +26,15 @@ export function gameBoneOf(name) {
 }
 
 const SLIM = {
-  m: { upperarm: [0.84, 0.86], lowerarm: [0.9, 0.9], clavicle: [0.8, 0.85], neck_01: [0.84, 0.88], spine_03: [0.88, 0.95], spine_02: [0.92, 0.95],
+  m: { upperarm: [0.7, 0.74], lowerarm: [0.86, 0.86], clavicle: [0.62, 0.76], neck_01: [0.8, 0.85], spine_03: [0.8, 0.92], spine_02: [0.88, 0.94],
     spine_01: [0.95, 0.96], pelvis: [0.97, 1], thigh: [0.92, 0.94], calf: [0.94, 0.95] },
   f: { upperarm: [0.93, 0.93], lowerarm: [0.95, 0.95], clavicle: [0.9, 0.9], neck_01: [0.9, 0.92], spine_03: [0.95, 0.94], spine_02: [0.96, 0.98],
-    spine_01: [0.97, 0.98], pelvis: [0.96, 1], thigh: [0.93, 0.95], calf: [0.96, 0.97] }
+    spine_01: [0.97, 0.98], pelvis: [0.93, 0.89], thigh: [0.92, 0.92], calf: [0.96, 0.97] }
 };
 const SLIM_CHILD = { upperarm: 'lowerarm', lowerarm: 'hand', clavicle: 'upperarm', neck_01: 'Head', spine_03: 'neck_01', spine_02: 'spine_03',
   spine_01: 'spine_02', pelvis: 'spine_01', thigh: 'calf', calf: 'foot' };
 
-export const POSE = { m: { abd: 10, clav: 8, elbow: 8, fist: 0.8, wrist: 0.5 }, f: { abd: 13, clav: 8, elbow: 8, fist: 0.8, wrist: 0.5 } };
+export const POSE = { m: { abd: 10, clav: 8, elbow: 8, fist: 0.8, wrist: 0.5, narrow: 0.02 }, f: { abd: 13, clav: 8, elbow: 8, fist: 0.8, wrist: 0.5, narrow: 0 } };
 
 function nodeWorlds(g) {
   const W = new Array(g.nodes.length), par = {};
@@ -108,7 +108,8 @@ export function reposeSkeleton(B, ualRot, P) {
   const fist = /^(index|middle|ring|pinky|thumb)_0[123]_[lr]$/;
   const L = nodes.map((n, i) => {
     let r = n.rotation || [0, 0, 0, 1];
-    if (fist.test(names[i]) && ualRot[names[i]]) r = G.slerp(r, ualRot[names[i]], P.fist);
+    // dedos: punho do UAL a 80%; as falanges do meio e da ponta um pouco além (fecha o "tubo" entre dedos e palma)
+    if (fist.test(names[i]) && ualRot[names[i]]) r = G.slerp(r, ualRot[names[i]], /^thumb/.test(names[i]) || /_01_/.test(names[i]) ? P.fist : P.fist * 1.35);
     if (/^hand_[lr]$/.test(names[i]) && ualRot[names[i]]) r = G.slerp(r, ualRot[names[i]], P.wrist);
     return G.compose(n.translation, r, n.scale);
   });
@@ -122,6 +123,8 @@ export function reposeSkeleton(B, ualRot, P) {
   for (const side of ['l', 'r']) {
     const sx = side === 'l' ? 1 : -1;
     rotSub(ji['clavicle_' + side], G.axisAngle([0, 0, 1], -sx * P.clav * Math.PI / 180));
+    // ombros mais estreitos (masculino): o braço inteiro entra P.narrow em x (deltoide de academia → corredor)
+    if (P.narrow) { const T = G.compose([-sx * P.narrow, 0, 0]); for (const k of sub[ji['upperarm_' + side]]) W[k] = G.mul(T, W[k]); }
     const u = ji['upperarm_' + side], l = ji['lowerarm_' + side], h = ji['hand_' + side];
     const ab = P.abd * Math.PI / 180;
     rotSub(u, G.rotBetween(G.sub(pos(l), pos(u)), [sx * Math.sin(ab), -Math.cos(ab), 0]));
@@ -137,6 +140,48 @@ export function reposeSkeleton(B, ualRot, P) {
     const m1 = pos(ji['middle_01_' + side]), m3 = pos(ji['middle_03_' + side]), ax2 = G.norm(G.sub(m1, pos(h)));
     let pd = G.sub(m3, m1); pd = G.norm(G.sub(pd, G.scl(ax2, G.dot(pd, ax2))));
     log['palm_' + side] = +(-pd[0] * sx).toFixed(3);
+    // polegar apoiado no indicador (sem o anel de "OK"): gira o polegar inteiro até a ponta encostar na falange
+    // do meio do indicador, deixando ~9 mm (a espessura do dedo)
+    {
+      const t1 = ji['thumb_01_' + side], t2 = ji['thumb_02_' + side], t3 = ji['thumb_03_' + side];
+      const tip = () => { const a = pos(t2), b = pos(t3); return G.add(b, G.scl(G.norm(G.sub(b, a)), G.dist(a, b) * 0.9)); };
+      const tgt = G.lerp3(pos(ji['index_01_' + side]), pos(ji['index_02_' + side]), 0.7);   // lateral do indicador, perto da palma
+      const p1 = pos(t1), q = G.rotBetween(G.sub(tip(), p1), G.sub(tgt, p1)), save = W.slice();
+      let best = null;
+      for (let f = 0.05; f <= 1.5001; f += 0.05) {
+        for (let i = 0; i < nJ; i++) W[i] = save[i];
+        rotSub(t1, G.slerp([0, 0, 0, 1], q, f));
+        const d = G.dist(tip(), tgt);
+        if (!best || Math.abs(d - 0.009) < Math.abs(best[1] - 0.009)) best = [f, d];
+      }
+      for (let i = 0; i < nJ; i++) W[i] = save[i];
+      log['polegar_' + side] = { f: +best[0].toFixed(2), antes: +G.dist(tip(), tgt).toFixed(4) };
+      rotSub(t1, G.slerp([0, 0, 0, 1], q, best[0]));
+      // CCD curto (falange do meio, depois a base) até a ponta ficar a ~9 mm do alvo; ângulo por passo limitado
+      for (let it = 0; it < 4; it++) for (const j of [t2, t1]) {
+        const d0 = G.dist(tip(), tgt); if (d0 < 0.01) break;
+        const pj = pos(j), u = G.sub(tip(), pj), v = G.sub(tgt, pj), ax3 = G.cross(u, v);
+        if (G.len(ax3) < 1e-9) continue;
+        const ang = Math.min(Math.acos(Math.max(-1, Math.min(1, G.dot(G.norm(u), G.norm(v))))), 15 * Math.PI / 180);
+        rotSub(j, G.axisAngle(G.norm(ax3), ang * 0.7));
+      }
+      log['polegar_' + side].depois = +G.dist(tip(), tgt).toFixed(4);
+      // fecha o anel: CCD da ponta do indicador (falanges 02 e 01) até encostar no polegar (meio da falange da ponta)
+      {
+        const i1 = ji['index_01_' + side], i2 = ji['index_02_' + side], i3 = ji['index_03_' + side];
+        const itip = () => { const a = pos(i2), b = pos(i3); return G.add(b, G.scl(G.norm(G.sub(b, a)), G.dist(a, b) * 0.9)); };
+        const tt = () => G.lerp3(pos(t2), pos(t3), 0.8);
+        const d0 = G.dist(itip(), tt());
+        for (let it = 0; it < 6; it++) for (const j of [i3, i2, i1]) {
+          if (G.dist(itip(), tt()) < 0.01) break;
+          const pj = pos(j), u = G.sub(itip(), pj), v = G.sub(tt(), pj), ax3 = G.cross(u, v);
+          if (G.len(ax3) < 1e-9) continue;
+          const ang = Math.min(Math.acos(Math.max(-1, Math.min(1, G.dot(G.norm(u), G.norm(v))))), 12 * Math.PI / 180);
+          rotSub(j, G.axisAngle(G.norm(ax3), ang * 0.6));
+        }
+        log['polegar_' + side].indicador = [+d0.toFixed(4), +G.dist(itip(), tt()).toFixed(4)];
+      }
+    }
     if (log['palm_' + side] < 0.7) throw new Error('palma não está voltada para a coxa (' + side + '): ' + log['palm_' + side]);
   }
   return { W, log };
@@ -208,6 +253,12 @@ export function slimBody(B, gender, P, m, JP, underwear) {
     uwm.set(t);
   }
   taubin(W, adj, uwm, 6);
+  // masculino: deltoide, trapézio e bíceps mais lisos (sem relevo de academia)
+  if (gender === 'm') {
+    const sm = new Float64Array(wd.nw);
+    for (let v = 0; v < n; v++) { let s2 = 0; for (let k = 0; k < 4; k++) if (/^(clavicle|upperarm|spine_03|neck_01)/.test(names[m.jn[v * 4 + k]])) s2 += m.wt[v * 4 + k]; sm[wd.wid[v]] = Math.max(sm[wd.wid[v]], Math.min(1, s2)); }
+    taubin(W, adj, sm, 10);
+  }
   for (let v = 0; v < n; v++) out.set(W.subarray(wd.wid[v] * 3, wd.wid[v] * 3 + 3), v * 3);
   return { P: out, weld: wd, widx, adj };
 }
@@ -255,4 +306,4 @@ export function quantWeights(dense, n, nb = NB) {
   return { J, W: Wt };
 }
 
-export { smoothstep, vertexNormals, path };
+export { smoothstep, vertexNormals, path, taubin };

@@ -250,7 +250,8 @@
     return m >>> 0;
   }
 
-  var asmCache = {};
+  var asmCache = {}, warned = {};
+  function warnOnce(msg) { if (warned[msg]) return; warned[msg] = 1; if (typeof console !== 'undefined' && console.warn) console.warn(msg); }
   function assemble(g, outfit, lod) {
     var o = normOutfit(g, outfit), key = g + '|' + o.top + '|' + o.bottom + '|' + o.hair + '|' + (o.socks ? 1 : 0) + '|' + lod;
     if (asmCache[key]) return asmCache[key];
@@ -258,28 +259,40 @@
     // corpo: só as células que nenhuma peça cobre (LOD2: malha pronta por combinação, se houver)
     var body = part(g, 'body'), bIdx = null;
     if (lod >= 2) bIdx = indexByMask(body, mask);
-    if (!bIdx) {
-      var bl = Math.min(lod, 1), all = index(body, bl), cells = body.src.lods[bl].cells, keep = [], off = 0, k;
-      for (k = 0; k < cells.length; k++) {
-        var cnt = cells[k][2] * 3;
-        if ((cells[k][0] & mask) === 0) keep.push(all.subarray(off, off + cnt));
-        off += cnt;
-      }
-      var tot = 0; keep.forEach(function (a) { tot += a.length; });
-      bIdx = new Uint16Array(tot); off = 0;
-      keep.forEach(function (a) { bIdx.set(a, off); off += a.length; });
-    }
-    list.push([body, bIdx]);
-    var add = function (m) { if (!m) return; var ix = index(m, Math.min(lod, m.src.lods.length - 1)); if (m.src.lods.length > lod && ix) list.push([m, ix]); };
+    if (lod >= 2 && !bIdx) warnOnce('ModelData: sem LOD2 assado para ' + key + ' (usa o LOD1 do corpo, ~4k triângulos a mais)');
+    if (!bIdx) { var bl = Math.min(lod, 1); bIdx = cellsKeep(index(body, bl), body.src.lods[bl].cells, mask); }
+    // LOD2: pele só com a cor por vértice (o UV da malha dizimada distorce o rosto) → UV no retalho neutro
+    list.push([body, bIdx, lod >= 2]);
+    // peça; com células (roupa de baixo), tira os triângulos inteiros embaixo da roupa de cima
+    var add = function (m, hide) {
+      if (!m || m.src.lods.length <= lod) return;
+      var ix = index(m, lod), cl = m.src.lods[lod].cells;
+      if (cl && hide) ix = cellsKeep(ix, cl, hide);
+      list.push([m, ix]);
+    };
+    var bits = c.coverBits;
     add(part(g, 'eyes')); add(part(g, 'brows')); add(part(g, 'shoes'));
     add(hair(g, o.hair));
-    add(garment(g, o.top)); add(garment(g, o.bottom));
-    if (o.socks) add(garment(g, 'meia'));
+    add(garment(g, o.top)); add(garment(g, o.bottom), 1 << bits[o.top]);
+    if (o.socks) add(garment(g, 'meia'), 1 << bits[o.bottom]);
     var r = concat(list, c.textures.uvNeutral);
     r.key = key; r.outfit = o; r.coverMask = mask;
     asmCache[key] = r;
     return r;
   }
+  // só as células (faixas contíguas do índice) cuja máscara não bate com hide
+  function cellsKeep(all, cells, hide) {
+    var keep = [], off = 0, tot = 0, k;
+    for (k = 0; k < cells.length; k++) {
+      var cnt = cells[k][2] * 3;
+      if ((cells[k][0] & hide) === 0) { keep.push(all.subarray(off, off + cnt)); tot += cnt; }
+      off += cnt;
+    }
+    var out = new Uint16Array(tot); off = 0;
+    keep.forEach(function (a) { out.set(a, off); off += a.length; });
+    return out;
+  }
+
   // junta as peças, só com os vértices usados
   function concat(list, uvN) {
     var n = 0, ni = 0, maps = [];
@@ -299,7 +312,7 @@
         if (d < 0) continue;
         d += vo;
         for (k = 0; k < 3; k++) { o.position[d * 3 + k] = m.position[v * 3 + k]; o.normal[d * 3 + k] = m.normal[v * 3 + k]; }
-        if (m.uv) { o.uv[d * 2] = m.uv[v * 2]; o.uv[d * 2 + 1] = m.uv[v * 2 + 1]; } else { o.uv[d * 2] = uvN[0]; o.uv[d * 2 + 1] = uvN[1]; }
+        if (m.uv && !e[2]) { o.uv[d * 2] = m.uv[v * 2]; o.uv[d * 2 + 1] = m.uv[v * 2 + 1]; } else { o.uv[d * 2] = uvN[0]; o.uv[d * 2 + 1] = uvN[1]; }
         for (k = 0; k < 4; k++) { o.skinIndex[d * 4 + k] = m.skinIndex[v * 4 + k]; o.skinWeight[d * 4 + k] = m.skinWeight[v * 4 + k]; }
         o.mat[d] = m.mat[v]; o.slot[d] = m.slot[v]; o.ao[d] = m.ao[v]; o.flags[d] = m.flags[v];
       }

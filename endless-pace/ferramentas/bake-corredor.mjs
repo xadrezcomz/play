@@ -19,6 +19,8 @@ import { bakeGender } from './bake-corredor/pipeline.mjs';
 import { initMeshopt } from './bake-corredor/encode.mjs';
 import { initImg } from './bake-corredor/textures.mjs';
 import { writeOutputs } from './bake-corredor/saida.mjs';
+import { runChecks } from './bake-corredor/checks.mjs';
+import { checkNpcOutfits } from './bake-corredor/pipeline.mjs';
 
 const AQUI = path.dirname(fileURLToPath(import.meta.url));
 const RAIZ = path.resolve(AQUI, '..');
@@ -45,8 +47,13 @@ for (const g of SO ? [SO] : ['m', 'f']) {
   out[g] = await bakeGender(g, { fontes: path.join(CACHE, 'fontes'), rapido: RAPIDO, raiz: RAIZ, report: (report.generos[g] = {}) });
 }
 writeOutputs(out, { saida: SAIDA, raiz: RAIZ, deps, report, fontes: path.join(CACHE, 'fontes') });
+const falhas = [];
+const npc = checkNpcOutfits(RAIZ);
+if (npc) falhas.push(npc);
+if (!SO) falhas.push(...runChecks(out, { raiz: RAIZ, saida: SAIDA, report }));
 report.segundos = +((Date.now() - t0) / 1000).toFixed(1);
 const rel = path.join(RAIZ, 'ferramentas', 'saida-ver');
 fs.mkdirSync(rel, { recursive: true });
 fs.writeFileSync(path.join(rel, 'relatorio.json'), JSON.stringify(report, null, 1));
+if (falhas.length) { console.error('FALHAS:\n  ' + falhas.join('\n  ')); process.exitCode = 1; }
 console.log('pronto em', report.segundos, 's');

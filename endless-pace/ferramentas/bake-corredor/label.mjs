@@ -1,7 +1,7 @@
 // Rótulos do corpo (§5): coordenadas por vértice (braço/perna), regiões, marcos e as funções de
 // região de cada roupa R_g (negativo = tem tecido, aproximadamente em metros).
 import { BI } from './body.mjs';
-import { smax, clamp } from './geom.mjs';
+import { smax, smin, clamp } from './geom.mjs';
 import * as G from './gltf.mjs';
 
 export const REG = ['cabeca', 'pescoco', 'troncoSup', 'troncoInf', 'quadril', 'bracoL', 'antebracoL', 'maoL', 'bracoR', 'antebracoR', 'maoR',
@@ -13,7 +13,7 @@ export const K = { px: 0, py: 1, pz: 2, nx: 3, ny: 4, nz: 5, w0: 6, sA: 23, sL: 
 export const KN = 30;
 
 // marcos do corpo no referencial final
-export function landmarks(C) {
+export function landmarks(C, bvh) {
   const bw = C.boneWorld, JP = C.JP, g = C.g;
   const L = {
     H: bw.hips, T: bw.torso, N: bw.head,
@@ -35,21 +35,54 @@ export function landmarks(C) {
       if (z < best) { best = z; ay = y; ap = [b.P[v * 3], y, z]; }
     }
     L.apex = ap; L.Ychest = ay;
-    // linha sob o busto: perfil da frente (z mínimo por faixa de 1 cm, |x| 0,06–0,10) volta 60% para a caixa torácica
-    const prof = new Map();
-    for (let v = 0; v < b.n; v++) {
-      const x = Math.abs(b.P[v * 3]), y = b.P[v * 3 + 1], z = b.P[v * 3 + 2];
-      if (x < 0.06 || x > 0.1 || y > ay || y < ay - 0.16) continue;
-      const k = Math.floor(y * 100);
-      if (!prof.has(k) || z < prof.get(k)) prof.set(k, z);
-    }
-    const keys = [...prof.keys()].sort((a, c) => c - a);
-    const zr = Math.max(...keys.slice(-4).map(k => prof.get(k)));   // caixa torácica (abaixo do busto)
+    // linha sob o busto: perfil da frente (raios em x = ±0,08) volta 60% do ápice até o ponto mais recuado abaixo
+    const zf = y => { let s = 0, c = 0; for (const x of [-0.08, 0.08]) { const h = bvh.ray(x, y, -1, 0, 0, 1, 2); if (h) { s += -1 + h.t; c++; } } return c ? s / c : null; };
+    const az = zf(ay);
+    let zr = -1e9;
+    for (let y = ay - 0.04; y >= ay - 0.14; y -= 0.005) { const z = zf(y); if (z !== null && z > zr) zr = z; }
     let yb = Sy - 0.2;
-    for (const k of keys) { if (prof.get(k) >= best + 0.6 * (zr - best)) { yb = k / 100; break; } }
+    for (let y = ay; y >= ay - 0.16; y -= 0.0025) { const z = zf(y); if (z !== null && z >= az + 0.6 * (zr - az)) { yb = y; break; } }
     L.Ybra = yb; L.zRib = zr;
   }
+  // virilha: ponto mais baixo do tronco em x = 0 (raio de baixo para cima)
+  { const h = bvh.ray(0.0003, 0.3, L.H[2], 0, 1, 0, 1.0); L.crotchY = h ? 0.3 + h.t : L.H[1] - 0.09; }
+  // centro do tronco (z) na altura do peito
+  { const hf = bvh.ray(0, L.Ychest, -1, 0, 0, 1, 2), hb = bvh.ray(0, L.Ychest, 1, 0, 0, -1, 2); L.cz = hf && hb ? ((-1 + hf.t) + (1 - hb.t)) / 2 : L.H[2]; }
   return L;
+}
+
+// alças do top (costas nadador): polilinhas coladas no corpo, uma por lado
+export function strapPaths(Lm, bvh) {
+  const fr = (x, y) => { const h = bvh.ray(x, y, -1, 0, 0, 1, 2); return h ? [x, y, -1 + h.t] : null; };
+  const bk = (x, y) => { const h = bvh.ray(x, y, 1, 0, 0, -1, 2); return h ? [x, y, 1 - h.t] : null; };
+  const tp = (x, z) => { const h = bvh.ray(x, 2.5, z, 0, -1, 0, 2); return h ? [x, 2.5 - h.t, z] : null; };
+  const out = {};
+  for (const sd of ['L', 'R']) {
+    const sx = sd === 'L' ? -1 : 1, ay = Lm.apex[1];
+    const pts = [fr(sx * 0.072, ay + 0.02), fr(sx * 0.088, Lm.Sy - 0.04), tp(sx * 0.10, Lm.N[2] - 0.005), bk(sx * 0.078, Lm.Sy - 0.04),
+      bk(sx * 0.038, Lm.Sy - 0.12), bk(sx * 0.012, Lm.Ybra + 0.07), bk(sx * 0.010, Lm.Ybra + 0.03)].filter(Boolean);   // desce até dentro da faixa: junção sem "W"
+    // reamostra a cada ~8 mm e cola cada ponto na pele (a corda entre pontos passaria por dentro do corpo)
+    const dense = [];
+    for (let i = 0; i + 1 < pts.length; i++) {
+      const a = pts[i], b = pts[i + 1], m = Math.max(1, Math.ceil(G.dist(a, b) / 0.008));
+      for (let k = 0; k < m; k++) dense.push(G.lerp3(a, b, k / m));
+    }
+    dense.push(pts[pts.length - 1]);
+    for (let it = 0; it < 3; it++) for (let i = 0; i < dense.length; i++) {
+      const h = bvh.closest(dense[i][0], dense[i][1], dense[i][2]);
+      dense[i] = [h.x, h.y, h.z];
+    }
+    out[sd] = dense;
+  }
+  return out;
+}
+function distPoly(p, pts) {
+  let best = 1e9;
+  for (let i = 0; i + 1 < pts.length; i++) {
+    const a = pts[i], b = pts[i + 1], ab = G.sub(b, a), t = clamp(G.dot(G.sub(p, a), ab) / G.dot(ab, ab), 0, 1);
+    best = Math.min(best, G.dist(p, G.add(a, G.scl(ab, t))));
+  }
+  return best;
 }
 
 // atributos por vértice soldado: posição, normal, pesos, sA, sL, wArm, wLeg, mão, cabeça, pescoço
@@ -105,6 +138,8 @@ export function regionOf(A, o, Lm) {
   return RI['pe' + s2];
 }
 
+// barra dos tops (v4): 4,5 cm abaixo do topo do cós do short (corta-vento 6,3 cm) — a camiseta não cobre o short inteiro
+export const hemY = (kind, Lm) => kind === 'corta-vento' ? Lm.T[1] - 0.075 : Lm.T[1] - 0.057;
 // ---------------------------------------------------------------- funções de região das roupas
 // Cada roupa: termos { nome: f(A, o) } e R = smax dos termos. δ de um termo = −valor (distância à borda).
 export function garmentTerms(kind, g, Lm) {
@@ -113,7 +148,13 @@ export function garmentTerms(kind, g, Lm) {
   const hem = Y => (A, o) => Y - y(A, o);
   const top = Y => (A, o) => y(A, o) - Y;
   const sleeve = L => (A, o) => A[o + K.sA] < 0 ? -1 : A[o + K.sA] - L;
-  const legEnd = L => (A, o) => A[o + K.sL] < 0 ? -1 : A[o + K.sL] - L;
+  // barra da perna: plano perpendicular ao eixo da coxa (distância L do quadril) — para todo ponto do lado, não só
+  // os de peso de perna ≥ 0,5 (senão a barra subia em "V" na dobra do glúteo); canela: sL como antes
+  const legEnd = L => (A, o) => {
+    if (L > Lm.thigh) return A[o + K.sL] < 0 ? -1 : A[o + K.sL] - L;
+    const sd = A[o] < 0 ? 'L' : 'R', a = Lm.Lg[sd], ax = G.norm(G.sub(Lm.Kn[sd], a));
+    return (A[o] - a[0]) * ax[0] + (A[o + 1] - a[1]) * ax[1] + (A[o + 2] - a[2]) * ax[2] - L;
+  };
   const noArm = (A, o) => A[o + K.wArm] >= 0.5 ? 1 : -1;
   const noLeg = (A, o) => A[o + K.wLeg] >= 0.5 ? 1 : -1;
   const neck = (r, drop) => (A, o) => {
@@ -132,13 +173,26 @@ export function garmentTerms(kind, g, Lm) {
     return (Math.abs(A[o]) - 0.032 - Math.max(0, (Lm.Sy + 0.03) - A[o + 1]) * 0.75) * 0.5;
   };
   const LL = Lm.thigh + Lm.shin;
+  const noHead = (A, o) => A[o + K.head] >= 0.5 ? 1 : -1;
   switch (kind) {
-    case 'camiseta': return { hem: hem(H[1] - (f ? 0.03 : 0.035)), neck: neck(0.068, 0.03), sleeve: sleeve(f ? 0.115 : 0.135) };
-    case 'regata': return { hem: hem(H[1] - 0.035), neck: neck(0.075, f ? 0.10 : 0.09), armhole: armhole(f ? 0.07 : 0.075, f ? 0.14 : 0.15, f ? 0.11 : 0.115), noArm };
-    case 'top': return { hem: hem(Lm.Ybra - 0.02), neck: neck(0.08, 0.12), armhole: armhole(0.08, 0.16, 0.12), racer, noArm };
-    case 'manga-longa': return { hem: hem(H[1] - 0.035), neck: neck(0.066, 0.025), sleeve: sleeve(Lm.armLen - 0.015) };
-    case 'corta-vento': return { hem: hem(H[1] - 0.075), neck: neck(0.075, 0.005), sleeve: sleeve(Lm.armLen + 0.005) };
-    case 'short': case 'saia-short': return { waist: top(T[1] - 0.012), legEnd: legEnd(f ? 0.135 : 0.25), noArm };
+    case 'camiseta': return { noHead, hem: hem(hemY(kind, Lm)), neck: neck(0.068, 0.03), sleeve: sleeve(f ? 0.115 : 0.135) };
+    case 'regata': return { noHead, hem: hem(hemY(kind, Lm)), neck: neck(0.075, f ? 0.10 : 0.09), armhole: armhole(f ? 0.07 : 0.075, f ? 0.14 : 0.15, f ? 0.11 : 0.115), noArm };
+    case 'top': {
+      // corpo do top: faixa sob o busto + bojo na frente até a linha de cima (por ângulo em volta do tronco)
+      const ay = Lm.apex[1], Yb = Lm.Ybra;
+      // v4: painel lateral até a axila (Sy − 6 cm) — antes a lateral descia a Ybra + 7,5 cm e abria uma janela entre o
+      // bojo e a alça que mostrava a lateral do seio
+      const topY = th => { const a = Math.abs(th); const P = [[0, ay + 0.035], [0.5, ay + 0.04], [0.95, Lm.Sy - 0.055], [1.5, Lm.Sy - 0.065], [2.15, Lm.Sy - 0.08], [2.6, Yb + 0.065], [Math.PI, Yb + 0.05]];
+        for (let i = 1; i < P.length; i++) if (a <= P[i][0]) { const t = (a - P[i - 1][0]) / (P[i][0] - P[i - 1][0]); return P[i - 1][1] + (P[i][1] - P[i - 1][1]) * t; } return P[P.length - 1][1]; };
+      const line = (A, o) => y(A, o) - topY(Math.atan2(A[o], -(A[o + 2] - Lm.cz)));
+      const strap = (A, o) => { const p = [A[o], A[o + 1], A[o + 2]]; return Math.min(distPoly(p, Lm.straps.L), distPoly(p, Lm.straps.R)) - 0.017; };
+      const hm = hem(Yb - 0.02);
+      return { noHead, noArm, hem: hm, line, strap,
+        _R: (A, o) => smax(smax(smin(smax(hm(A, o), line(A, o), 0.006), smax(strap(A, o), hm(A, o), 0.006), 0.018), noArm(A, o), 0.004), noHead(A, o), 0.004) };
+    }
+    case 'manga-longa': return { noHead, hem: hem(hemY(kind, Lm)), neck: neck(0.066, 0.025), sleeve: sleeve(Lm.armLen - 0.015) };
+    case 'corta-vento': return { noHead, hem: hem(hemY(kind, Lm)), neck: neck(0.075, 0.005), sleeve: sleeve(Lm.armLen + 0.005) };
+    case 'short': case 'saia-short': return { waist: top(T[1] - 0.012), legEnd: legEnd(f ? 0.155 : 0.25), noArm };
     case 'bermuda': return { waist: top(T[1] - 0.012), legEnd: legEnd(Lm.thigh - 0.035), noArm };
     case 'legging': return { waist: top(T[1] + 0.02), legEnd: legEnd(LL - 0.045), noArm };
     case 'meia': return {
@@ -149,6 +203,7 @@ export function garmentTerms(kind, g, Lm) {
   throw new Error('roupa desconhecida: ' + kind);
 }
 export function evalR(terms, A, o) {
+  if (terms._R) return terms._R(A, o);
   let r = -1e9;
   for (const k in terms) r = r === -1e9 ? terms[k](A, o) : smax(r, terms[k](A, o), 0.01);
   return r;

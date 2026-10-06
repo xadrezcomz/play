@@ -60,10 +60,12 @@ export function fetchOrder(idx, nv) {
 
 // Monta uma "Part" codificada. v = { n, P (Float n*3), N (n*3), T? (n*2), J (u8 n*4), W (u8 n*4), A (u8 n*4) }
 // lods = [{ idx: Uint32Array (índices em v), cells? }] — LOD0 define a ordem dos vértices (busca).
-// Vértices não usados pelo LOD0 são descartados.
+// Vértices que nenhum LOD usa são descartados.
 export function encodePart(v, lods, extra = {}) {
-  const l0 = lods[0].idx;
-  const fo = fetchOrder(l0, v.n), n = fo.order.length, ord = fo.order;
+  // ordem de busca: LOD0 primeiro; vértices só dos LODs seguintes (ex.: casca inflada do cabelo) vão no fim
+  let all = lods[0].idx;
+  if (lods.length > 1) { const tot = lods.reduce((a, L) => a + L.idx.length, 0); all = new Uint32Array(tot); let o = 0; for (const L of lods) { all.set(L.idx, o); o += L.idx.length; } }
+  const fo = fetchOrder(all, v.n), n = fo.order.length, ord = fo.order;
   let x0 = 1e9, y0 = 1e9, z0 = 1e9, x1 = -1e9, y1 = -1e9, z1 = -1e9;
   for (const o of ord) {
     const x = v.P[o * 3], y = v.P[o * 3 + 1], z = v.P[o * 3 + 2];
@@ -88,7 +90,7 @@ export function encodePart(v, lods, extra = {}) {
   if (T) out.T = vbuf(T, n, 4);
   out.J = vbuf(J, n, 4); out.W = vbuf(W, n, 4); out.A = vbuf(A, n, 4);
   out.lods = lods.map(L => {
-    const idx = Uint32Array.from(L.idx, i => { const m = fo.map[i]; if (m < 0) throw new Error('LOD usa vértice fora do LOD0'); return m; });
+    const idx = Uint32Array.from(L.idx, i => { const m = fo.map[i]; if (m < 0) throw new Error('LOD usa vértice sem ordem'); return m; });
     const o = { t: idx.length / 3, I: ibuf(idx) };
     if (L.cells) o.cells = L.cells;
     return o;
