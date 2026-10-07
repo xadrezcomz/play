@@ -137,7 +137,7 @@
       ].join('\n'))
       .replace('#include <aomap_fragment>', [
         '#include <aomap_fragment>',
-        'if ( rm < 0.5 ) reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3( 0.09, 0.03, 0.015 );',          // calor da pele
+        'if ( rm < 0.5 ) reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3( 0.035, 0.022, 0.018 );',        // calor da pele (leve: a luz da tarde já esquenta)
         'if ( rm > 0.5 && rm < 2.5 ) {',                                                                           // brilho aveludado do tecido
         '  float sh = pow( 1.0 - max( dot( normalize( vViewPosition ), normal ), 0.0 ), 2.0 );',
         '  reflectedLight.indirectDiffuse += diffuseColor.rgb * sh * 0.22;',

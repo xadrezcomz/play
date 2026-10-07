@@ -202,7 +202,7 @@ export function buildShoe(C, sd, opts = {}) {
   const fields = [
     // abertura: mais baixa nos lados (abaixo do maléolo), alta atrás (contraforte e colarinho do tendão)
     ['open', (V, o) => Math.max(dwell(V[o], V[o + 2]), 0.058 + 0.026 * smoothstep(-0.2, 0.9, (V[o + 2] - wl.cz) / wl.rz) - V[o + 1], -V[o + 5])],
-    ['base', (V, o) => yMid(V[o + 3]) - 0.0065 - V[o + 1]],   // abaixo da linha da entressola o cabedal sai (fica dentro dela)
+    ['base', (V, o) => yMid(V[o + 3]) + 0.0004 - V[o + 1]],   // v6: a borda do cabedal assenta na aba da entressola (sem serrilhado da interseção)   // abaixo da linha da entressola o cabedal sai (fica dentro dela)
     ['collar', (V, o) => Math.max(dwell(V[o], V[o + 2]) - 0.011, 0.06 - V[o + 1])],
     ['hc', (V, o) => Math.max(V[o + 1] - (yMid(V[o + 3]) + 0.006 + 0.04 * Math.pow(1 - smoothstep(0.0, 0.24, V[o + 3]), 1.3)), V[o + 3] - 0.24)],   // contraforte (curva lisa)
     ['toe', (V, o) => V[o + 1] - (yMid(V[o + 3]) + 0.004 + 0.016 * smoothstep(0.84, 0.99, V[o + 3]))],   // biqueira de borracha (sobe no bico, some na lateral)
@@ -304,15 +304,16 @@ function soleOutline(base, N) {
 
 // entressola (parede abaulada com vinco, aba de cima até o cabedal) + solado (parede chanfrada e fundo)
 function soleParts(base, lod) {
-  const N = [56, 22, 10][lod], O = soleOutline(base, N), { fromFrame, spring, yMid, F } = base, M = part(), up = [0, 1, 0];
+  const N = [52, 22, 10][lod], O = soleOutline(base, N), { fromFrame, spring, yMid, F } = base, M = part(), up = [0, 1, 0];
   const W = (o, y, r) => fromFrame(o.s, o.l + o.nl * r, y).map((v, k) => v + (k === 1 ? 0 : 0)) && (() => { const t = o.t + o.nt * r; const s2 = (t + base.mHeel) / base.Ls; return fromFrame(s2, o.l + o.nl * r, y); })();
-  const rowsMid = lod === 0 ? [0, 0.42, 0.64, 1] : [0, 1];
-  const prof = tr => lod === 0 ? 0.0012 * Math.sin(Math.PI * tr) - 0.0012 * Math.exp(-Math.pow((tr - 0.64) / 0.04, 2)) : 0.0006 * Math.sin(Math.PI * tr);
+  // v6: parede da entressola abaulada (2,4 mm), com uma linha fina de vinco a 70%
+  const rowsMid = lod === 0 ? [0, 0.22, 0.5, 0.7, 0.86, 1] : lod === 1 ? [0, 0.5, 1] : [0, 1];
+  const prof = tr => lod === 0 ? 0.0024 * Math.pow(Math.sin(Math.PI * tr), 0.7) - 0.0009 * Math.exp(-Math.pow((tr - 0.7) / 0.035, 2)) : lod === 1 ? 0.0016 * Math.sin(Math.PI * tr) : 0.0006 * Math.sin(Math.PI * tr);
   const grid = [];
   const mid = part();
   for (const tr of rowsMid) grid.push(O.map(o => { const y0 = spring(o.s) + (lod === 2 ? 0 : 0.0045), y1 = yMid(o.s) + 0.0008; return addV(mid, W(o, y0 + (y1 - y0) * tr, prof(tr)), [0, 0, 0], SL.midsole); }));
   // aba de cima: da borda da parede até dentro do cabedal (2 mm além do contorno do cabedal)
-  grid.push(O.map(o => addV(mid, W(o, yMid(o.s) + 0.0011, -o.f - 0.0025), [0, 0, 0], SL.midsole)));
+  grid.push(O.map(o => addV(mid, W(o, yMid(o.s) + 0.0011, -o.f - 0.0045), [0, 0, 0], SL.midsole)));
   for (let r = 0; r + 1 < grid.length; r++) for (let k = 0; k < N; k++) { const k2 = (k + 1) % N, a = grid[r][k], b = grid[r][k2], c = grid[r + 1][k2], d = grid[r + 1][k]; mid.idx.push(a, b, c, a, c, d); }
   const cenW = fromFrame(0.5, O.reduce((a, o) => a + o.l / N, 0), 0.02);
   finishPart(mid, (t, c) => { const r = Math.floor(t / (2 * N)); if (r === grid.length - 2) return up; const d = G.sub(c, cenW); return [d[0], 0, d[2]]; });
@@ -323,10 +324,41 @@ function soleParts(base, lod) {
   for (let r = 0; r + 1 < g2.length; r++) for (let k = 0; k < N; k++) { const k2 = (k + 1) % N, a = g2[r][k], b = g2[r][k2], c = g2[r + 1][k2], d = g2[r + 1][k]; sole.idx.push(a, b, c, a, c, d); }
   const nWall = sole.idx.length / 3;
   const bot = O.map(o => addV(sole, W(o, spring(o.s), lod === 2 ? 0 : -0.0009), [0, -1, 0], SL.sole));
-  for (const i of earClip(O.map(o => [o.t, o.l]))) sole.idx.push(bot[i]);
+  const botIdx = earClip(O.map(o => [o.t, o.l])).map(i => bot[i]);
+  if (lod === 0) {
+    // v6: fundo em faixas transversais (linhas nas bordas e no meio de cada sulco): 6 sulcos de flexão em V de 1,3 mm
+    // (4 na frente, 2 no calcanhar), escuros; as pontas (calcanhar e bico) fecham em leque até o contorno
+    const hw = 0.0022 / base.Ls, GR = [0.13, 0.21, 0.58, 0.655, 0.73, 0.805];
+    let sMin = 1, sMax = 0; for (const o of O) { sMin = Math.min(sMin, o.s); sMax = Math.max(sMax, o.s); }
+    const rowsS = new Set();
+    for (let v = sMin + 0.035; v < sMax - 0.035; v += 0.035) rowsS.add(+v.toFixed(5));
+    for (const g of GR) for (const d of [-hw, 0, hw]) rowsS.add(+(g + d).toFixed(5));
+    const RS = [...rowsS].filter(v => v > sMin + 0.02 && v < sMax - 0.02).sort((x, y) => x - y);
+    const cross = sv => { let lo = 1e9, hi = -1e9; for (let k = 0; k < O.length; k++) { const p = O[k], q = O[(k + 1) % O.length]; if ((p.s - sv) * (q.s - sv) > 0 || p.s === q.s) continue; const u = (sv - p.s) / (q.s - p.s), l = p.l + (q.l - p.l) * u; lo = Math.min(lo, l); hi = Math.max(hi, l); } return [lo, hi]; };
+    const yB = sv => spring(sv), inG = sv => GR.some(g => Math.abs(sv - g) < hw - 1e-7), onC = sv => GR.some(g => Math.abs(sv - g) < 1e-7);
+    const rowV = RS.map(sv => { const [lo, hi] = cross(sv), y = yB(sv) + (onC(sv) ? 0.0013 : 0); return [0, 0.5, 1].map(f => addV(sole, fromFrame(sv, lo + (hi - lo) * f, y), [0, -1, 0], SL.sole)); });
+    for (let r = 0; r + 1 < RS.length; r++) {
+      const groove = inG((RS[r] + RS[r + 1]) / 2);
+      const pick = (rr, c) => { const v = rowV[rr][c]; if (!groove) return v; return addV(sole, sole.P.slice(v * 3, v * 3 + 3), [0, -1, 0], SL.lining); };
+      for (let c = 0; c < 2; c++) { const a2 = pick(r, c), b2 = pick(r, c + 1), c2 = pick(r + 1, c + 1), d2 = pick(r + 1, c); sole.idx.push(a2, b2, c2, a2, c2, d2); }
+    }
+    // pontas: leque do primeiro/último anel até os pontos do contorno além dele
+    for (const [rr, cmp] of [[0, o => o.s < RS[0]], [RS.length - 1, o => o.s > RS[RS.length - 1]]]) {
+      const ring = O.map((o, k) => [o, k]).filter(([o]) => cmp(o)).map(([o, k]) => bot[k]);
+      if (!ring.length) continue;
+      const cen = rowV[rr][1];
+      const all = [rowV[rr][0], ...ring, rowV[rr][2]];
+      // ordena pelo ângulo em volta do centro da linha (plano do chão)
+      const cp = sole.P.slice(cen * 3, cen * 3 + 3);
+      all.sort((x, y) => Math.atan2(sole.P[x * 3 + 2] - cp[2], sole.P[x * 3] - cp[0]) - Math.atan2(sole.P[y * 3 + 2] - cp[2], sole.P[y * 3] - cp[0]));
+      for (let k = 0; k < all.length; k++) { const x = all[k], y2 = all[(k + 1) % all.length]; if (x === y2) continue; const ang = Math.atan2(sole.P[y2 * 3 + 2] - cp[2], sole.P[y2 * 3] - cp[0]) - Math.atan2(sole.P[x * 3 + 2] - cp[2], sole.P[x * 3] - cp[0]); if (((ang % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI) > Math.PI) continue; sole.idx.push(cen, x, y2); }
+    }
+    if (process.env.DBG_SHOE) console.log('  sola fundo', RS.length, 'linhas');
+  } else for (const i of botIdx) sole.idx.push(i);
   finishPart(sole, (t, c) => { if (t >= nWall) return [0, -1, 0]; const d = G.sub(c, cenW); return [d[0], 0, d[2]]; });
-  // o fundo com normal para baixo (sem média com a parede: vértices próprios)
-  for (const i of bot) { sole.N[i * 3] = 0; sole.N[i * 3 + 1] = -1; sole.N[i * 3 + 2] = 0; }
+  // o fundo com normal para baixo (sem média com a parede: vértices próprios); nos sulcos a normal das faces
+  const nWallV = bot[0];
+  for (let i = nWallV; i < sole.P.length / 3; i++) if (sole.slot[i] !== SL.lining) { sole.N[i * 3] = 0; sole.N[i * 3 + 1] = -1; sole.N[i * 3 + 2] = 0; }
   merge(M, sole);
   return M;
 }
@@ -355,7 +387,7 @@ function heelTab(loopPts, well) {
   const base0 = G.add(back, G.scl(up, -0.012)), rows = [];
   const prof = [[-1, 0], [-1, 0.75], [-0.75, 1], [0, 1.08], [0.75, 1], [1, 0.75], [1, 0]];
   for (const [u, v] of prof) {
-    const p = G.add(G.add(base0, G.scl(side, u * 0.012)), G.scl(up, v * 0.034));
+    const p = G.add(G.add(base0, G.scl(side, u * 0.011)), G.scl(up, v * 0.024));
     rows.push([addV(M, G.add(p, G.scl(out, 0.0022)), out, SL.shoeAccent), addV(M, G.sub(p, G.scl(out, 0.0012)), G.scl(out, -1), SL.lining)]);
   }
   const cIn = addV(M, G.add(G.add(base0, G.scl(up, 0.012)), G.scl(out, 0.0022)), out, SL.shoeAccent), cBk = addV(M, G.sub(G.add(base0, G.scl(up, 0.012)), G.scl(out, 0.0012)), G.scl(out, -1), SL.lining);
@@ -404,7 +436,7 @@ function laces(base, front, lod) {
     for (let q = 0; q + 1 < rows.length; q++) for (let k = 0; k < 4; k++) { const a = rows[q][k], b = rows[q][(k + 1) % 4], c = rows[q + 1][(k + 1) % 4], d = rows[q + 1][k]; M.idx.push(a, b, c, a, c, d); }
   };
   const bar = (s0, half, w, th) => {
-    const segs = lod === 0 ? 6 : 3, pts = [];
+    const segs = lod === 0 ? 4 : 3, pts = [];
     for (let q = 0; q <= segs; q++) {
       const u = -1 + 2 * q / segs, phi = Math.PI / 2 + half * u, sp = surf(clamp(s0, 0, 1), phi);
       const lift = th / 2 + 0.0005 * (1 - u * u) - 0.0012 * Math.pow(Math.abs(u), 6);   // pontas entram no cabedal
@@ -419,8 +451,8 @@ function laces(base, front, lod) {
     const s0 = sF + m2s(0.018);
     for (const sg of [-1, 1]) {
       const loop = [];
-      for (let q = 0; q <= 8; q++) {
-        const th = Math.PI * q / 8, phi = Math.PI / 2 + sg * (0.1 + 0.32 * Math.sin(th)), ds = m2s(0.006 * Math.cos(th) - 0.001);
+      for (let q = 0; q <= 6; q++) {
+        const th = Math.PI * q / 6, phi = Math.PI / 2 + sg * (0.1 + 0.32 * Math.sin(th)), ds = m2s(0.006 * Math.cos(th) - 0.001);
         const sp = surf(clamp(s0 + ds, 0, 1), phi), sp2 = surf(clamp(s0 + ds + m2s(0.002) * -Math.sin(th), 0, 1), phi + sg * 0.02 * Math.cos(th));
         loop.push({ c: G.add(sp.p, G.scl(sp.n, 0.0024 + 0.0008 * Math.sin(th))), n: sp.n, t: G.norm(G.sub(sp2.p, sp.p)) });
       }
@@ -451,7 +483,7 @@ function shoeLod(base, lod, Sm) {
   }
   // casca lisa simplificada primeiro (bordas travadas), cortes de cor depois
   {
-    const P32 = Float32Array.from(M.P), tgt = [980, 170, 44][lod], err = [0.0009, 0.004, 0.014][lod];
+    const P32 = Float32Array.from(M.P), tgt = [860, 170, 44][lod], err = [0.0009, 0.004, 0.014][lod];
     if (M.idx.length > tgt * 3) M.idx = Array.from(Sm.simplify(Uint32Array.from(M.idx), P32, 3, tgt * 3, err, lod === 0 ? ['LockBorder', 'ErrorAbsolute'] : ['ErrorAbsolute'])[0]);
   }
   const lps = boundaryLoops(Uint32Array.from(M.idx)), myl = l => l.reduce((a, v) => a + M.P[v * 3 + 1], 0) / l.length;

@@ -279,8 +279,10 @@ export function seeThrough(asm, aP, full, fP, { views = VIEWS6, step = 0.006, y0
 }
 
 // ---------------------------------------------------------------- esticamento das arestas da roupa
-export function stretchTest(m, parts, P0, P1, lim = 1.6, which = ['top', 'bot', 'sock']) {
-  const seen = new Set(), ix = m.index; let mx = 0, over = 0, worst = null;
+// tear = arestas acima do limite que também crescem mais de 12 mm (rasgo visível; aresta de 2 mm que vira 5 mm na
+// axila é só tecido esticado)
+export function stretchTest(m, parts, P0, P1, lim = 1.6, which = ['top', 'bot', 'sock'], tearAbs = 0.012) {
+  const seen = new Set(), ix = m.index; let mx = 0, over = 0, worst = null, tear = 0, tearMax = 0, tearAt = null;
   for (let t = 0; t < ix.length; t += 3) for (let e = 0; e < 3; e++) {
     const a = ix[t + e], b = ix[t + (e + 1) % 3];
     if (!which.includes(parts[a]) || parts[a] !== parts[b]) continue;
@@ -289,9 +291,39 @@ export function stretchTest(m, parts, P0, P1, lim = 1.6, which = ['top', 'bot', 
     if (l0 < 0.002) continue;
     const l1 = Math.hypot(P1[a * 3] - P1[b * 3], P1[a * 3 + 1] - P1[b * 3 + 1], P1[a * 3 + 2] - P1[b * 3 + 2]), r = l1 / l0;
     if (r > mx) { mx = r; worst = [P1[a * 3], P1[a * 3 + 1], P1[a * 3 + 2]].map(x => +x.toFixed(3)); }
-    if (r > lim) over++;
+    if (r > lim) {
+      over++;
+      if (l1 - l0 > tearAbs) { tear++; if (l1 - l0 > tearMax) { tearMax = l1 - l0; tearAt = [P0[a * 3], P0[a * 3 + 1], P0[a * 3 + 2]].map(x => +x.toFixed(3)); } }
+    }
   }
-  return { max: +mx.toFixed(3), over, worst };
+  return { max: +mx.toFixed(3), over, worst, tear, tearMax: +tearMax.toFixed(4), tearAt };
+}
+
+// rasgo da roupa (v6): aresta da roupa que estica além de 1,6× E mais de 12 mm E bem mais (1,35×) que a pele embaixo
+// dela — o esticamento que a própria pele tem (joelho, nádega, axila: LBS) não é defeito da roupa
+export function tearTest(m, parts, P0, P1, full, fP, { lim = 1.6, abs = 0.012, rel = 1.35, which = ['top', 'bot', 'sock'] } = {}) {
+  const fi = full.index, fp0 = full.position, vs = new Float64Array(full.n).fill(1);
+  for (let t = 0; t < fi.length; t += 3) for (let e = 0; e < 3; e++) {
+    const a = fi[t + e], b = fi[t + (e + 1) % 3];
+    const l0 = Math.hypot(fp0[a * 3] - fp0[b * 3], fp0[a * 3 + 1] - fp0[b * 3 + 1], fp0[a * 3 + 2] - fp0[b * 3 + 2]); if (l0 < 1e-5) continue;
+    const r = Math.hypot(fP[a * 3] - fP[b * 3], fP[a * 3 + 1] - fP[b * 3 + 1], fP[a * 3 + 2] - fP[b * 3 + 2]) / l0;
+    if (r > vs[a]) vs[a] = r; if (r > vs[b]) vs[b] = r;
+  }
+  const bvh = new BVH(Float64Array.from(fp0), fi), seen = new Set(), ix = m.index;
+  let n = 0, worst = 0, at = null;
+  for (let t = 0; t < ix.length; t += 3) for (let e = 0; e < 3; e++) {
+    const a = ix[t + e], b = ix[t + (e + 1) % 3];
+    if (!which.includes(parts[a]) || parts[a] !== parts[b]) continue;
+    const k = a < b ? a * 1e6 + b : b * 1e6 + a; if (seen.has(k)) continue; seen.add(k);
+    const l0 = Math.hypot(P0[a * 3] - P0[b * 3], P0[a * 3 + 1] - P0[b * 3 + 1], P0[a * 3 + 2] - P0[b * 3 + 2]); if (l0 < 0.002) continue;
+    const l1 = Math.hypot(P1[a * 3] - P1[b * 3], P1[a * 3 + 1] - P1[b * 3 + 1], P1[a * 3 + 2] - P1[b * 3 + 2]), r = l1 / l0;
+    if (r <= lim || l1 - l0 <= abs) continue;
+    const h = bvh.closest((P0[a * 3] + P0[b * 3]) / 2, (P0[a * 3 + 1] + P0[b * 3 + 1]) / 2, (P0[a * 3 + 2] + P0[b * 3 + 2]) / 2, 0.08);
+    const rb = h.tri < 0 ? 1 : Math.max(vs[fi[h.tri * 3]], vs[fi[h.tri * 3 + 1]], vs[fi[h.tri * 3 + 2]]);
+    if (r <= rel * rb) continue;
+    n++; if (l1 - l0 > worst) { worst = l1 - l0; at = [P0[a * 3], P0[a * 3 + 1], P0[a * 3 + 2]].map(x => +x.toFixed(3)); }
+  }
+  return { n, max: +worst.toFixed(4), at };
 }
 
 // ---------------------------------------------------------------- bateria completa de uma combinação
@@ -301,7 +333,9 @@ export function posedSuite(MD, g, outfit, poses, { lod = 0, see = true, step = 0
   const rest = { P: Float64Array.from(asm.position), N: Float64Array.from(asm.normal) }, out = {};
   for (const pn in poses) {
     const S = skinMats(ch, poses[pn]), ps = skin(asm, S), r = { flip: flipTest(asm, parts, rest, ps), stretch: stretchTest(asm, parts, rest.P, ps.P) };
-    if (see) { const fb = skin(full, S); r.see = seeThrough(asm, ps.P, full, fb.P, { step, views, img }); r.holes = r.see.reduce((a, x) => a + x.holes, 0); }
+    const fb = skin(full, S);
+    r.tear = tearTest(asm, parts, rest.P, ps.P, full, fb.P);
+    if (see) { r.see = seeThrough(asm, ps.P, full, fb.P, { step, views, img }); r.holes = r.see.reduce((a, x) => a + x.holes, 0); }
     out[pn] = r;
   }
   return out;

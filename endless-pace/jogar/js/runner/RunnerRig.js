@@ -23,6 +23,10 @@
   var PARENT = { torso: 'hips', head: 'torso', armL: 'torso', elbowL: 'armL', armR: 'torso', elbowR: 'armR', legL: 'hips', kneeL: 'legL',
     footL: 'kneeL', legR: 'hips', kneeR: 'legR', footR: 'kneeR', pony: 'head', pony2: 'pony', hairA: 'head', hairA2: 'hairA' };
   var RAISE_MAX = 2.2;   // braço erguido: além disso a manga sai do ombro (não há osso de clavícula; ESPEC §11.5)
+  // aquecimento do repouso (tela inicial, criação, equipamentos): balança os braços como na corrida, sem
+  // erguê-los. Acima de ~0,9 rad para a frente a manga das camisetas vira um anel no bíceps e abre um
+  // buraco na axila (a malha ainda não aguenta); a passada vai até ~0,75 rad.
+  var WARM_SWING = 0.55, WARM_FWD = 0.12;
   var PATTERN = { faixa: 1, listras: 2, degrade: 3 };
 
   // ---------------------------------------------------------------- medidas de cada gênero (dos dados)
@@ -636,13 +640,23 @@
   var _w = new THREE.Color(1, 1, 1), _x = new THREE.Color();
   function lin(hex, out) { return out.set(hex).convertSRGBToLinear(); }
   function lum(c) { return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b; }
+  // tom de pele da paleta já compensado para a luz da tarde (quente) e a curva de tons do jogo (que satura):
+  // sem isso os tons médios e escuros viram laranja/vermelho. Aproxima da própria luminância (mais nos
+  // escuros, que saturam mais) e esfria um pouco (menos vermelho, mais azul). Medido na tela: o tom 3
+  // fica em matiz ~0,055 com saturação ~0,6 (o de referência é 0,066 / 0,57).
+  function skinTone(hex, out) {
+    lin(hex, out);
+    var l = lum(out), k = 0.5 + 0.22 * U.clamp((0.33 - l) / 0.26, 0, 1);
+    out.r = (l + (out.r - l) * (1 - k)) * 0.92; out.g = (l + (out.g - l) * (1 - k)) * 1.02; out.b = (l + (out.b - l) * (1 - k)) * 1.2;
+    return out;
+  }
 
   // paleta do corredor (cor linear de cada espaço da malha) e estampas da roupa
   P._paint = function () {
     var app = this.app, R = this.R, S = R.slot, u = this.mat.runnerU, pal = u.uPal.value, gear = app.gear || {};
     var shirtV = gear.shirt || {}, shortsV = gear.shorts || {}, shoesV = gear.shoes || {}, ms = R.c.measures;
     var col = function (name) { return S[name] !== undefined && pal[S[name]] ? pal[S[name]] : _x; };
-    var skin = lin(app.skin, col('skin')), hair = lin(app.hair, col('hair'));
+    var skin = skinTone(app.skin, col('skin')), hair = lin(app.hair, col('hair'));
     // sobrancelha: tom do cabelo, mas sempre mais escura que a pele (no máximo 40% da luminância dela)
     var brow = col('brow').copy(hair).multiplyScalar(0.65).lerp(skin, 0.15), lb = lum(brow), lmax = lum(skin) * 0.4;
     if (lb > lmax) brow.multiplyScalar(lmax / lb);
@@ -783,38 +797,48 @@
   // atrás da cabeça: ficar para trás na corrida = rotação x NEGATIVA (ESPEC §3). O primeiro gomo segue
   // um alvo que vem da passada (arrasto do ar, o sobe-e-desce e o balanço do tronco), com frequência
   // própria perto da cadência e pouco amortecimento (balança de verdade); o segundo atrasa o primeiro
-  // (efeito chicote). Integração em passos pequenos (estável com qualquer fps).
+  // (efeito chicote) e tem o seu próprio balanço de lado, defasado. Integração em passos pequenos
+  // (estável com qualquer fps).
+  // A câmera do jogo fica atrás e acima, e o rabo alto já sai da coroa apontando para trás: levantá-lo
+  // mais (x negativo) aponta-o para a câmera e ele some dentro do contorno da cabeça. Por isso, correndo,
+  // ele não levanta (trail pequeno) e até cai um pouco (droop, x positivo, sem encostar na nuca: xRun);
+  // o que aparece é o balanço de lado (sway/sway2) e o quique de cada passada (bounce): a ponta sai
+  // para fora da cabeça, alternando de lado a cada passada.
   var SPRING = {
-    rabo: { a: 'pony', b: 'pony2', k: 72, z: 0.3, k2: 130, z2: 0.25, whip: 0.35, trail: [0.06, 0.22, 0.1], bounce: 0.3, bounce2: 0.2,
-      sway: 0.2, lat: 0.04, x: [-1.2, 0.15], zl: 0.7 },
-    longo: { a: 'hairA', b: 'hairA2', k: 52, z: 0.4, k2: 90, z2: 0.32, whip: 0.25, trail: [0.02, 0.15, 0.06], bounce: 0.08, bounce2: 0.06,
-      sway: 0.07, lat: 0.02, x: [-0.6, 0.1], zl: 0.3 }
+    rabo: { a: 'pony', b: 'pony2', k: 72, z: 0.28, k2: 120, z2: 0.22, whip: 0.35, droop: 0.08, droop2: 0.07, trail: [0, 0.03, 0.03], bounce: 0.12, bounce2: 0.15,
+      sway: 0.27, sway2: 0.2, lag: 0.9, lat: 0.05, x: [-1.2, 0.15], xRun: 0.15, zl: 0.8, zl2: 0.6 },
+    longo: { a: 'hairA', b: 'hairA2', k: 52, z: 0.4, k2: 90, z2: 0.32, whip: 0.25, droop: 0, droop2: 0, trail: [0.02, 0.15, 0.06], bounce: 0.08, bounce2: 0.06,
+      sway: 0.07, sway2: 0.03, lag: 0.9, lat: 0.02, x: [-0.6, 0.1], xRun: 0.1, zl: 0.3, zl2: 0.3 }
   };
   P._hair = function (dt, ph0, ph1, run, sprint, idle, lat) {
     var cfg = this.outfit && SPRING[this.outfit.hair];
     if (!cfg) return;
     var hs = this._hs, T = Math.min(dt, 0.1), n = Math.min(8, Math.max(1, Math.ceil(T * 120))), h = T / n;
-    var d1 = 2 * cfg.z * Math.sqrt(cfg.k), d2 = 2 * cfg.z2 * Math.sqrt(cfg.k2), lo = cfg.x[0], hi = cfg.x[1], zl = cfg.zl;
+    var d1 = 2 * cfg.z * Math.sqrt(cfg.k), d2 = 2 * cfg.z2 * Math.sqrt(cfg.k2), lo = cfg.x[0], zl = cfg.zl, zl2 = cfg.zl2;
+    // correndo, o gomo não cai para a frente além de xRun (entraria na nuca com o quique)
+    var hi = idle ? cfg.x[1] : Math.min(cfg.x[1], cfg.xRun);
     var trail = idle ? 0 : cfg.trail[0] + cfg.trail[1] * run + cfg.trail[2] * sprint, gait = 0.3 + 0.7 * run;
     for (var j = 1; j <= n; j++) {
-      var ph = ph0 + (ph1 - ph0) * j / n, tx, tz, tx2 = 0;
+      var ph = ph0 + (ph1 - ph0) * j / n, tx, tz, tx2 = 0, tz2 = 0;
       if (idle) { tx = 0.015 * Math.sin(ph); tz = -cfg.lat * lat; }
       else {
-        // pisada (o quadril freia a descida) puxa o cabelo para baixo; no voo ele sobe e fica para trás
+        // pisada (o quadril freia a descida) puxa o cabelo para baixo; no voo ele sobe
         var bb = Math.cos(2 * (ph - 0.35));
-        tx = -trail + cfg.bounce * gait * bb;
-        tx2 = cfg.bounce2 * gait * Math.cos(2 * (ph - 0.35) - 1);
+        tx = cfg.droop * gait - trail + cfg.bounce * gait * bb;
+        tx2 = cfg.droop2 * gait + cfg.bounce2 * gait * Math.cos(2 * (ph - 0.35) - 1);
+        // balanço de lado: um vaivém por passada dupla (segue o giro do tronco); a ponta vem atrasada
         tz = -Math.sin(ph) * cfg.sway * gait - cfg.lat * lat;
+        tz2 = -Math.sin(ph - cfg.lag) * cfg.sway2 * gait;
       }
       var ax = (tx - hs.x1) * cfg.k - hs.vx1 * d1, az = (tz - hs.z1) * cfg.k - hs.vz1 * d1;
       hs.vx1 += ax * h; hs.x1 += hs.vx1 * h; hs.vz1 += az * h; hs.z1 += hs.vz1 * h;
-      var bx = (tx2 - hs.x2) * cfg.k2 - hs.vx2 * d2 - cfg.whip * ax, bz = -hs.z2 * cfg.k2 - hs.vz2 * d2 - cfg.whip * az;
+      var bx = (tx2 - hs.x2) * cfg.k2 - hs.vx2 * d2 - cfg.whip * ax, bz = (tz2 - hs.z2) * cfg.k2 - hs.vz2 * d2 - cfg.whip * az;
       hs.vx2 += bx * h; hs.x2 += hs.vx2 * h; hs.vz2 += bz * h; hs.z2 += hs.vz2 * h;
       // limites (o cabelo não entra na cabeça nem dá a volta)
       if (hs.x1 < lo) { hs.x1 = lo; if (hs.vx1 < 0) hs.vx1 = 0; } else if (hs.x1 > hi) { hs.x1 = hi; if (hs.vx1 > 0) hs.vx1 = 0; }
       if (hs.x2 < lo) { hs.x2 = lo; if (hs.vx2 < 0) hs.vx2 = 0; } else if (hs.x2 > hi) { hs.x2 = hi; if (hs.vx2 > 0) hs.vx2 = 0; }
       if (Math.abs(hs.z1) > zl) { hs.z1 = zl * (hs.z1 > 0 ? 1 : -1); hs.vz1 *= -0.3; }
-      if (Math.abs(hs.z2) > zl) { hs.z2 = zl * (hs.z2 > 0 ? 1 : -1); hs.vz2 *= -0.3; }
+      if (Math.abs(hs.z2) > zl2) { hs.z2 = zl2 * (hs.z2 > 0 ? 1 : -1); hs.vz2 *= -0.3; }
     }
     this[cfg.a].rotation.set(hs.x1, 0, hs.z1);
     this[cfg.b].rotation.set(hs.x2, 0, hs.z2);
@@ -848,7 +872,7 @@
       this.armL.rotation.set(RAISE_MAX, 0, A0 - 0.3 - hop * 0.15); this.armR.rotation.set(RAISE_MAX, 0, -(A0 - 0.3 - hop * 0.15));
       this.elbowL.rotation.set(0.3 - R.foreFlex, 0, 0); this.elbowR.rotation.set(0.3 - R.foreFlex, 0, 0);
     } else {
-      // respira, troca o peso de perna e às vezes alonga os braços
+      // respira, troca o peso de perna e às vezes aquece os braços
       var sway = Math.sin(this.idleT * 0.7) * 0.04, stretch = U.smooth((Math.sin(this.idleT * 0.35) - 0.85) / 0.15);
       this.hips.rotation.set(0, 0, sway * 0.4);
       this.torso.rotation.set(-0.02 + br * 0.01, 0, -sway * 0.5);
@@ -858,9 +882,12 @@
       this.footL.rotation.z = -this.legL.rotation.z - this.hips.rotation.z; this.footR.rotation.z = -this.legR.rotation.z - this.hips.rotation.z;
       this.hips.position.y = this._groundHips();
       // braços soltos na abertura de repouso (o punho não encosta no short)
-      this.armL.rotation.set(0.04 + br * 0.02 + stretch * RAISE_MAX, 0, 0.02 - stretch * 0.15);
-      this.armR.rotation.set(0.03 - br * 0.02 + stretch * RAISE_MAX, 0, -0.02 + stretch * 0.15);
-      this.elbowL.rotation.set(0.04 + stretch * 0.1, 0, 0); this.elbowR.rotation.set(0.04 + stretch * 0.1, 0, 0);
+      // de vez em quando aquece: braços balançando opostos, cotovelo dobrado para a frente
+      var wsw = Math.sin(this.idleT * 5.5) * WARM_SWING * stretch;
+      this.armL.rotation.set(0.04 + br * 0.02 + stretch * WARM_FWD + wsw, 0, 0.02);
+      this.armR.rotation.set(0.03 - br * 0.02 + stretch * WARM_FWD - wsw, 0, -0.02);
+      this.elbowL.rotation.set(0.04 + stretch * (1.2 - R.foreFlex + 0.15 * Math.max(0, wsw)), 0, 0);
+      this.elbowR.rotation.set(0.04 + stretch * (1.2 - R.foreFlex + 0.15 * Math.max(0, -wsw)), 0, 0);
     }
     // girar o corredor (arrastar na criação e nos equipamentos) balança o cabelo para fora
     var yaw = this.root.rotation.y, wy = dt > 0 ? U.clamp((yaw - this._yaw) / dt, -6, 6) : 0;

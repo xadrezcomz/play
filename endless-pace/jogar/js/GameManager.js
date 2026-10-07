@@ -532,6 +532,7 @@
         // nível de detalhe dos corredores da rua pela distância à câmera; o completo só de perto e se
         // o aparelho dá conta (qualidade alta, ou automática sem ter precisado baixar a resolução)
         camZ: this.camera.position.z, camFz: this.camera.getWorldDirection(_camDir).z,
+        camX: this.camera.position.x, camFx: _camDir.x,   // plano da câmera: quem fica atrás dele não é desenhado
         lod0: q === 'high' || (q === 'auto' && (this.resScale || 1) >= 0.99)
       };
     },

@@ -50,7 +50,7 @@ writeOutputs(out, { saida: SAIDA, raiz: RAIZ, deps, report, fontes: path.join(CA
 const falhas = [];
 const npc = checkNpcOutfits(RAIZ);
 if (npc) falhas.push(npc);
-if (!SO) falhas.push(...runChecks(out, { raiz: RAIZ, saida: SAIDA, report }));
+if (!SO) falhas.push(...runChecks(out, { raiz: RAIZ, saida: SAIDA, report, rapido: RAPIDO }));
 report.segundos = +((Date.now() - t0) / 1000).toFixed(1);
 const rel = path.join(RAIZ, 'ferramentas', 'saida-ver');
 fs.mkdirSync(rel, { recursive: true });

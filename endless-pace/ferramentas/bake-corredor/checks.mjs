@@ -5,6 +5,7 @@ import path from 'node:path';
 import vm from 'node:vm';
 import { BVH } from './geom.mjs';
 import { NPC_OUTFITS } from './pipeline.mjs';
+import * as PS from './posed.mjs';
 
 const TABLE = {   // posições esperadas (referencial final, §3.1) — tolerância 1 cm
   m: { hips: [0, 0.971, 0.035], head: [0, 1.502, 0.040], armL: [-0.198, 1.415, 0.063], kneeL: [-0.111, 0.556, 0.035], footL: [-0.111, 0.115, 0.085] },
@@ -41,7 +42,10 @@ export function skullHoles(MD, g, outfit, lod, nDirs = 1500) {
   return { frac: head / nDirs, head, miss, exits };
 }
 
-export function runChecks(out, { raiz, saida, report }) {
+// limites das verificações com pose (raios de 8 mm em 8 vistas; ver ESPEC §15.3)
+export const POSED_LIM = { backRun: 12, holes: 90, holesCel: 260, flip: 8 };
+export function runChecks(out, { raiz, saida, report, rapido = false }) {
+  const opts = { rapido };
   const t0 = Date.now(), EP = loadRuntime(raiz, saida), MD = EP.ModelData, R = report.verificacoes = {}, fails = [];
   const fail = msg => { fails.push(msg); };
   const genders = Object.keys(out);
@@ -140,6 +144,40 @@ export function runChecks(out, { raiz, saida, report }) {
     for (let i = 0; i < C.body.n; i++) { /* ordem muda (busca): compara caixas */ }
     r.quantPasso = +tol.toExponential(2);
   }
+  // ---- verificações com pose (§15.3): roupa vazada, pele furando a roupa e esticamento, na pose do jogo (corrida a
+  // 10 e 18 m/s) e nos extremos (sprint, joelho alto, braços fechados balançando, comemoração a 2,2 rad, pé em ponta)
+  for (const g of genders) {
+    const r = R[g].pose = {}, Rg = PS.rigOf(MD, g), st = PS.staticPoses(Rg), roupas = EP.data.models.roupas[g];
+    const tops = Object.keys(roupas).filter(k => roupas[k].layer === 3), bots = Object.keys(roupas).filter(k => roupas[k].layer === 2);
+    const dTop = g === 'f' ? 'top' : 'camiseta', dBot = g === 'f' ? 'legging' : 'short';
+    const outfits = [...tops.map(t => ({ top: t, bottom: dBot })), ...bots.filter(b => b !== dBot).map(b => ({ top: dTop, bottom: b }))];
+    if (g === 'f') outfits.push({ top: 'corta-vento', bottom: 'saia-short' });
+    const poses = { sprint: st.sprint, armsTight: st.armsTight, armsFwd: st.armsFwd, kneeLift: st.kneeLift, legBack: st.legBack, footPF: st.footPF, celebrate22: st.celebrate22 };
+    for (const k of (opts.rapido ? [1, 5] : [1, 3, 5, 7])) poses['run18_' + k] = PS.gameRun(Rg, k * Math.PI / 4, 18);
+    if (!opts.rapido) for (const k of [2, 6]) poses['run10_' + k] = PS.gameRun(Rg, k * Math.PI / 4, 10);
+    let worstRun = [0, ''], worstCel = [0, ''], worstFlip = [0, ''], worstStr = [0, ''];
+    for (const o of outfits) {
+      const key = o.top + '+' + o.bottom, res = PS.posedSuite(MD, g, { ...o, hair: 'curto' }, poses, { step: 0.008 }), rr = r[key] = {};
+      for (const pn in res) {
+        const x = res[pn], fl = Object.entries(x.flip).filter(([pair]) => pair.startsWith('skin>'));
+        const flipN = fl.reduce((a, [, v]) => a + (v.max > 0.006 ? v.n : 0), 0), flipMax = fl.reduce((a, [, v]) => Math.max(a, v.max), 0);
+        // vistas de trás (câmera do jogo atrás do corredor): az = π e az = −2,4
+        const back = x.see.filter(v => Math.abs(v.view[0] - Math.PI) < 0.01 || Math.abs(v.view[0] + 2.4) < 0.01).reduce((a, v) => a + v.holes, 0);
+        rr[pn] = { furos: x.holes, furosTras: back, peleFura: flipN, peleMaxMm: +(flipMax * 1000).toFixed(1), estica: x.stretch.max, estica16: x.stretch.over };
+        if (pn === 'celebrate22') { if (x.holes > worstCel[0]) worstCel = [x.holes, key]; }
+        else if (x.holes > worstRun[0]) worstRun = [x.holes, key + ' ' + pn];
+        if (flipN > worstFlip[0]) worstFlip = [flipN, key + ' ' + pn + ' ' + (flipMax * 1000).toFixed(0) + 'mm'];
+        if (x.stretch.over > worstStr[0]) worstStr = [x.stretch.over, key + ' ' + pn];
+        // falhas: furo visível pela câmera do jogo na corrida, ou pele atravessando a roupa mais de 6 mm em vários vértices
+        if (pn.startsWith('run') && back > POSED_LIM.backRun) fail(g + ' ' + key + ' ' + pn + ': ' + back + ' raios vazados vistos de trás');
+        if (pn !== 'celebrate22' && x.holes > POSED_LIM.holes) fail(g + ' ' + key + ' ' + pn + ': ' + x.holes + ' raios vazados');
+        if (pn === 'celebrate22' && x.holes > POSED_LIM.holesCel) fail(g + ' ' + key + ' celebrate22: ' + x.holes + ' raios vazados');
+        if (flipN > POSED_LIM.flip) fail(g + ' ' + key + ' ' + pn + ': pele atravessa a roupa (' + flipN + ' vértices > 6 mm, máx. ' + (flipMax * 1000).toFixed(0) + ' mm)');
+      }
+    }
+    R[g].posePior = { furosCorrida: worstRun, furosComemora: worstCel, peleFura: worstFlip, estica16: worstStr };
+  }
+
   // tamanhos
   const total = report.totalBytes;
   if (total > 3 * 1024 * 1024) fail('tamanho total acima de 3 MB: ' + total);

@@ -22,7 +22,7 @@
       rig.lod = 1;                    // molde médio de perto, leve de longe
       rig.root.visible = false;
       scene.add(rig.root);
-      this.pool.push({ rig: rig, active: false });
+      this.pool.push({ rig: rig, active: false, behind: false });
     }
   }
   var P = NPCManager.prototype;
@@ -53,7 +53,7 @@
     n.z = z; n.x = x; n.laneX = x; n.desiredX = x;
     n.base = speed; n.speed = speed; n.cat = cat; n.group = group || 0;
     n.wobbleT = Math.random() * 100; n.wobbleF = 0.05 + Math.random() * 0.12;
-    n.counted = false; n.wasAhead = false; n.pacer = false; n.animAcc = 0; n.laneTimer = 4 + Math.random() * 10;
+    n.counted = false; n.wasAhead = false; n.pacer = false; n.animAcc = 0; n.laneTimer = 4 + Math.random() * 10; n.behind = false;
     n.rig.setAppearance(EP.RunnerRig.random());
     n.rig.root.visible = true;
     n.rig.root.position.set(x, 0, z);
@@ -187,15 +187,21 @@
       n.rig.root.position.set(n.x, 0, n.z);
       var dz = ctx.camZ !== undefined ? n.z - ctx.camZ : -ahead;
       n.dc = Math.abs(dz);
-      if (ctx.lod0 && dz * fz > 0.5 && n.dc < (n.rig.lod === 0 ? 11 : 9)) {
+      // quem já ficou inteiro atrás do plano da câmera não é desenhado nem animado (as malhas não usam o
+      // recorte automático: os ossos levam o corpo para longe da caixa de repouso). A distância ao plano é
+      // (corredor - câmera) · direção; folga para não piscar na borda. Segue contando ultrapassagem.
+      var front = dz * fz + (ctx.camFx ? (n.x - ctx.camX) * ctx.camFx : 0);
+      if (n.behind ? front > -1.2 : front < -1.5) { n.behind = !n.behind; n.rig.root.visible = !n.behind; }
+      n.animAcc += dt;
+      if (n.behind) { if (n.animAcc > 0.1) n.animAcc = 0.1; continue; }
+      if (ctx.lod0 && front > 0.5 && n.dc < (n.rig.lod === 0 ? 11 : 9)) {
         if (n.dc < d0) { c1 = c0; d1 = d0; c0 = n; d0 = n.dc; } else if (n.dc < d1) { c1 = n; d1 = n.dc; }
       }
-      n.animAcc += dt;
       if (Math.abs(ahead) < 70 || (this.frame + i) % 3 === 0) { n.rig.animate(n.animAcc, n.speed, null); n.animAcc = 0; }
     }
     for (i = 0; i < list.length; i++) {
       n = list[i];
-      if (!n.active) continue;
+      if (!n.active || n.behind) continue;
       var lod = n.rig.lod;
       n.rig.setLod(n === c0 || (MAX_CLOSE > 1 && n === c1) ? 0 : n.dc > (lod === 2 ? 30 : 36) ? 2 : 1);
     }

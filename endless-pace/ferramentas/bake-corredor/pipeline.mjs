@@ -181,14 +181,17 @@ export async function bakeGender(g, ctx) {
   const nw = C.body.weld.nw, Rk = {};
   for (const k of kinds) { const T = LB.garmentTerms(k, g, Lm), r = new Float64Array(nw); for (let w = 0; w < nw; w++) r[w] = LB.evalR(T, Aw, w * LB.KN); Rk[k] = r; }
   // v6: short/bermuda soltos — a perna da peça é um tubo rígido com a coxa da virilha para baixo, então a coxa embaixo
-  // dela fica (não é cortada) a partir de 5 cm abaixo da virilha: olhando pela boca da perna com o joelho alto aparece
+  // dela fica (não é cortada) a partir de 9 cm abaixo da virilha: olhando pela boca da perna com o joelho alto aparece
   // a coxa, não o vazio
   for (const k of ['short', 'bermuda']) {
     if (!Rk[k]) continue;
     for (let w = 0; w < nw; w++) {
       const o = w * LB.KN; if (Aw[o + LB.K.wLeg] < 0.6) continue;
       const sd = Aw[o] < 0 ? 'L' : 'R', A = Lm.Lg[sd], ax = G.norm(G.sub(Lm.Kn[sd], A)), s = (Aw[o] - A[0]) * ax[0] + (Aw[o + 1] - A[1]) * ax[1] + (Aw[o + 2] - A[2]) * ax[2];
-      if (s > (A[1] - Lm.crotchY) + 0.05) Rk[k][w] = Math.max(Rk[k][w], 0.01);
+      // só a pele rígida com a coxa (peso do osso da coxa ≥ 0,95): pele com um pouco de quadril fica para trás no
+      // joelho alto e furava a frente da bermuda
+      if (Aw[o + LB.K.w0 + BD.BI[sd === 'L' ? 'legL' : 'legR']] < 0.95) continue;
+      if (s > (A[1] - Lm.crotchY) + 0.09) Rk[k][w] = Math.max(Rk[k][w], 0.01);
     }
   }
   C.Rk = Rk;
@@ -214,7 +217,7 @@ function bodyCells(C, lod) {
     C._nearPit = new Uint8Array(b.weld.nw);
     for (let w = 0; w < b.weld.nw; w++) for (const q of pits) if (Math.hypot(b.PW[w * 3] - q[0], b.PW[w * 3 + 1] - q[1], b.PW[w * 3 + 2] - q[2]) < 0.035) C._nearPit[w] = 1;
   }
-  const pitKinds = new Set(['camiseta', 'regata', 'manga-longa', 'corta-vento']);
+  const pitKinds = new Set(['regata']);   // v6: os tops de manga têm o forro da axila (garments.pitPatch)
   for (let t = 0; t < nt; t++) {
     const w = [wid[b.idx[t * 3]], wid[b.idx[t * 3 + 1]], wid[b.idx[t * 3 + 2]]];
     let m = 0;

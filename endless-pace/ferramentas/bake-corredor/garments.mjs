@@ -8,7 +8,7 @@ import { BI, NB } from './body.mjs';
 import { BVH, neighbors, vertexNormals, boundaryLoops, smoothField, smoothstep, smax, clamp, noise3, rng, seedOf, rayAO, compact, taubin, weld, surfaceNets, components } from './geom.mjs';
 import { zeroAlong, gradAt } from './proxy.mjs';
 import { simplifier } from './encode.mjs';
-import { drapeBase, DRAPE_KINDS, isLoose } from './drape.mjs';
+import { drapeBase, DRAPE_KINDS, isLoose, armpitApex } from './drape.mjs';
 import { SL } from './consts.mjs';
 
 const MAT = { cotton: 1, tech: 2 };
@@ -1049,6 +1049,9 @@ function finishShell(C, kind, spec, S) {
   if (kind === 'corta-vento' && neckLoop) addExtra(res, collar(neckLoop, neckP, S.Lm), [true, true, false]);
   if (S.draped && (kind === 'short' || kind === 'bermuda')) { const X = drawcord(res, S.Lm); if (X) addExtra(res, X, [true, false, false]); }
   if (S.draped && kind === 'corta-vento') { const X = cordLock(res, S.Lm); if (X) addExtra(res, X, [true, false, false]); }
+  // forro da axila (v6, experimental): com o braço erguido o tecido do flanco afunda abaixo dele e aparece uma mancha;
+  // desligado por padrão (EP_PITPATCH=1 liga)
+  if (process.env.EP_PITPATCH && S.draped && (kind === 'camiseta' || kind === 'manga-longa' || kind === 'corta-vento')) { const X = pitPatch(C, S); if (X) addExtra(res, X, [true, false, false]); }
   if (kind === 'saia-short') {
     // raio de cada direção = superfície mais de fora (casca do short + corpo), vista de fora para dentro
     const Aw = S.ctx.Aw, WI = S.ctx.widx, sb = new BVH(P, idx), sb1 = new BVH(res.P, res.lods[1]);   // casca cheia e a do LOD1 (inflada)
@@ -1282,6 +1285,39 @@ function drawcord(R, Lm) {
   return { P: Float64Array.from(OUT), N: Float64Array.from(NOR), slot: Uint8Array.from(SLOT), idx: Uint32Array.from(idx), W };
 }
 
+// forro da axila (v6): a pele em volta do ápice da axila (6,5 cm, só a que fica debaixo da peça) copiada 4 mm para fora,
+// com os pesos EXATOS da pele. Em repouso fica por dentro do tecido (não aparece); com o braço erguido ou balançando,
+// onde a manga e o lado do tronco se afastam ela tapa a axila (sem buraco nem pele). Cor da peça, bit de forro.
+function pitPatch(C, S) {
+  const b = C.body, Aw = C.Aw, WI = b.widx, ap = armpitApex(C, Aw), Rr = 0.065, nw = b.weld.nw, terms = S.terms;
+  const near = new Uint8Array(nw), map = new Int32Array(nw).fill(-1);
+  for (let w = 0; w < nw; w++) {
+    const p = [b.PW[w * 3], b.PW[w * 3 + 1], b.PW[w * 3 + 2]];
+    if (Aw[w * KN + K.head] > 0.3 || Aw[w * KN + K.hand] > 0.3) continue;
+    if (Math.min(G.dist(p, ap.L), G.dist(p, ap.R)) > Rr) continue;
+    if (evalR(terms, Aw, w * KN) > -0.01) continue;   // só a pele coberta pela peça
+    near[w] = 1;
+  }
+  const OUT = [], NOR = [], idx = [], W = [];
+  for (let t = 0; t < WI.length; t += 3) {
+    const a = WI[t], bb = WI[t + 1], c = WI[t + 2];
+    if (!near[a] || !near[bb] || !near[c]) continue;
+    for (const w of [a, bb, c]) {
+      if (map[w] < 0) {
+        map[w] = OUT.length / 3;
+        for (let k = 0; k < 3; k++) { OUT.push(b.PW[w * 3 + k] + b.NW[w * 3 + k] * 0.004); NOR.push(b.NW[w * 3 + k]); }
+        let s0 = 0; const wv = new Float64Array(NB);
+        for (const bn of ['hips', 'torso', 'armL', 'elbowL', 'armR', 'elbowR']) { wv[BI[bn]] = Math.max(0, Aw[w * KN + K.w0 + BI[bn]]); s0 += wv[BI[bn]]; }
+        for (let q = 0; q < NB; q++) W.push(wv[q] / (s0 || 1));
+      }
+      idx.push(map[w]);
+    }
+  }
+  if (!idx.length) return null;
+  const n = OUT.length / 3;
+  return { P: Float64Array.from(OUT), N: Float64Array.from(NOR), slot: new Uint8Array(n).fill(SL.shirt), idx: Uint32Array.from(idx), W: Float32Array.from(W), flags: new Uint8Array(n).fill(2) };
+}
+
 // trava do cordão da barra do corta-vento (v6): um botão-trava (cilindro de 9 × 14 mm) na barra, do lado esquerdo da
 // frente, com as duas pontas do cordão saindo dele. Pesos: os do registro do vértice da barra mais perto.
 function cordLock(R, Lm) {
@@ -1493,18 +1529,24 @@ export function garmentAO(G0, bodyBVH, rays) {
 // campo da casca LOD0 pelo ponto mais próximo. Só os ossos da região da peça contam (top sem cabeça/pernas etc.).
 const ALLOW = { 3: ['hips', 'torso', 'armL', 'elbowL', 'armR', 'elbowR'], 2: ['hips', 'torso', 'legL', 'kneeL', 'footL', 'legR', 'kneeR', 'footR'],
   1: ['legL', 'kneeL', 'footL', 'legR', 'kneeR', 'footR'] };
-function beneathBVH(C, layer) {
-  const key = '_bnBVH' + layer;
+function beneathBVH(C, layer, trunk = false) {
+  const key = '_bnBVH' + layer + (trunk ? 't' : '');
   if (C[key]) return C[key];
   const Aw = C.Aw, WI = C.body.widx, avg = (t, k) => (Aw[WI[t * 3] * KN + k] + Aw[WI[t * 3 + 1] * KN + k] + Aw[WI[t * 3 + 2] * KN + k]) / 3;
-  const f = layer === 3 ? t => avg(t, K.hand) < 0.3 && avg(t, K.head) < 0.6 : layer === 2 ? t => avg(t, K.wArm) < 0.3 && avg(t, K.hand) < 0.3 : t => avg(t, K.wLeg) > 0.5;
+  // v6: o lado do tronco de um top só olha a pele do tronco (o antebraço pendurado ao lado da barra dava peso de
+  // cotovelo à barra: com os braços erguidos a barra subia 8 cm nos lados)
+  const f = layer === 3 ? (trunk ? t => avg(t, K.wArm) < 0.5 && avg(t, K.hand) < 0.3 && avg(t, K.head) < 0.6 : t => avg(t, K.hand) < 0.3 && avg(t, K.head) < 0.6)
+    : layer === 2 ? t => avg(t, K.wArm) < 0.3 && avg(t, K.hand) < 0.3 : t => avg(t, K.wLeg) > 0.5;
   return (C[key] = new BVH(C.body.PW, WI, f));
 }
 export function garmentWeights(G0, C, kind) {
   const nv = G0.nv, layer = G0.layer, W = new Float32Array(nv * NB), Lm = C.Lm, Aw = C.Aw, WI = C.body.widx, PW = C.body.PW;
   const allow = new Uint8Array(NB); for (const b of ALLOW[layer]) allow[BI[b]] = 1;
-  const bvh = beneathBVH(C, layer), loose = isLoose(kind);
+  const bvhAll = beneathBVH(C, layer), bvhTrunk = layer === 3 ? beneathBVH(C, 3, true) : bvhAll, loose = isLoose(kind);
   const isX = i => G0.Wx && G0.Wx.has(i);
+  // lado do tronco de um top (v6): campo de junção jn ≤ 0 (ou peça sem manga)
+  const sleeved = kind === 'camiseta' || kind === 'manga-longa' || kind === 'corta-vento';
+  const trunkSide = i => layer === 3 && (!sleeved || !(G0.REC && G0.V) || G0.V[G0.REC[i] * KN + K.jn] <= 0);
   // casca LOD0 (sem barra/forro/peças extras): os vértices que recebem o raio
   const L0 = G0.lods[0], shellT = [];
   for (let t = 0; t < L0.length; t += 3) { const a = L0[t], b = L0[t + 1], c = L0[t + 2]; if (isX(a) || isX(b) || isX(c) || ((G0.FLAGS[a] | G0.FLAGS[b] | G0.FLAGS[c]) & 3)) continue; shellT.push(a, b, c); }
@@ -1516,6 +1558,7 @@ export function garmentWeights(G0, C, kind) {
     if (!inShell[w]) continue;
     const i = rep[w], p = [G0.P[i * 3], G0.P[i * 3 + 1], G0.P[i * 3 + 2]], n = [G0.N[i * 3], G0.N[i * 3 + 1], G0.N[i * 3 + 2]];
     let tri = -1, bw = null, d = 0;
+    const bvh = trunkSide(i) ? bvhTrunk : bvhAll;
     const h = bvh.ray(p[0] + n[0] * 0.002, p[1] + n[1] * 0.002, p[2] + n[2] * 0.002, -n[0], -n[1], -n[2], dmax);
     if (h) {
       const a = WI[h.tri * 3] * 3, b = WI[h.tri * 3 + 1] * 3, c = WI[h.tri * 3 + 2] * 3;
@@ -1549,6 +1592,28 @@ export function garmentWeights(G0, C, kind) {
     }
   };
   smoothAdaptive(loose ? 30 : 6, w => lam[w]);
+  if (layer === 3) {
+    // v6: lado do tronco sem cotovelo e com o braço sumindo abaixo da axila (de 6 a 20 cm abaixo do ápice): com os
+    // braços erguidos (2,2 rad) até 2 % de braço levantava a barra 2 cm e abria a fresta da cintura
+    const apY = armpitApex(C, Aw).y;
+    for (let w = 0; w < nw; w++) {
+      if (!inShell[w] || !trunkSide(rep[w])) continue;
+      const o = w * NB, y = G0.P[rep[w] * 3 + 1], f = smoothstep(apY - 0.2, apY - 0.06, y);
+      let lost = Ws[o + BI.elbowL] + Ws[o + BI.elbowR]; Ws[o + BI.elbowL] = Ws[o + BI.elbowR] = 0;
+      for (const b of [BI.armL, BI.armR]) { lost += Ws[o + b] * (1 - f); Ws[o + b] *= f; }
+      Ws[o + BI.torso] += lost;
+    }
+    // v6: axila — a pele embaixo muda de braço para tronco em ~2 cm e o raio de cada vértice cai ora no braço, ora no
+    // flanco (pesos vizinhos a 2 mm diferiam 0,3: aresta esticada 9× no balanço do braço). Difusão forte até 10 cm do
+    // ápice, dos dois lados da junção, antes da interpolação harmônica da manga.
+    const ap = armpitApex(C, Aw), lamPit = new Float64Array(nw);
+    for (let w = 0; w < nw; w++) {
+      if (!inShell[w]) continue;
+      const i = rep[w], p = [G0.P[i * 3], G0.P[i * 3 + 1], G0.P[i * 3 + 2]];
+      lamPit[w] = 0.5 * smoothstep(0.10, 0.05, Math.min(G.dist(p, ap.L), G.dist(p, ap.R)));
+    }
+    smoothAdaptive(60, w => lamPit[w]);
+  }
   const sleeve = kind === 'camiseta' || kind === 'manga-longa' || kind === 'corta-vento';
   if (layer === 3 && sleeve) {
     // cava (junção tronco ↔ manga): interpolação harmônica dos pesos pela malha da peça entre o tronco a ≥ 7 cm da
@@ -1592,7 +1657,14 @@ export function garmentWeights(G0, C, kind) {
       const i = rep[w], p = [G0.P[i * 3], G0.P[i * 3 + 1], G0.P[i * 3 + 2]];
       const sd = p[0] < 0 ? 'L' : 'R', A = Lm.Lg[sd], ax = G.norm(G.sub(Lm.Kn[sd], A)), s = G.dot(G.sub(p, A), ax);
       const sC = A[1] - Lm.crotchY, sW = A[1] - (Lm.T[1] - 0.012);
-      const r = smoothstep(sW + 0.035, sC + 0.03, s), fL = smoothstep(0.025, -0.025, p[0]);
+      // v6: acima da virilha, perto do meio (braguilha, costura de trás), a troca L/R fica larga (±5,5 cm) e a perna
+      // pesa menos: no sprint (coxas a +1,0 e −0,5 rad) a costura do meio esticava 5 cm em 2 cm
+      const up = smoothstep(sC + 0.02, sC - 0.03, s), mid = smoothstep(0.06, 0, Math.abs(p[0])) * up;
+      // gancho (sela entre as coxas, |x| < 4,5 cm, de 3 cm abaixo a 4 cm acima da virilha): segue o quadril; a coxa entra pela parte
+      // de dentro da perna — a troca L/R em 3 cm de sela esticava 5 cm no sprint
+      const sad = smoothstep(0.05, 0.012, Math.abs(p[0])) * smoothstep(Lm.crotchY + 0.05, Lm.crotchY + 0.01, p[1]) * smoothstep(Lm.crotchY - 0.045, Lm.crotchY - 0.015, p[1]);
+      const wx = 0.025 + 0.03 * Math.max(up, sad);
+      const r = smoothstep(sW + 0.035, sC + 0.03, s) * (1 - 0.45 * mid) * (1 - 0.6 * sad), fL = smoothstep(wx, -wx, p[0]);
       let ht = Ws[w * NB + BI.hips] + Ws[w * NB + BI.torso]; if (ht < 1e-6) { Ws[w * NB + BI.hips] = 1; ht = 1; }
       const kh = (1 - r) / ht;
       for (let b = 0; b < NB; b++) Ws[w * NB + b] = (b === BI.hips || b === BI.torso) ? Ws[w * NB + b] * kh : 0;
