@@ -11,7 +11,7 @@ RULES.registerLevel({
     { id: 'box3', type: 'cube', x: 40, y: 98, w: 18, props: { color: 'coral' }, behaviors: { draggable: {} } }
   ],
   reactions: [
-    { on: 'detached', target: 'w_all', do: [{ show: 'star' }] },
+    { on: 'detached', target: 'w_all', do: [{ move: 'star', toObj: 'w_all', ms: 0 }, { show: 'star' }] },
     { on: 'drop', target: 'box1', cooldown: 900, do: [{ say: 'FB_NOTHING' }] },
     { on: 'drop', target: 'box2', cooldown: 900, do: [{ say: 'FB_NOTHING' }] },
     { on: 'drop', target: 'box3', cooldown: 900, do: [{ say: 'FB_NOTHING' }] }

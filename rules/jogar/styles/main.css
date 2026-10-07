@@ -406,3 +406,56 @@ button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-c
 @media (hover: hover) {
   .btn:hover, .pill:hover, .map-btn:not(:disabled):hover, .row:hover { filter: brightness(1.03); }
 }
+
+/* ---------- textos que nunca podem sair da tela ---------- */
+.toast { white-space: normal; max-width: 88%; width: max-content; text-align: center; line-height: 1.15; border-radius: 1em; }
+.celebrate { font-size: calc(var(--W) * .12); white-space: normal; width: 92%; text-align: center; line-height: 1; }
+.map-title { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.2; }
+.finale-line, .end-title, .card-t { overflow-wrap: anywhere; }
+.instr-text { max-width: 100%; }
+.sheet-card { max-height: 92%; overflow-y: auto; }
+
+/* ---------- paisagem: celular deitado, tablet e PC ---------- */
+#app.land { max-width: none; }
+.land #board-area { left: 40%; right: 3%; top: calc(6% + var(--safe-t)); bottom: calc(6% + var(--safe-b)); }
+.land #topbar { left: 3%; right: auto; width: 35%; top: calc(6% + var(--safe-t)); }
+.land #btn-menu { left: 0; }
+.land .instruction { left: 3%; right: auto; width: 35%; top: calc(6% + var(--safe-t) + var(--W) * .16); bottom: calc(10% + var(--safe-b) + var(--W) * .14); height: auto; }
+.land .instr-text { font-size: calc(var(--W) * .085); }
+.land #bottombar { left: 3%; right: auto; width: 35%; height: auto; bottom: calc(6% + var(--safe-b)); gap: 6%; }
+.land .toast { left: 70%; top: calc(8% + var(--safe-t)); max-width: 56%; }
+.land .celebrate { left: 70%; width: 56%; }
+.land .mascot { width: calc(var(--W) * .2); right: 3%; bottom: calc(5% + var(--safe-b)); }
+.land .sheet { align-items: center; justify-content: center; }
+.land .sheet-card { max-width: calc(var(--W) * 1.5); border-radius: 1.5em; padding: 4% 4%; }
+
+/* menu em duas colunas */
+.land #scr-menu {
+  display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr auto 1fr auto;
+  grid-template-areas: ". buttons" "top buttons" "ruli buttons" "ruli foot";
+  align-items: center; justify-items: center; column-gap: 6%;
+  padding: calc(5% + var(--safe-t)) 8% calc(5% + var(--safe-b));
+}
+.land .menu-top { grid-area: top; }
+.land .menu-ruli { grid-area: ruli; width: calc(var(--W) * .38); align-self: start; margin-top: calc(var(--W) * .04); }
+.land .menu-buttons { grid-area: buttons; max-width: calc(var(--W) * 1.1); }
+.land .menu-foot { grid-area: foot; }
+
+/* mapa e ajustes: conteúdo centralizado; o mapa vira duas colunas */
+.land .bar { left: 50%; transform: translateX(-50%); width: min(92%, calc(var(--W) * 2.6)); top: calc(4% + var(--safe-t)); }
+.land .scroll { top: calc(4% + var(--safe-t) + var(--W) * .16); padding-left: max(6%, calc(50% - var(--W) * 1.3)); padding-right: max(6%, calc(50% - var(--W) * 1.3)); }
+.land .map { display: grid; grid-template-columns: 1fr 1fr; column-gap: calc(var(--W) * .06); }
+.land .map-chapter { grid-column: 1 / -1; }
+.land .map-node + .map-node::before { display: none; }
+.land .settings { max-width: calc(var(--W) * 1.6); margin: 0 auto; }
+
+/* fim, final e cartões */
+.land #scr-end {
+  display: grid; grid-template-columns: auto auto; grid-template-areas: "ruli title" "ruli text" "ruli buttons";
+  align-content: center; justify-content: center; column-gap: 5%; row-gap: calc(var(--W) * .03); padding: 0 6%;
+}
+.land .end-ruli { grid-area: ruli; width: calc(var(--W) * .5); }
+.land .end-title { grid-area: title; max-width: calc(var(--W) * 1.4); }
+.land .end-text { grid-area: text; margin: 0; }
+.land #scr-end .menu-buttons { grid-area: buttons; max-width: calc(var(--W) * 1); justify-self: center; }
+.land .chapter-card, .land .finale { padding: 0 15%; }
