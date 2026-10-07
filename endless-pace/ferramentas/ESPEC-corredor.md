@@ -1,7 +1,7 @@
 # ESPEC-corredor — bake spec: Quaternius UBC → ENDLESS PACE runner
 
-Status: **spec v3 (2026-10-06) — implemented**. §13 lists the v3 changes (review vq1); where a v3 change overrides an
-earlier section, §13 wins. Older text marked **[v2]** still explains the v2 reasoning.
+Status: **spec v5 (2026-10-06) — implemented**. §13 lists the v3 changes (review vq1) and §14 the v5 changes (draped
+clothes, real sneakers, hair polish); where a later change overrides an earlier section, the later section wins. Older text marked **[v2]** still explains the v2 reasoning.
 Every place where v1 was changed during implementation is marked **[v2]** with the reason.
 
 - Tool: `node ferramentas/bake-corredor.mjs` (Node 22, ESM). Helper modules live in `ferramentas/bake-corredor/*.mjs`. No Blender.
@@ -696,3 +696,163 @@ All changes are in `ferramentas/bake-corredor/*`, `jogar/js/runner/ModelData.js`
   loose.
 - The hair still uses the source geometry; at close range the locks read as cards, not strands.
 - `Materials.js` (game) still has the old mat 2/3 specular values; the preview shows the intended ones.
+
+---------------------------------------------------------------------------------------------------------------------
+
+## 14. v5 changes — draped clothes, real sneakers, hair polish
+
+User feedback: "the clothes look like a piece of cloth glued on". In v4 every shirt was a normal-offset shell of the body
+(proxy-smoothed), so it still showed the bust/pecs, the under-bust hollow, the navel, the waist curve and the shoulder
+blades. v5 replaces the shell with **draped volumes**. Only `ferramentas/bake-corredor/*` changed (new module
+`drape.mjs`); the data format, `ModelData.js` and the rig contract are unchanged. `EP_OLD_GARMENTS=1` still builds the
+v4 garments (for comparison only).
+
+### 14.1 Draped volumes (`drape.mjs`)
+
+- **Tubes.** A garment is the smooth union of tubes around the body:
+  - the trunk/pelvis: horizontal slices every 1 cm, without arm, hand and head triangles;
+  - each arm, forearm, thigh or shin: rings perpendicular to the bone (frame u = outwards, v = forwards on both sides).
+  - For each ring, the body section is reduced to its **support function** h(φ) (96 directions). That is its convex hull:
+    it bridges the gap between the breasts, the under-bust, the navel, the spine groove and the gluteal fold.
+- **Shaping**, all on h(φ), so every ring stays convex:
+  - **ease** e(s, φ): yoke → chest → hem flare. Less ease at the sides near the armpit and on the inner side of the
+    sleeve, so the sleeve and trunk meet only in the armpit.
+  - **drape**: from the widest ring (chest/shoulder blades for tops, gluteus for shorts, thigh root for legs), each
+    following ring contains the previous one shrunk by `slope·ds`. Fabric falls from the bust and shoulder blades and
+    can only come back in slowly: tee 0.14 (m) / 0.24 (f) m/m, windbreaker 0.10–0.16, long sleeve 0.30–0.40. Shorts
+    legs fall from the hip.
+  - **smoothing**: Gaussian along the axis (cloth tension) and around φ.
+- **Radial table and field.** Each tube gets a radial table r(k, θ) around a smoothed Steiner centre. The field is
+  F = ρ − r − fold(s, θ). Tube ends are closed by a rounded cap (smooth max) or a dome.
+  - Separating planes: per height, the midpoint between the trunk's outermost x and the arm's innermost x. The trunk
+    tube cannot pass it and the sleeve tube cannot cross it from the other side, so there is no web between sleeve and
+    trunk.
+  - The union radius is height-dependent for tops: 12 mm over the shoulder (round seam), 3 mm under the arm.
+- **Tight bottoms (legging, under-short of saia-short).** The pelvis is the body SDF (4 mm voxels, closing 16 mm, so
+  the crotch "V", gluteal fold and small dips are filled) + 2.6 mm. The legs are tubes (convex rings) + 2.6 mm, and the
+  union radius is 15 mm.
+- **Sports top.** One trunk tube with a compression drape (slope 1.1 from the bust apex down to the band). This gives
+  a single smooth bust shape, no separation and a wide under-band.
+- **Folds** (in the field, so they shade):
+  - long vertical "pipes" from the chest to the hem, stronger at front/back than at the side seams;
+  - diagonal pulls from the armpit;
+  - sleeve-hem waves;
+  - elbow accordion and cuff gathering on long sleeves;
+  - leg-hem waves on shorts and bermudas;
+  - gathers under the elastic waistband;
+  - small compression creases behind the knee on leggings.
+- **Mesh.** Surface nets at 4.5 mm (socks 3 mm). Every component at least 15% of the largest is kept (socks are two
+  pieces).
+- **Records.** Each vertex takes its weights and attributes from the closest body point on its own tube's BVH (trunk /
+  armL / armR / legL / legR). The weights are smoothed over the mesh (60 iterations) only where the cloth is more than
+  4 mm off the skin and inside the junction band between two tubes (< 3 cm), with 4 global iterations at λ 0.3. New
+  record fields: `dr` (draped), `tb` (tube role 0/1/2), `sx` (axial coordinate), `jn` (signed gap to the second tube;
+  0 = armhole line).
+- **Cut.** The region terms `R_g` still define the openings. The sleeve term uses the tube axial coordinate on draped
+  records, so the trunk is never cut by the sleeve.
+- **After the cut** (`garments.mjs buildDraped`):
+  - 3 Taubin passes (grid steps);
+  - collision ≥ 3 mm for loose cloth, 1.2–1.6 mm for tight;
+  - layering over the lower garments by rays from 4 cm inside along the surface normal, margin 5 mm (tops) / 2 mm
+    (bottoms);
+  - then the v3 pipeline: simplify, LEPP refine, exact colour cuts, islands, LODs, AO.
+
+### 14.2 Finishing
+
+- **Raised trims.** Neck rib, sleeve band, hem band, waistband, leg band and sock top are raised along the normal
+  inside the trim band (0.7–1.6 mm by edge type) and are 0 at the colour line. They read as doubled fabric.
+- **Hems of loose garments** (`hemFinish`, LOD0) replace the v3 lip:
+  - a rolled edge: a half-round of thickness 2.4–2.6 mm (3 intermediate rings), flags bit0;
+  - an inner facing: the shell within 1.2–4 cm of the edge, offset inwards by the thickness with flipped faces, flags
+    bit1 (AO × 0.6).
+  - Seen from below, the hem has thickness and the inside reads as fabric, not a hole.
+- **Seams.** Armhole seam: a 3 mm band on the zero of `jn` (two signed fields), shirtTrim, LOD0 only.
+- **Shorts drawcord** (short, bermuda): two 6-sided cords with tips, hanging 6.5 cm in front of the waistband. Hips
+  weight, LOD0 only.
+- **Legging.** The female legging is now a **capri** (thigh + 0.55 shin). The lateral panel is 2.6 cm wide at the hip
+  and 2.6 → 1.3 cm wide down to the hem (half-width 13 → 24 mm). The seam is taken from the garment surface itself
+  (`garmentSeam`), so the body bumps do not wiggle it.
+- **Sports top.** Racerback: both straps converge into one centre strap, which flares into the band (`back` term,
+  Y shape).
+- **Skirt (saia-short).**
+  - Extra rows at the tops' hem heights, so the hidden yoke culls on a clean line.
+  - Clearance over the under-short is +6 mm, plus 12 mm below the waistband.
+  - Leg weights: the leg starts driving the skirt below the tee-hem row (earlier at the front). Coefficients at the
+    hem: 0.38 + 0.62·front + 0.42·back.
+  - AR 44.
+  - The cull under a top uses a no-arm BVH (the hanging hand gave arm records) and reaches 6 mm below the top's hem.
+
+### 14.3 Body culling (`pipeline.mjs`)
+
+- `GM.cullMargin(kind)`: loose garments hide the skin only at R ≤ −3.5 cm, tight ones at R ≤ −1.5 cm as before.
+  Looking up a sleeve or under a hem shows facing and skin, never a void. The garment AO uses the same visible-skin set.
+- Skin within 5.5 cm of each armpit is never culled by a loose top (the armhole slit opens when the arm swings back).
+
+### 14.4 Sneakers (`shoes.mjs`)
+
+- **Upper.** The v4 loft with:
+  - a rounded heel (circular arc over the last 14%, with the back wall kept high) and an elliptic toe;
+  - an instep bump of 88 mm;
+  - instep skin up to 13 cm outside the ankle opening added to the clearance hull. Without it the instep poked through
+    in front of the throat.
+  - The upper is cut below the midsole line.
+  - Colour cuts are refined (LEPP ≤ 6 mm): rubber **toe cap**, **heel counter**, swoosh-like **side stripe** rising
+    from the midsole and tapering, and **collar**, all shoeAccent. The accent areas are raised 0.6 mm.
+- **Sole.**
+  - **Midsole** (slot midsole): thick, 31 mm at the heel and 21 mm at the forefoot (10 mm drop). The wall is flared
+    7 mm at the heel and 3.5 mm at the arch, bulges 1.2 mm and has a crease. A top flange tucks under the upper.
+  - **Outsole** (slot sole): a 4.5 mm wall chamfered 1.1 mm inwards and a flat bottom (ear-clipped outline) with toe
+    spring.
+- **Collar.** Padded collar roll (shoeAccent outside, lining inside), thicker at the Achilles; heel pull tab
+  (shoeAccent).
+- **Tongue** (shoe front, lining back): from under the laces to 1.9 cm above the opening, with a shoeAccent top edge.
+- **Laces** (slot lace): 5 arched bars plus a bow with two loops and two hanging ends (LOD0). LOD1 has 3 bars and no
+  bow.
+- **Lining.** The opening lining wall and insole as before.
+- **Budgets.** Per shoe: 2.21–2.27k tris (LOD0), 466–477 (LOD1), 94–96 (LOD2: upper + 10-point sole, no tongue).
+- The foot inside the shoe is still deleted.
+
+### 14.5 Socks
+
+Draped tube from 17 cm above to 5.5 cm below the ankle. The rings are clipped at 6.5 cm sideways/back and 13 cm
+forwards, so the sock covers the instep seen through the shoe's throat. Draped records are cut at sL = LL + 4.5 cm,
+inside the shoe.
+
+### 14.6 Hair (`hair.mjs`)
+
+- **No grey/white streaks.** The per-vertex tone from T_Hair_1/2 is averaged over the welded mesh (8 iterations) and
+  compressed: tone = clamp(1 + 0.5·(t − 1), 0.86, 1.06). The AO is smoothed inside each card (2 iterations).
+- **Ponytail.**
+  - A bundle of 6 clumps (7-sided tubes that separate, twist 0.9 rad and taper to points at different lengths
+    t = 0.88–1.0) around a core tube that fills the gaps near the root.
+  - A ruffled **scrunchie** (18×6 torus, 9 ruffles, slot hairTie).
+  - Spring weights head → pony → pony2 as before.
+- **Long hair.** Below the ear, the strands are pulled together into 24 clumps. The pull is stronger at the tips
+  (−62% of the angular offset), the tip lengths vary by up to 2.8 cm, and the gaps between clumps are darker (tone
+  × 0.78). The springs are unchanged.
+- **Brows** stay mat 1, solid.
+
+### 14.7 Measured (full bake v5)
+
+| item | m | f |
+|---|---|---|
+| worst assembled LOD0 (limit 28k) | 25 208 (corta-vento + bermuda + cacheado) | 25 814 (camiseta + saia-short + cacheado) |
+| worst LOD1, any combo / street outfits (limit 8k) | 7 522 / 7 030 | 9 208 / 7 093 |
+| street LOD2 (limit 2.2k) | 1 960–2 127 | 1 861–2 050 |
+| camiseta / regata / manga-longa / corta-vento LOD0 | 4651 / 3940 / 5037 / 5789 | 4822 / 3538 / 4790 / 5649 |
+| top / short / bermuda / legging / saia-short / meia LOD0 | – / 3657 / 4109 / 3450 / – / 427 | 1707 / 3604 / 4004 / 3509 / 4221 / 419 |
+| shoes (pair) LOD0 / LOD1 / LOD2 | 4534 / 954 / 190 | 4421 / 940 / 190 |
+| hair LOD0 (curto, cacheado, rabo, coque, longo, raspado) | 1883, 3711, 3000, 3000, 3000, 1320 | 2810, 3746, 3000, 3000, 3000, 1320 |
+| garment vertices inside the body | ≤ 0.15% | ≤ 2.04% (top band, by design) |
+| skull-hole rays, all styles × LODs | 0 | 0 |
+
+Files: corredor-m.js 357 908 B, corredor-f.js 347 524 B, roupas.js 987 468 B, cabelos.js 488 989 B. **Total 2.18 MB.**
+The full bake takes about 100 s and is byte-deterministic. Renders: `scratchpad/shots/drape-*.png`.
+
+### 14.8 Known gaps (v5)
+
+- The female tee still follows the bust from the apex down (correct for a fitted women's tee). A small crease remains
+  where the hem folds meet the hip.
+- At `celebrate22` the fused underarm stretches a little (LBS without a clavicle bone, §11.5).
+- With socks off (legging), a sliver of the ankle front can show beside the tongue tip at extreme ankle flexion.
+- Hair cards are still the Quaternius cards (cut, clumped and retoned), not strands.

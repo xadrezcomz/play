@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import * as G from './gltf.mjs';
 import { BI, NB, loadBody } from './body.mjs';
-import { weld, neighbors, vertexNormals, components, boundaryLoops, compact, smoothField, smoothstep, clamp, noise3, worley, BVH, rayAO, basis } from './geom.mjs';
+import { weld, neighbors, vertexNormals, components, boundaryLoops, compact, smoothField, smoothstep, clamp, noise3, worley, BVH, rayAO, basis, rng } from './geom.mjs';
 import { cutBy } from './garments.mjs';
 import { simplifier } from './encode.mjs';
 import { SL, HAIRS } from './consts.mjs';
@@ -79,56 +79,67 @@ function catmull(p0, p1, p2, p3, t) {
 function ponytail(root, seed) {
   // caminho: sai para trás do elástico e cai numa curva suave (sem quina no nó)
   const pts = [G.add(root, [0, 0.01, -0.01]), root, G.add(root, [0, -0.025, 0.05]), G.add(root, [0, -0.11, 0.07]), G.add(root, [0, -0.2, 0.06]), G.add(root, [0, -0.26, 0.045])];
-  const NP = pts.length - 3;   // segmentos entre pts[1] .. pts[NP+1]
-  const path = t => { const s = t * NP, i = Math.min(NP - 1, Math.floor(s)), u = s - i; return catmull(pts[i], pts[i + 1], pts[i + 2], pts[i + 3], u); };
-  const RING = 22, AR = 16, P = [], UV = [], idx = [], T = [];
-  // perfil: fino no elástico, cheio no meio, afinando devagar e ponta arredondada (não agulha)
-  const rad = t => {
-    const body = t < 0.12 ? 0.018 + 0.014 * smoothstep(0.03, 0.12, t) : 0.032 - 0.010 * smoothstep(0.3, 0.92, t);
-    return body * Math.sqrt(Math.max(0, 1 - Math.pow(smoothstep(0.86, 1.0, t), 2)));
-  };
-  for (let r = 0; r <= RING; r++) {
-    const t = r / RING, c = path(t), d = G.norm(G.sub(path(Math.min(1, t + 0.01)), path(Math.max(0, t - 0.01))));
+  const NP = pts.length - 3;
+  const path = t => { const s = clamp(t, 0, 1) * NP, i = Math.min(NP - 1, Math.floor(s)), u = s - i; return catmull(pts[i], pts[i + 1], pts[i + 2], pts[i + 3], u); };
+  const frameAt = t => {
+    const d = G.norm(G.sub(path(Math.min(1, t + 0.01)), path(Math.max(0, t - 0.01))));
     let side = G.norm(G.cross(d, [0, 0, 1])); if (G.len(side) < 0.5) side = [1, 0, 0];
-    const up = G.norm(G.cross(side, d));
-    for (let a = 0; a < AR; a++) {
-      // mechas: sulcos ao longo do rabo (cos 7φ) + ruído leve; seção um pouco achatada
-      const ang = 2 * Math.PI * a / AR + 0.5 * t, nz = 1 + 0.06 * Math.cos(7 * ang + 1.3) + 0.06 * noise3(a * 0.9, r * 0.5, 0.3, seed);
-      const rr = Math.max(0.0015, rad(t)) * nz;
-      const p = G.add(c, G.add(G.scl(side, Math.cos(ang) * rr), G.scl(up, Math.sin(ang) * rr * 0.82)));
-      P.push(...p); UV.push(a / AR, t); T.push(t);
+    return { c: path(t), d, side, up: G.norm(G.cross(side, d)) };
+  };
+  // raio do rabo inteiro: fino no elástico, cheio no meio, afinando para a ponta
+  const R = t => t < 0.1 ? 0.017 + 0.013 * smoothstep(0.02, 0.1, t) : 0.03 - 0.008 * smoothstep(0.3, 0.9, t);
+  // v5: o rabo é um feixe de mechas (6 tubos que se separam e afinam em ponta, em comprimentos diferentes, girando de
+  // leve em volta do eixo) + um miolo que tapa as frestas perto da raiz
+  const NCL = 6, rnd = rng(seed), P = [], UV = [], idx = [], T = [], tone = [];
+  const tube = (center, radius, t0, t1, rings, sides, tipT, tn, flat = 0.85) => {
+    const base = P.length / 3;
+    for (let r = 0; r <= rings; r++) {
+      const t = t0 + (t1 - t0) * r / rings, c = center(t), f = frameAt(Math.min(t, 1)), rr = Math.max(0.0008, radius(t));
+      for (let a = 0; a < sides; a++) {
+        const ang = 2 * Math.PI * a / sides, nz = 1 + 0.08 * noise3(a * 1.3, r * 0.7, seed, seed);
+        const p = G.add(c, G.add(G.scl(f.side, Math.cos(ang) * rr * nz), G.scl(f.up, Math.sin(ang) * rr * nz * flat)));
+        P.push(...p); UV.push(a / sides, t); T.push(Math.min(t, 1)); tone.push(tn);
+      }
     }
+    for (let r = 0; r < rings; r++) for (let a = 0; a < sides; a++) {
+      const i0 = base + r * sides + a, i1 = base + r * sides + (a + 1) % sides, i2 = base + (r + 1) * sides + (a + 1) % sides, i3 = base + (r + 1) * sides + a;
+      idx.push(i0, i1, i2, i0, i2, i3);
+    }
+    if (tipT !== null) { const tip = P.length / 3; P.push(...center(tipT)); UV.push(0.5, tipT); T.push(Math.min(tipT, 1)); tone.push(tn); for (let a = 0; a < sides; a++) idx.push(base + rings * sides + a, base + rings * sides + (a + 1) % sides, tip); }
+    // fecha a ponta da raiz (dentro do elástico)
+    const cap = P.length / 3; P.push(...center(t0)); UV.push(0.5, t0); T.push(t0); tone.push(tn);
+    for (let a = 0; a < sides; a++) idx.push(base + (a + 1) % sides, base + a, cap);
+  };
+  // miolo
+  tube(t => path(t), t => 0.7 * R(t) * (1 - 0.85 * smoothstep(0.6, 0.9, t)), 0.02, 0.9, 10, 8, null, 0.82);
+  for (let c = 0; c < NCL; c++) {
+    const th0 = 2 * Math.PI * c / NCL + 0.3 * (rnd() - 0.5), tEnd = 0.88 + 0.12 * rnd(), spread = 0.34 + 0.1 * rnd(), tn = 0.9 + 0.12 * rnd();
+    const center = t => { const f = frameAt(Math.min(t, 1)), th = th0 + 0.9 * t, d = R(Math.min(t, 1)) * spread * (1 + 0.35 * smoothstep(0.5, 1, t)); return G.add(f.c, G.add(G.scl(f.side, Math.cos(th) * d), G.scl(f.up, Math.sin(th) * d * 0.85))); };
+    // mecha: raio ~ metade do rabo, afina até a ponta (fim em tEnd, arredondado e depois em ponta)
+    const radius = t => 0.66 * R(Math.min(t, 1)) * Math.pow(Math.max(0, 1 - Math.pow(smoothstep(0.5, tEnd, t), 2)), 0.55);
+    tube(center, radius, 0.03, tEnd * 0.985, 12, 7, tEnd, tn, 0.9);
   }
-  for (let r = 0; r < RING; r++) for (let a = 0; a < AR; a++) {
-    const i0 = r * AR + a, i1 = r * AR + (a + 1) % AR, i2 = (r + 1) * AR + (a + 1) % AR, i3 = (r + 1) * AR + a;
-    idx.push(i0, i1, i2, i0, i2, i3);
-  }
-  const tip = P.length / 3; P.push(...path(1)); UV.push(0.5, 1); T.push(1);
-  for (let a = 0; a < AR; a++) idx.push(RING * AR + a, RING * AR + (a + 1) % AR, tip);
-  // elástico: toro 12×4 em t = 0,03
+  // elástico: "scrunchie" franzido em volta do rabo em t = 0,035
   const tie = { P: [], UV: [], idx: [], T: [] };
-  const c0 = path(0.03), d0 = G.norm(G.sub(path(0.05), path(0.01)));
-  let s0 = G.norm(G.cross(d0, [0, 0, 1])); const u0 = G.norm(G.cross(s0, d0));
-  const R0 = rad(0.03) + 0.004;
-  for (let a = 0; a < 12; a++) for (let b = 0; b < 4; b++) {
-    const A = 2 * Math.PI * a / 12, Bb = 2 * Math.PI * b / 4;
-    const ring = G.add(G.scl(s0, Math.cos(A)), G.scl(u0, Math.sin(A) * 0.8));
-    const p = G.add(c0, G.add(G.scl(ring, R0 + 0.003 * Math.cos(Bb)), G.scl(d0, 0.004 * Math.sin(Bb))));
-    tie.P.push(...p); tie.UV.push(0, 0); tie.T.push(0.03);
+  const f0 = frameAt(0.035), Rm = R(0.035) + 0.0058, SEG = 18, SD = 6;
+  for (let a = 0; a < SEG; a++) for (let b = 0; b < SD; b++) {
+    const A = 2 * Math.PI * a / SEG, Bb = 2 * Math.PI * b / SD, ruf = 1 + 0.28 * Math.sin(9 * A + 0.7) * Math.cos(Bb * 0.5 + 0.3);
+    const ring = G.add(G.scl(f0.side, Math.cos(A)), G.scl(f0.up, Math.sin(A) * 0.88));
+    const rm = 0.0068 * ruf, p = G.add(f0.c, G.add(G.scl(ring, Rm + rm * Math.cos(Bb)), G.scl(f0.d, rm * 1.15 * Math.sin(Bb))));
+    tie.P.push(...p); tie.UV.push(0, 0); tie.T.push(0.035);
   }
-  for (let a = 0; a < 12; a++) for (let b = 0; b < 4; b++) {
-    const i0 = a * 4 + b, i1 = ((a + 1) % 12) * 4 + b, i2 = ((a + 1) % 12) * 4 + (b + 1) % 4, i3 = a * 4 + (b + 1) % 4;
+  for (let a = 0; a < SEG; a++) for (let b = 0; b < SD; b++) {
+    const i0 = a * SD + b, i1 = ((a + 1) % SEG) * SD + b, i2 = ((a + 1) % SEG) * SD + (b + 1) % SD, i3 = a * SD + (b + 1) % SD;
     tie.idx.push(i0, i2, i1, i0, i3, i2);
   }
-  // orientação consistente: normal da primeira face para fora do eixo
-  const fixOut = (Pp, ix, center) => {
-    const a = ix[0] * 3, b = ix[1] * 3, c = ix[2] * 3, pa = [Pp[a], Pp[a + 1], Pp[a + 2]];
-    const fn = G.cross(G.sub([Pp[b], Pp[b + 1], Pp[b + 2]], pa), G.sub([Pp[c], Pp[c + 1], Pp[c + 2]], pa));
-    if (G.dot(fn, G.sub(pa, center)) < 0) for (let t = 0; t < ix.length; t += 3) { const k = ix[t + 1]; ix[t + 1] = ix[t + 2]; ix[t + 2] = k; }
-  };
-  fixOut(P, idx, path(0));
-  fixOut(tie.P, tie.idx, c0);
-  return { tube: { P: Float64Array.from(P), UV: Float64Array.from(UV), idx: Uint32Array.from(idx), n: P.length / 3, T }, tie: { P: Float64Array.from(tie.P), UV: Float64Array.from(tie.UV), idx: Uint32Array.from(tie.idx), n: tie.P.length / 3, T: tie.T }, path };
+  // orientação: cada triângulo para fora do eixo do rabo (mechas) / do anel (elástico)
+  const outOf = (Pp, ix, cen) => { for (let t = 0; t < ix.length; t += 3) { const a = ix[t] * 3, b = ix[t + 1] * 3, c = ix[t + 2] * 3, pa = [Pp[a], Pp[a + 1], Pp[a + 2]]; const fn = G.cross(G.sub([Pp[b], Pp[b + 1], Pp[b + 2]], pa), G.sub([Pp[c], Pp[c + 1], Pp[c + 2]], pa)); const m = [(Pp[a] + Pp[b] + Pp[c]) / 3, (Pp[a + 1] + Pp[b + 1] + Pp[c + 1]) / 3, (Pp[a + 2] + Pp[b + 2] + Pp[c + 2]) / 3]; if (G.dot(fn, G.sub(m, cen(m))) < 0) { const k = ix[t + 1]; ix[t + 1] = ix[t + 2]; ix[t + 2] = k; } } };
+  // centro de referência: o ponto do eixo mais perto (pela altura relativa ao caminho)
+  const nearAxis = m => { let best = path(0), bd = 1e9; for (let k = 0; k <= 40; k++) { const q = path(k / 40), d = G.dist(q, m); if (d < bd) { bd = d; best = q; } } return best; };
+  // as mechas: centro = eixo da própria mecha (aprox. pelo eixo do rabo deslocado) — usa o eixo do rabo
+  outOf(P, idx, nearAxis);
+  outOf(tie.P, tie.idx, m => { const v = G.sub(m, f0.c), ax = G.dot(v, f0.d), radial = G.sub(v, G.scl(f0.d, ax)); return G.add(f0.c, G.add(G.scl(f0.d, ax), G.scl(G.norm(radial), Rm))); });
+  return { tube: { P: Float64Array.from(P), UV: Float64Array.from(UV), idx: Uint32Array.from(idx), n: P.length / 3, T, tone }, tie: { P: Float64Array.from(tie.P), UV: Float64Array.from(tie.UV), idx: Uint32Array.from(tie.idx), n: tie.P.length / 3, T: tie.T }, path };
 }
 
 // orienta as faces para fora (pelo centro da cabeça)
@@ -171,6 +182,15 @@ export function buildHairs(C, rays) {
       if (srcG !== g) p = [skT.c[0] + (p[0] - skS.c[0]) * sc[0], skT.c[1] + (p[1] - skS.c[1]) * sc[1], skT.c[2] + (p[2] - skS.c[2]) * sc[2]];
       P.set(FR.apply(p), i * 3);
       tone[i] = toneAt(tx, M.UV[i * 2], M.UV[i * 2 + 1]);
+    }
+    // v5: tom liso pela malha soldada e com pouco contraste — amostrado por vértice ele virava listras claras/cinza
+    // (cartões vizinhos caindo em fios claros e escuros da textura)
+    {
+      const wd = weld(P, n, 1e-5), wi = Uint32Array.from(M.idx, i => wd.wid[i]), adj = neighbors(wi, wd.nw), tw = new Float64Array(wd.nw), cnt = new Float64Array(wd.nw);
+      for (let i = 0; i < n; i++) { tw[wd.wid[i]] += tone[i]; cnt[wd.wid[i]]++; }
+      for (let w = 0; w < wd.nw; w++) tw[w] /= cnt[w] || 1;
+      smoothField(tw, 1, adj, 8, 0.5);
+      for (let i = 0; i < n; i++) tone[i] = clamp(1 + 0.5 * (tw[wd.wid[i]] - 1), 0.86, 1.06);
     }
     return { P, UV: M.UV, idx: M.idx, n, tone };
   };
@@ -221,7 +241,7 @@ export function buildHairs(C, rays) {
     // mistura longa (cabeça → pony → pony2) para o rabo dobrar em curva, não em quina
     const wh = 1 - smoothstep(0.0, 0.2, t), wp2 = smoothstep(0.15, 0.85, t), wp = Math.max(0, 1 - wh - wp2);
     const s = wh + wp + wp2; tubeW[i * NB + BI.head] = wh / s; tubeW[i * NB + BI.pony] = wp / s; tubeW[i * NB + BI.pony2] = wp2 / s;
-    tubeTone[i] = 0.85 + 0.15 * smoothstep(0, 0.2, t);
+    tubeTone[i] = (pt.tube.tone ? pt.tube.tone[i] : 1) * (0.86 + 0.14 * smoothstep(0, 0.2, t));
   });
   const tieW = new Float32Array(pt.tie.n * NB); for (let i = 0; i < pt.tie.n; i++) tieW[i * NB + BI.head] = 1;
   styles.rabo = { parts: [cap, { ...pt.tube, W: tubeW, tone: tubeTone, noClear: true }, { ...pt.tie, W: tieW, tone: new Float64Array(pt.tie.n).fill(1), slot: new Uint8Array(pt.tie.n).fill(SL.hairTie), noClear: true }] };
@@ -244,6 +264,21 @@ export function buildHairs(C, rays) {
       const y = L.P[i * 3 + 1]; if (y >= yEar) continue;
       const b = smoothstep(-0.02, 0.04, L.P[i * 3 + 2] - Hc[2]), k = 1 + (kmax - 1) * b;
       L.P[i * 3 + 1] = yEar + (y - yEar) * k;
+    }
+    // v5: mechas — abaixo da orelha os fios se juntam em feixes (o ângulo em volta do eixo vertical da cabeça é puxado
+    // para o centro do feixe, mais forte nas pontas), pontas em comprimentos diferentes e a fresta entre feixes mais escura
+    {
+      let yb = 1e9; for (let i = 0; i < L.n; i++) if (L.P[i * 3 + 2] > Hc[2] - 0.02) yb = Math.min(yb, L.P[i * 3 + 1]);
+      const nCl = 24, w = 2 * Math.PI / nCl, hk = k => { const x = Math.sin(k * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+      for (let i = 0; i < L.n; i++) {
+        const x = L.P[i * 3], y = L.P[i * 3 + 1], z = L.P[i * 3 + 2];
+        if (y >= yEar) continue;
+        const tip = smoothstep(yEar - 0.03, yb, y), th = Math.atan2(x - Hc[0], z - Hc[2]), k = Math.round(th / w), thc = (k + 0.3 * (hk(k) - 0.5)) * w;
+        const dth = th - thc, th2 = thc + dth * (1 - 0.62 * tip), r = Math.hypot(x - Hc[0], z - Hc[2]);
+        L.P[i * 3] = Hc[0] + r * Math.sin(th2); L.P[i * 3 + 2] = Hc[2] + r * Math.cos(th2);
+        L.P[i * 3 + 1] = y + 0.028 * hk(k + 7) * tip * tip;
+        L.tone[i] *= 1 - 0.22 * Math.min(1, Math.pow(dth / (w / 2), 2)) * tip;
+      }
     }
     L.springs = true;
     styles.longo = L;
@@ -296,6 +331,8 @@ export function buildHairs(C, rays) {
       const facing = Nn[i * 3] * d[0] + Nn[i * 3 + 1] * d[1] + Nn[i * 3 + 2] * d[2];   // < 0: virada para a cabeça
       ao[i] *= (1 - 0.35 * over) * (facing < 0 ? 0.7 + 0.3 * (1 + facing) : 1) * (Nn[i * 3 + 1] < -0.3 ? 0.85 : 1);
     }
+    // oclusão alisada dentro de cada cartão (as cunhas claras/escuras da coroa somem)
+    { const a64 = Float64Array.from(ao); smoothField(a64, 1, neighbors(withBack.idx, withBack.n), 2, 0.5); for (let i = 0; i < ao.length; i++) ao[i] = a64[i]; }
     // LODs
     const P32 = Float32Array.from(withBack.P);
     const simp = (src, target, err, flags) => src.length / 3 <= target ? Uint32Array.from(src) : Sm.simplify(Uint32Array.from(src), P32, 3, target * 3, err, flags)[0];

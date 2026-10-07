@@ -65,13 +65,15 @@ endless-pace/jogar/
 │   ├── biomas.js                      bioma Cidade (paleta e peças) e cores do ciclo do dia
 │   ├── modulos.js                     RoadModules, rotas (bairro, parque, centro) e bifurcações
 │   ├── desafios.js                    mini-desafios
+│   ├── modelos/                       corredores assados (corpo, roupas, tênis, cabelos; ferramentas/bake-corredor.mjs)
 │   └── textos/pt-BR.js, en-US.js, es.js
 ├── js/core/                           EP.js (utilidades e EventBus), SaveManager, LocalizationManager, Analytics
 ├── js/systems/                        TapRhythmSystem, FlowSystem, EnergySystem, SpeedSystem, OvertakeSystem,
 │                                      EconomyManager, ChallengeManager, ProgressionManager (lógica pura, testada)
 ├── js/world/                          Materials (curvatura), GeoBuilder, Assets, RoadModules,
 │                                      ProceduralWorldGenerator, DayNightSystem, ForkSigns
-├── js/runner/                         RunnerRig (boneco e animação), RunnerController, NPCManager
+├── js/runner/                         ModelData (lê os corredores assados), RunnerRig (boneco, roupas, animação),
+│                                      RunnerController, NPCManager
 ├── js/audio/AudioManager.js           sons e camadas de música (MusicLayerManager), tudo sintetizado
 ├── js/ui/                             Input, CharacterCreator, UIManager
 └── js/GameManager.js                  estados, laço do jogo, câmera, ordem dos sistemas

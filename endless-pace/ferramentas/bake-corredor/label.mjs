@@ -1,7 +1,7 @@
 // Rótulos do corpo (§5): coordenadas por vértice (braço/perna), regiões, marcos e as funções de
 // região de cada roupa R_g (negativo = tem tecido, aproximadamente em metros).
 import { BI } from './body.mjs';
-import { smax, smin, clamp } from './geom.mjs';
+import { smax, smin, clamp, smoothstep } from './geom.mjs';
 import * as G from './gltf.mjs';
 
 export const REG = ['cabeca', 'pescoco', 'troncoSup', 'troncoInf', 'quadril', 'bracoL', 'antebracoL', 'maoL', 'bracoR', 'antebracoR', 'maoR',
@@ -9,8 +9,10 @@ export const REG = ['cabeca', 'pescoco', 'troncoSup', 'troncoInf', 'quadril', 'b
 export const RI = Object.fromEntries(REG.map((r, i) => [r, i]));
 
 // atributos interpolados de cada ponto (corpo soldado e pontos derivados das roupas)
-export const K = { px: 0, py: 1, pz: 2, nx: 3, ny: 4, nz: 5, w0: 6, sA: 23, sL: 24, wArm: 25, wLeg: 26, hand: 27, head: 28, neck: 29 };
-export const KN = 30;
+// v5: dr = 1 nos registros das roupas caídas (0 no corpo); tb = papel do tubo dominante (0 tronco/quadril, 1 manga,
+// 2 perna); sx = coordenada axial no tubo (m, a partir do ombro/quadril); jn = folga até o segundo tubo (junção)
+export const K = { px: 0, py: 1, pz: 2, nx: 3, ny: 4, nz: 5, w0: 6, sA: 23, sL: 24, wArm: 25, wLeg: 26, hand: 27, head: 28, neck: 29, dr: 30, tb: 31, sx: 32, jn: 33 };
+export const KN = 34;
 
 // marcos do corpo no referencial final
 export function landmarks(C, bvh) {
@@ -59,8 +61,9 @@ export function strapPaths(Lm, bvh) {
   const out = {};
   for (const sd of ['L', 'R']) {
     const sx = sd === 'L' ? -1 : 1, ay = Lm.apex[1];
-    const pts = [fr(sx * 0.072, ay + 0.02), fr(sx * 0.088, Lm.Sy - 0.04), tp(sx * 0.10, Lm.N[2] - 0.005), bk(sx * 0.078, Lm.Sy - 0.04),
-      bk(sx * 0.038, Lm.Sy - 0.12), bk(sx * 0.012, Lm.Ybra + 0.07), bk(sx * 0.010, Lm.Ybra + 0.03)].filter(Boolean);   // desce até dentro da faixa: junção sem "W"
+    // v5: nadador — as duas alças descem das costas até se encontrarem na alça única do meio (Sy − 9,5 cm)
+    const pts = [fr(sx * 0.072, ay + 0.02), fr(sx * 0.088, Lm.Sy - 0.04), tp(sx * 0.10, Lm.N[2] - 0.005), bk(sx * 0.07, Lm.Sy - 0.04),
+      bk(sx * 0.03, Lm.Sy - 0.078)].filter(Boolean);
     // reamostra a cada ~8 mm e cola cada ponto na pele (a corda entre pontos passaria por dentro do corpo)
     const dense = [];
     for (let i = 0; i + 1 < pts.length; i++) {
@@ -138,6 +141,9 @@ export function regionOf(A, o, Lm) {
   return RI['pe' + s2];
 }
 
+// manga curta (v6): até o meio do bíceps — o lado de dentro da barra fica ~3 cm abaixo do ápice da axila (antes a barra
+// de dentro caía no próprio ápice e a manga ficava soldada ao tronco)
+export const sleeveLen = (g) => g === 'f' ? 0.145 : 0.165;
 // barra dos tops (v4): 4,5 cm abaixo do topo do cós do short (corta-vento 6,3 cm) — a camiseta não cobre o short inteiro
 export const hemY = (kind, Lm) => kind === 'corta-vento' ? Lm.T[1] - 0.075 : Lm.T[1] - 0.057;
 // ---------------------------------------------------------------- funções de região das roupas
@@ -147,7 +153,11 @@ export function garmentTerms(kind, g, Lm) {
   const y = (A, o) => A[o + 1];
   const hem = Y => (A, o) => Y - y(A, o);
   const top = Y => (A, o) => y(A, o) - Y;
-  const sleeve = L => (A, o) => A[o + K.sA] < 0 ? -1 : A[o + K.sA] - L;
+  // manga: no corpo, pela coordenada sA (peso de braço); na roupa caída, pela coordenada axial do tubo do braço (os
+  // vértices do tronco nunca são cortados pela manga, mesmo herdando peso de braço perto da axila)
+  // barra da manga curta inclinada: 2,5 cm mais curta do lado de dentro (virado para o tronco), onde o braço encosta
+  const inner = (A, o) => { const sd = A[o] < 0 ? 'L' : 'R', S = Lm.S[sd], E = Lm.E[sd], ax = G.norm(G.sub(E, S)), d = G.sub([A[o], A[o + 1], A[o + 2]], S), r = G.sub(d, G.scl(ax, G.dot(d, ax))), l = G.len(r) || 1; return Math.max(0, (sd === 'L' ? r[0] : -r[0]) / l); };
+  const sleeve = (L, tilt = 0) => (A, o) => A[o + K.dr] > 0.5 ? (A[o + K.tb] > 0.5 && A[o + K.tb] < 1.5 ? A[o + K.sx] - L + tilt * inner(A, o) : -1) : A[o + K.sA] < 0 ? -1 : A[o + K.sA] - L;
   // barra da perna: plano perpendicular ao eixo da coxa (distância L do quadril) — para todo ponto do lado, não só
   // os de peso de perna ≥ 0,5 (senão a barra subia em "V" na dobra do glúteo); canela: sL como antes
   const legEnd = L => (A, o) => {
@@ -175,7 +185,7 @@ export function garmentTerms(kind, g, Lm) {
   const LL = Lm.thigh + Lm.shin;
   const noHead = (A, o) => A[o + K.head] >= 0.5 ? 1 : -1;
   switch (kind) {
-    case 'camiseta': return { noHead, hem: hem(hemY(kind, Lm)), neck: neck(0.068, 0.03), sleeve: sleeve(f ? 0.115 : 0.135) };
+    case 'camiseta': return { noHead, hem: hem(hemY(kind, Lm)), neck: neck(0.068, 0.03), sleeve: sleeve(sleeveLen(g)) };
     case 'regata': return { noHead, hem: hem(hemY(kind, Lm)), neck: neck(0.075, f ? 0.10 : 0.09), armhole: armhole(f ? 0.07 : 0.075, f ? 0.14 : 0.15, f ? 0.11 : 0.115), noArm };
     case 'top': {
       // corpo do top: faixa sob o busto + bojo na frente até a linha de cima (por ângulo em volta do tronco)
@@ -185,19 +195,24 @@ export function garmentTerms(kind, g, Lm) {
       const topY = th => { const a = Math.abs(th); const P = [[0, ay + 0.035], [0.5, ay + 0.04], [0.95, Lm.Sy - 0.055], [1.5, Lm.Sy - 0.065], [2.15, Lm.Sy - 0.08], [2.6, Yb + 0.065], [Math.PI, Yb + 0.05]];
         for (let i = 1; i < P.length; i++) if (a <= P[i][0]) { const t = (a - P[i - 1][0]) / (P[i][0] - P[i - 1][0]); return P[i - 1][1] + (P[i][1] - P[i - 1][1]) * t; } return P[P.length - 1][1]; };
       const line = (A, o) => y(A, o) - topY(Math.atan2(A[o], -(A[o + 2] - Lm.cz)));
-      const strap = (A, o) => { const p = [A[o], A[o + 1], A[o + 2]]; return Math.min(distPoly(p, Lm.straps.L), distPoly(p, Lm.straps.R)) - 0.017; };
+      const strap = (A, o) => { const p = [A[o], A[o + 1], A[o + 2]]; return Math.min(distPoly(p, Lm.straps.L), distPoly(p, Lm.straps.R)) - 0.016; };
+      // alça única nas costas (nadador): "Y" que abre na faixa embaixo e recebe as duas alças em cima
+      const wB = yy => 0.016 + 0.034 * Math.pow(smoothstep(Yb + 0.07, Yb + 0.02, yy), 1.5) + 0.02 * smoothstep(Lm.Sy - 0.098, Lm.Sy - 0.07, yy);
+      const back = (A, o) => { const yy = A[o + 1]; if (A[o + 2] < Lm.cz + 0.01) return 1; return smax(Math.abs(A[o]) - wB(yy), Math.max(yy - (Lm.Sy - 0.066), (Yb - 0.02) - yy), 0.004); };
       const hm = hem(Yb - 0.02);
-      return { noHead, noArm, hem: hm, line, strap,
-        _R: (A, o) => smax(smax(smin(smax(hm(A, o), line(A, o), 0.006), smax(strap(A, o), hm(A, o), 0.006), 0.018), noArm(A, o), 0.004), noHead(A, o), 0.004) };
+      return { noHead, noArm, hem: hm, line, strap, back,
+        _R: (A, o) => smax(smax(smin(smin(smax(hm(A, o), line(A, o), 0.006), smax(strap(A, o), hm(A, o), 0.006), 0.012), back(A, o), 0.01), noArm(A, o), 0.004), noHead(A, o), 0.004) };
     }
     case 'manga-longa': return { noHead, hem: hem(hemY(kind, Lm)), neck: neck(0.066, 0.025), sleeve: sleeve(Lm.armLen - 0.015) };
     case 'corta-vento': return { noHead, hem: hem(hemY(kind, Lm)), neck: neck(0.075, 0.005), sleeve: sleeve(Lm.armLen + 0.005) };
-    case 'short': case 'saia-short': return { waist: top(T[1] - 0.012), legEnd: legEnd(f ? 0.155 : 0.25), noArm };
+    case 'short': return { waist: top(T[1] - 0.012), legEnd: legEnd(f ? 0.155 : 0.25), noArm };
+    // v6: o short de baixo da saia-short é mais curto que a saia (a barra dele não aparece embaixo da saia)
+    case 'saia-short': return { waist: top(T[1] - 0.012), legEnd: legEnd(0.115), noArm };
     case 'bermuda': return { waist: top(T[1] - 0.012), legEnd: legEnd(Lm.thigh - 0.035), noArm };
-    case 'legging': return { waist: top(T[1] + 0.02), legEnd: legEnd(LL - 0.045), noArm };
+    case 'legging': return { waist: top(T[1] + 0.02), legEnd: legEnd(f ? Lm.thigh + 0.55 * Lm.shin : LL - 0.045), noArm };   // feminina: corsário
     case 'meia': return {
       top: (A, o) => A[o + K.sL] < 0 ? 1 : (LL - 0.10) - A[o + K.sL],
-      bottom: (A, o) => A[o + K.sL] < 0 ? 1 : A[o + K.sL] - (LL + 0.02)
+      bottom: (A, o) => A[o + K.sL] < 0 ? 1 : A[o + K.sL] - (LL + (A[o + K.dr] > 0.5 ? 0.045 : 0.02))   // v5: a meia caída desce mais (dentro do tênis)
     };
   }
   throw new Error('roupa desconhecida: ' + kind);

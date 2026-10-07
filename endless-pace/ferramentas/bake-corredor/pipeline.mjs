@@ -8,6 +8,7 @@ import crypto from 'node:crypto';
 import * as LB from './label.mjs';
 import * as PX from './proxy.mjs';
 import * as GM from './garments.mjs';
+import * as DR from './drape.mjs';
 import * as SK from './skin.mjs';
 import * as SH from './shoes.mjs';
 import * as HR from './hair.mjs';
@@ -129,55 +130,36 @@ export async function bakeGender(g, ctx) {
   const Aw = LB.weldedAttrs(C, Lm);
   C.Aw = Aw;
   if (g === 'f') Lm.straps = LB.strapPaths(Lm, bodyBVH);
+  if (process.env.EP_DUMP) {   // depuração: instantâneo do corpo rotulado (ver ESPEC §14)
+    const v8 = await import('node:v8');
+    fs.writeFileSync(process.env.EP_DUMP + '-' + g + '.bin', v8.serialize({ g, PW: C.body.PW, NW: C.body.NW, widx: C.body.widx, P: C.body.P, idx: C.body.idx, Aw, Lm, rep: C.body.weld.rep, wid: C.body.weld.wid, nw: C.body.weld.nw, JP: C.JP, boneWorld: C.boneWorld }));
+  }
   rep.marcos = { Ychest: +Lm.Ychest.toFixed(3), Ybra: Lm.Ybra && +Lm.Ybra.toFixed(3), Sy: +Lm.Sy.toFixed(3), cz: +Lm.cz.toFixed(3) };
   const legSide = sd => t => { let s = 0; for (let e = 0; e < 3; e++) { const o = C.body.widx[t * 3 + e] * LB.KN; if ((Aw[o] < 0) === (sd === 'L') && Aw[o + LB.K.wLeg] > 0.5) s++; } return s >= 2; };
   const legBVH = { L: new BVH(C.body.PW, C.body.widx, legSide('L')), R: new BVH(C.body.PW, C.body.widx, legSide('R')) };
   const slices = GM.torsoSlices(Aw, Lm.H[1] - 0.2, Lm.Sy + 0.05, C.body.widx);
   const bust = g === 'f' ? { Ybra: Lm.Ybra, apex: Lm.apex, cz: Lm.cz } : null;
-  // corpo procurador (v4): campo de distância em voxels de 5 mm, sem braço/mão (e sem cabeça nos tops), com abertura
-  // (tira mamilo, ponta do busto, abdômen) e fechamento (vão sob o busto, decote, umbigo, virilha, sulco dos glúteos)
   const tP = Date.now(), WI = C.body.widx;
   const triAvg = (t, k) => (Aw[WI[t * 3] * LB.KN + k] + Aw[WI[t * 3 + 1] * LB.KN + k] + Aw[WI[t * 3 + 2] * LB.KN + k]) / 3;
-  const noArm = t => triAvg(t, LB.K.wArm) < 0.5 && triAvg(t, LB.K.hand) < 0.3, noArmHead = t => noArm(t) && triAvg(t, LB.K.head) < 0.5;
-  const boxTop = [-0.27, Lm.H[1] - 0.17, -0.2, 0.27, Lm.N[1] + 0.07, 0.22];
-  const inTrunk = p => { const sl = slices.get(Math.floor(p[1] * 100)); return !!sl && p[1] < Lm.Sy - 0.02 && GM.inSliceHull(sl, p[0], p[2], 0.004); };
-  const occT = PX.bodyOcc(C.body.PW, WI, boxTop, 0.005, noArmHead, inTrunk);
-  const fFit = PX.morphField(occT.G, occT.occ, { open: g === 'f' ? 0.04 : 0.025, close: 0.04 });
-  const fLoose = PX.morphField(occT.G, occT.occ, { open: 0.035, close: 0.07 });
-  const tIn = p => g === 'f' && p[2] < Lm.cz && Math.abs(p[0]) > 0.015 && Math.abs(p[0]) < 0.15 ? 0.006 + 0.016 * GM.smoothstepX(Lm.Ybra - 0.03, Lm.Ybra + 0.01, p[1]) * GM.smoothstepX(Lm.apex[1] + 0.08, Lm.apex[1] + 0.03, p[1]) : 0.006;
-  const proxy = { fit: GM.fieldProxy(Aw, WI, C.body.adjW, fFit.F, Lm.H[1] - 0.17, Lm.N[1] + 0.02, tIn),
-    loose: GM.fieldProxy(Aw, WI, C.body.adjW, fLoose.F, Lm.H[1] - 0.17, Lm.N[1] + 0.02, tIn) };
-  // roupas de baixo: o campo do corpo é misturado ao fechado da virilha para cima (a ponte some 2,5 cm abaixo dela)
-  const boxBot = [-0.27, 0.05, -0.2, 0.27, Lm.T[1] + 0.09, 0.22];
-  const occB = PX.bodyOcc(C.body.PW, WI, boxBot, 0.005, noArm);
-  // casco convexo de cada fatia da virilha (−1,2 cm) até a cintura: a frente vai reta de coxa a coxa, o sulco dos
-  // glúteos some e logo abaixo da virilha fica o fundilho (ponte lisa entre as coxas)
-  const occH = PX.hullFill(occB.G, occB.occ, Lm.crotchY - 0.04, Lm.T[1] + 0.1, y => 0.06 * Math.pow(GM.smoothstepX(Lm.crotchY - 0.035, Lm.crotchY + 0.005, y), 1.5), 0.075);
-  const fBody = PX.morphField(occB.G, occB.occ, {}), fHull = PX.morphField(occB.G, occH, { sigma: 1.1, sigmaY: 2.5 });   // sem fechamento: ele fechava o vão entre as coxas (aleta na entreperna)
-  // legging: justa — casco inteiro na frente, metade atrás (o glúteo ainda aparece), só da virilha para cima
-  const tightF = (x, y, z) => { const a = fBody.F(x, y, z), b = fHull.F(x, y, z), w = (1 - 0.5 * GM.smoothstepX(Lm.H[2] - 0.02, Lm.H[2] + 0.04, z)) * GM.smoothstepX(Lm.crotchY - 0.01, Lm.crotchY + 0.02, y); return a + (b - a) * w; };
-  if (process.env.DBG_ARM) for (let w = 0; w < C.body.weld.nw; w++) { const o = w * LB.KN; if (Aw[o + 1] > 1.29 && Aw[o + 1] < 1.37 && Aw[o] > 0.09 && Aw[o] < 0.16 && Aw[o + 2] > -0.08 && Aw[o + 2] < 0.04) console.log('  ARM', Aw[o].toFixed(3), Aw[o + 1].toFixed(3), Aw[o + 2].toFixed(3), 'wArm', Aw[o + LB.K.wArm].toFixed(2)); }
-  if (process.env.DBG_PROBE) {   // depuração: perfil da frente (z) dos campos
-    const front = (F, x, y) => { for (let z = -0.2; z < 0.2; z += 0.0005) if (F(x, y, z) < 0) return z.toFixed(4); return '-'; };
-    for (let y = Lm.crotchY + 0.06; y > Lm.crotchY - 0.06; y -= 0.01) console.log('  PROBE y', y.toFixed(3), [0, 0.03, 0.06, 0.09].map(x => x + ':' + front(fBody.F, x, y) + '/' + front(fHull.F, x, y)).join('  '));
-  }
-  const attrBVH = new BVH(C.body.PW, WI, noArm);
-  const nets = { loose: GM.netsBase(fHull.F, boxBot, 0.005, Aw, attrBVH, WI, Lm), tight: GM.netsBase(tightF, boxBot, 0.005, Aw, attrBVH, WI, Lm) };
-  rep.procurador = { ms: Date.now() - tP, topoMovidos: proxy.fit.moved, cascaBaixo: nets.loose.idx.length / 3, virilhaY: +Lm.crotchY.toFixed(3) };
-  console.log('  procurador', JSON.stringify(rep.procurador));
+  const noArm = t => triAvg(t, LB.K.wArm) < 0.5 && triAvg(t, LB.K.hand) < 0.3;
+  // v5: as roupas saem dos volumes caídos (drape.mjs); o procurador v4 (voxels) só com EP_OLD_GARMENTS=1
+  let proxy = null, nets = null;
+  if (process.env.EP_OLD_GARMENTS) ({ proxy, nets } = oldProxy(C, Aw, Lm, slices, WI, triAvg, noArm, rep));
+  C.noArmBVH = new BVH(C.body.PW, WI, t => triAvg(t, LB.K.wArm) < 0.3 && triAvg(t, LB.K.hand) < 0.3);
   const trunkBVH = new BVH(C.body.PW, WI, noArm), armBVH = new BVH(C.body.PW, WI, t => triAvg(t, LB.K.wArm) >= 0.5 || triAvg(t, LB.K.hand) >= 0.3);
   const ctx0 = { Aw, widx: C.body.widx, Lm, bodyBVH, legBVH, slices, proxy, nets, trunkBVH, armBVH };
-  const kinds = LB.kindsOf(g), built = {};
+  const kinds = LB.kindsOf(g), built = {}, only = process.env.EP_ONLY ? process.env.EP_ONLY.split(',') : null;
   // camada de baixo para os raios de empilhamento: sem o forro (flag 2) e sem a saia (flag 4) — a pala da saia some
   // sob o top pelas máscaras de cobertura, então o top não precisa passar por cima dela
   const shellOf = G0 => { const L = G0.lods[0].filter((v, i, a) => { const t = i - i % 3; return !((G0.FLAGS[a[t]] | G0.FLAGS[a[t + 1]] | G0.FLAGS[a[t + 2]]) & 6); }); return { bvh: new BVH(G0.P, L), idx: L, N: G0.N }; };
   const order = ['meia', ...kinds.filter(k => LB.BOTTOMS.includes(k)), ...kinds.filter(k => LB.TOPS.includes(k))];
   for (const k of order) {
-    const lower = k === 'meia' ? [] : LB.BOTTOMS.includes(k) ? [shellOf(built.meia)] : kinds.filter(b => LB.BOTTOMS.includes(b)).map(b => shellOf(built[b]));
+    if (only && !only.includes(k)) continue;
+    const lower = k === 'meia' ? [] : LB.BOTTOMS.includes(k) ? (built.meia ? [shellOf(built.meia)] : []) : kinds.filter(b => LB.BOTTOMS.includes(b) && built[b]).map(b => shellOf(built[b]));
     const t1 = Date.now();
     built[k] = GM.buildGarment(C, k, { ...ctx0, lower });
     { const T = LB.garmentTerms(k, g, Lm), r = new Float64Array(C.body.weld.nw); for (let w = 0; w < r.length; w++) r[w] = LB.evalR(T, Aw, w * LB.KN);
-      const vis = new BVH(C.body.PW, WI, t => !(r[WI[t * 3]] <= -0.015 && r[WI[t * 3 + 1]] <= -0.015 && r[WI[t * 3 + 2]] <= -0.015));
+      const lim = GM.cullMargin(k), vis = new BVH(C.body.PW, WI, t => !(r[WI[t * 3]] <= lim && r[WI[t * 3 + 1]] <= lim && r[WI[t * 3 + 2]] <= lim));
       built[k].ao = GM.garmentAO(built[k], vis, ctx.rapido ? 8 : 24); }
     rep['roupa_' + k] = { v: built[k].nv, tris: built[k].lods.map(l => l.length / 3), ms: Date.now() - t1 };
     console.log('  roupa', k, JSON.stringify(rep['roupa_' + k]));
@@ -198,6 +180,17 @@ export async function bakeGender(g, ctx) {
   // ---- 7. máscaras de cobertura por triângulo do corpo
   const nw = C.body.weld.nw, Rk = {};
   for (const k of kinds) { const T = LB.garmentTerms(k, g, Lm), r = new Float64Array(nw); for (let w = 0; w < nw; w++) r[w] = LB.evalR(T, Aw, w * LB.KN); Rk[k] = r; }
+  // v6: short/bermuda soltos — a perna da peça é um tubo rígido com a coxa da virilha para baixo, então a coxa embaixo
+  // dela fica (não é cortada) a partir de 5 cm abaixo da virilha: olhando pela boca da perna com o joelho alto aparece
+  // a coxa, não o vazio
+  for (const k of ['short', 'bermuda']) {
+    if (!Rk[k]) continue;
+    for (let w = 0; w < nw; w++) {
+      const o = w * LB.KN; if (Aw[o + LB.K.wLeg] < 0.6) continue;
+      const sd = Aw[o] < 0 ? 'L' : 'R', A = Lm.Lg[sd], ax = G.norm(G.sub(Lm.Kn[sd], A)), s = (Aw[o] - A[0]) * ax[0] + (Aw[o + 1] - A[1]) * ax[1] + (Aw[o + 2] - A[2]) * ax[2];
+      if (s > (A[1] - Lm.crotchY) + 0.05) Rk[k][w] = Math.max(Rk[k][w], 0.01);
+    }
+  }
   C.Rk = Rk;
   const regW = new Uint8Array(nw);
   for (let w = 0; w < nw; w++) regW[w] = LB.regionOf(Aw, w * LB.KN, Lm);
@@ -213,10 +206,22 @@ function attrA(n, mat, slot, ao = 255) { const A = new Uint8Array(n * 4); for (l
 
 function bodyCells(C, lod) {
   const b = C.body, wid = b.weld.wid, nt = b.idx.length / 3, mask = new Uint32Array(nt), reg = new Uint8Array(nt);
+  // v5: pele perto da axila fica sob tops soltos com manga/cava (a fresta da cava abre com o braço para trás)
+  if (!C._nearPit) {
+    // v6: só o fundo da axila (3,5 cm em volta do ápice medido): é o que fica exposto com o braço erguido; mais longe a
+    // pele furava a manga no balanço do braço
+    const ap = DR.armpitApex(C, C.Aw), pits = [ap.L, ap.R];
+    C._nearPit = new Uint8Array(b.weld.nw);
+    for (let w = 0; w < b.weld.nw; w++) for (const q of pits) if (Math.hypot(b.PW[w * 3] - q[0], b.PW[w * 3 + 1] - q[1], b.PW[w * 3 + 2] - q[2]) < 0.035) C._nearPit[w] = 1;
+  }
+  const pitKinds = new Set(['camiseta', 'regata', 'manga-longa', 'corta-vento']);
   for (let t = 0; t < nt; t++) {
     const w = [wid[b.idx[t * 3]], wid[b.idx[t * 3 + 1]], wid[b.idx[t * 3 + 2]]];
     let m = 0;
-    for (const k in C.Rk) { const r = C.Rk[k]; if (r[w[0]] <= -0.015 && r[w[1]] <= -0.015 && r[w[2]] <= -0.015) m |= 1 << COVER_BITS[k]; }
+    // v5: roupas soltas deixam 3,5 cm de pele por dentro das aberturas (barra, manga, perna): olhando por baixo da barra
+    // aparece o forro e a pele, nunca o vazio
+    const pit = C._nearPit[w[0]] || C._nearPit[w[1]] || C._nearPit[w[2]];
+    for (const k in C.Rk) { if (pit && pitKinds.has(k) && !process.env.EP_NOPIT) continue; const r = C.Rk[k], lim = GM.cullMargin(k); if (r[w[0]] <= lim && r[w[1]] <= lim && r[w[2]] <= lim) m |= 1 << COVER_BITS[k]; }
     if (C.hairCover) for (const hs in C.hairCover) {
       const hc = C.hairCover[hs][lod ? 1 : 0], ray = C.hairCover[hs][lod ? 3 : 2];
       if (!(hc[w[0]] && hc[w[1]] && hc[w[2]])) continue;
@@ -352,7 +357,7 @@ function pack(C) {
   // ---- roupas
   C.roupas = {};
   for (const k in C.garments) {
-    const G0 = C.garments[k], Wd = GM.garmentWeights(G0, C.Lm), qq = BD.quantWeights(Wd, G0.nv), A = new Uint8Array(G0.nv * 4);
+    const G0 = C.garments[k], Wd = GM.garmentWeights(G0, C, k), qq = BD.quantWeights(Wd, G0.nv), A = new Uint8Array(G0.nv * 4);
     for (let i = 0; i < G0.nv; i++) { A[i * 4] = G0.mat; A[i * 4 + 1] = G0.SLOT[i]; A[i * 4 + 2] = Math.round(Math.max(0, Math.min(1, G0.ao[i])) * 255); A[i * 4 + 3] = G0.FLAGS[i]; }
     // células por cobertura: triângulos de baixo que ficam inteiros embaixo de uma roupa de cima (2 cm de margem)
     const coverKinds = G0.layer === 2 ? LB.TOPS.filter(t => C.garments[t]) : G0.layer === 1 ? LB.BOTTOMS.filter(b => C.garments[b]) : [];
@@ -360,14 +365,16 @@ function pack(C) {
     for (const ck of coverKinds) {
       const T = LB.garmentTerms(ck, C.g, C.Lm), bit = 1 << COVER_BITS[ck];
       for (let i = 0; i < G0.nv; i++) {
-        if (!(G0.Wx && G0.Wx.has(i))) { if (LB.evalR(T, G0.V, G0.REC[i] * LB.KN) <= -0.02) vmask[i] |= bit; continue; }
+        if (!(G0.Wx && G0.Wx.has(i))) { if (LB.evalR(T, G0.V, G0.REC[i] * LB.KN) <= -0.012) vmask[i] |= bit; continue; }
         if (!(G0.FLAGS[i] & 4)) continue;
         // saia: a pala que fica 2 cm ou mais para dentro da barra do top some (o top não precisa passar por cima dela)
-        const p = [G0.P[i * 3], G0.P[i * 3 + 1], G0.P[i * 3 + 2]], h = C.bodyBVH.closest(p[0], p[1], p[2], 0.2);
+        // ponto do corpo mais perto SEM braço/mão (a mão pendurada ao lado do quadril dava registro de braço: não cortava)
+        const p = [G0.P[i * 3], G0.P[i * 3 + 1], G0.P[i * 3 + 2]], h = C.noArmBVH.closest(p[0], p[1], p[2], 0.2);
         if (h.tri < 0) continue;
         const rec = Float64Array.from(C.Aw.subarray(C.body.widx[h.tri * 3] * LB.KN, C.body.widx[h.tri * 3] * LB.KN + LB.KN));
         rec[0] = h.x; rec[1] = p[1]; rec[2] = h.z;
-        if (LB.evalR(T, rec, 0) <= -0.02) vmask[i] |= bit;
+        // v5: a saia some debaixo do top até 6 mm abaixo da barra dele (a camiseta solta não passa por cima da pala)
+        if (LB.evalR(T, rec, 0) <= 0.006) vmask[i] |= bit;
       }
     }
     const lodsC = G0.lods.map(l => {
@@ -483,4 +490,39 @@ export function boneRel(world) {
     const r = p < 0 ? w : G.sub(w, world[BD.BONES[p]]);
     return r.map(x => +x.toFixed(5));
   });
+}
+
+// procurador v4 (voxels) — só para comparar (EP_OLD_GARMENTS=1)
+function oldProxy(C, Aw, Lm, slices, WI, triAvg, noArm, rep) {
+  const g = C.g, tP = Date.now();
+  // corpo procurador (v4): campo de distância em voxels de 5 mm, sem braço/mão (e sem cabeça nos tops), com abertura
+  // (tira mamilo, ponta do busto, abdômen) e fechamento (vão sob o busto, decote, umbigo, virilha, sulco dos glúteos)
+  const noArmHead = t => noArm(t) && triAvg(t, LB.K.head) < 0.5;
+  const boxTop = [-0.27, Lm.H[1] - 0.17, -0.2, 0.27, Lm.N[1] + 0.07, 0.22];
+  const inTrunk = p => { const sl = slices.get(Math.floor(p[1] * 100)); return !!sl && p[1] < Lm.Sy - 0.02 && GM.inSliceHull(sl, p[0], p[2], 0.004); };
+  const occT = PX.bodyOcc(C.body.PW, WI, boxTop, 0.005, noArmHead, inTrunk);
+  const fFit = PX.morphField(occT.G, occT.occ, { open: g === 'f' ? 0.04 : 0.025, close: 0.04 });
+  const fLoose = PX.morphField(occT.G, occT.occ, { open: 0.035, close: 0.07 });
+  const tIn = p => g === 'f' && p[2] < Lm.cz && Math.abs(p[0]) > 0.015 && Math.abs(p[0]) < 0.15 ? 0.006 + 0.016 * GM.smoothstepX(Lm.Ybra - 0.03, Lm.Ybra + 0.01, p[1]) * GM.smoothstepX(Lm.apex[1] + 0.08, Lm.apex[1] + 0.03, p[1]) : 0.006;
+  const proxy = { fit: GM.fieldProxy(Aw, WI, C.body.adjW, fFit.F, Lm.H[1] - 0.17, Lm.N[1] + 0.02, tIn),
+    loose: GM.fieldProxy(Aw, WI, C.body.adjW, fLoose.F, Lm.H[1] - 0.17, Lm.N[1] + 0.02, tIn) };
+  // roupas de baixo: o campo do corpo é misturado ao fechado da virilha para cima (a ponte some 2,5 cm abaixo dela)
+  const boxBot = [-0.27, 0.05, -0.2, 0.27, Lm.T[1] + 0.09, 0.22];
+  const occB = PX.bodyOcc(C.body.PW, WI, boxBot, 0.005, noArm);
+  // casco convexo de cada fatia da virilha (−1,2 cm) até a cintura: a frente vai reta de coxa a coxa, o sulco dos
+  // glúteos some e logo abaixo da virilha fica o fundilho (ponte lisa entre as coxas)
+  const occH = PX.hullFill(occB.G, occB.occ, Lm.crotchY - 0.04, Lm.T[1] + 0.1, y => 0.06 * Math.pow(GM.smoothstepX(Lm.crotchY - 0.035, Lm.crotchY + 0.005, y), 1.5), 0.075);
+  const fBody = PX.morphField(occB.G, occB.occ, {}), fHull = PX.morphField(occB.G, occH, { sigma: 1.1, sigmaY: 2.5 });   // sem fechamento: ele fechava o vão entre as coxas (aleta na entreperna)
+  // legging: justa — casco inteiro na frente, metade atrás (o glúteo ainda aparece), só da virilha para cima
+  const tightF = (x, y, z) => { const a = fBody.F(x, y, z), b = fHull.F(x, y, z), w = (1 - 0.5 * GM.smoothstepX(Lm.H[2] - 0.02, Lm.H[2] + 0.04, z)) * GM.smoothstepX(Lm.crotchY - 0.01, Lm.crotchY + 0.02, y); return a + (b - a) * w; };
+  if (process.env.DBG_ARM) for (let w = 0; w < C.body.weld.nw; w++) { const o = w * LB.KN; if (Aw[o + 1] > 1.29 && Aw[o + 1] < 1.37 && Aw[o] > 0.09 && Aw[o] < 0.16 && Aw[o + 2] > -0.08 && Aw[o + 2] < 0.04) console.log('  ARM', Aw[o].toFixed(3), Aw[o + 1].toFixed(3), Aw[o + 2].toFixed(3), 'wArm', Aw[o + LB.K.wArm].toFixed(2)); }
+  if (process.env.DBG_PROBE) {   // depuração: perfil da frente (z) dos campos
+    const front = (F, x, y) => { for (let z = -0.2; z < 0.2; z += 0.0005) if (F(x, y, z) < 0) return z.toFixed(4); return '-'; };
+    for (let y = Lm.crotchY + 0.06; y > Lm.crotchY - 0.06; y -= 0.01) console.log('  PROBE y', y.toFixed(3), [0, 0.03, 0.06, 0.09].map(x => x + ':' + front(fBody.F, x, y) + '/' + front(fHull.F, x, y)).join('  '));
+  }
+  const attrBVH = new BVH(C.body.PW, WI, noArm);
+  const nets = { loose: GM.netsBase(fHull.F, boxBot, 0.005, Aw, attrBVH, WI, Lm), tight: GM.netsBase(tightF, boxBot, 0.005, Aw, attrBVH, WI, Lm) };
+  rep.procurador = { ms: Date.now() - tP, topoMovidos: proxy.fit.moved, cascaBaixo: nets.loose.idx.length / 3, virilhaY: +Lm.crotchY.toFixed(3) };
+  console.log('  procurador', JSON.stringify(rep.procurador));
+  return { proxy, nets };
 }

@@ -7,6 +7,7 @@
 (function (EP) {
   'use strict';
   var U = EP.util;
+  var MAX_CLOSE = 2;   // corredores da rua com o molde completo ao mesmo tempo (os mais perto, na frente da câmera; até 2)
 
   function NPCManager(scene, data, limit) {
     this.data = data;
@@ -17,6 +18,7 @@
     for (var i = 0; i < data.poolSize; i++) {
       var rig = new EP.RunnerRig();
       rig.mesh.castShadow = false;   // sombra redonda basta (a do jogador é de verdade)
+      for (var a in rig.acc) rig.acc[a].castShadow = false;   // nem boné com sombra sem o corpo
       rig.lod = 1;                    // molde médio de perto, leve de longe
       rig.root.visible = false;
       scene.add(rig.root);
@@ -171,6 +173,10 @@
     }
     // ultrapassagens, retirada e animação
     var behindLim = ctx.home ? -160 : d.despawnBehind, aheadLim = ctx.home ? 30 : d.despawnAhead;
+    // nível de detalhe pela distância à câmera (com folga para não ficar trocando): longe o leve, perto o
+    // médio e, bem perto (se o aparelho dá conta), o completo — só os MAX_CLOSE mais perto que estão na
+    // frente da câmera (quem já ficou para trás dela não aparece). Escolhidos sem criar listas.
+    var c0 = null, c1 = null, d0 = Infinity, d1 = Infinity, fz = ctx.camFz || -1;
     for (i = 0; i < list.length; i++) {
       n = list[i];
       if (!n.active) continue;
@@ -179,9 +185,19 @@
       if (!n.counted && n.wasAhead && ahead < -0.6) { n.counted = true; if (ctx.onOvertake) ctx.onOvertake(n); }
       if (!n.pacer && (ahead < behindLim || ahead > aheadLim) || (!ctx.home && !n.pacer && ahead > 112 && n.speed >= ctx.playerSpeed)) { n.active = false; n.rig.root.visible = false; continue; }
       n.rig.root.position.set(n.x, 0, n.z);
-      n.rig.setLod(Math.abs(ahead) > (n.rig.lod === 2 ? 26 : 32) ? 2 : 1);   // longe: molde leve
+      var dz = ctx.camZ !== undefined ? n.z - ctx.camZ : -ahead;
+      n.dc = Math.abs(dz);
+      if (ctx.lod0 && dz * fz > 0.5 && n.dc < (n.rig.lod === 0 ? 11 : 9)) {
+        if (n.dc < d0) { c1 = c0; d1 = d0; c0 = n; d0 = n.dc; } else if (n.dc < d1) { c1 = n; d1 = n.dc; }
+      }
       n.animAcc += dt;
       if (Math.abs(ahead) < 70 || (this.frame + i) % 3 === 0) { n.rig.animate(n.animAcc, n.speed, null); n.animAcc = 0; }
+    }
+    for (i = 0; i < list.length; i++) {
+      n = list[i];
+      if (!n.active) continue;
+      var lod = n.rig.lod;
+      n.rig.setLod(n === c0 || (MAX_CLOSE > 1 && n === c1) ? 0 : n.dc > (lod === 2 ? 30 : 36) ? 2 : 1);
     }
   };
 
@@ -195,7 +211,8 @@
     }
     if (!n) return null;
     this._activate(n, player.z - ahead, U.clamp(player.x + 0.8, -this.limit + 0.5, this.limit - 0.5), speed, 'pacer', 0);
-    var app = EP.RunnerRig.random();
+    // colete do corredor-guia: por cima de camiseta ou regata (não do top)
+    var app = EP.RunnerRig.random(null, function (o) { return o.top !== 'top'; });
     app.pacer = true; app.gear = { head: { kind: 'viseira', color: '#ffffff', accent: '#ff5a3d' } };
     n.rig.setAppearance(app);
     n.pacer = true; n.counted = true; n.wasAhead = false; n.laneTimer = 999;

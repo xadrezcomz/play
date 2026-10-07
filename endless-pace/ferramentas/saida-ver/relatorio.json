@@ -1,6 +1,6 @@
 {
  "versao": 1,
- "inicio": "2026-10-06T22:12:09.797Z",
+ "inicio": "2026-10-07T01:12:21.647Z",
  "generos": {
   "f": {
    "bindErr": 4.318840167855109e-7,
@@ -35,118 +35,31 @@
     "Sy": 1.42,
     "cz": -0.004
    },
-   "procurador": {
-    "ms": 6682,
-    "topoMovidos": 1327,
-    "cascaBaixo": 102542,
-    "virilhaY": 0.905
-   },
-   "roupa_meia": {
-    "v": 2678,
-    "tris": [
-     423,
-     182,
-     36
-    ],
-    "ms": 183
-   },
-   "roupa_short": {
-    "v": 15944,
-    "tris": [
-     2005,
-     699,
-     251
-    ],
-    "ms": 1046
-   },
-   "roupa_bermuda": {
-    "v": 19180,
-    "tris": [
-     2594,
-     942,
-     251
-    ],
-    "ms": 1363
-   },
-   "roupa_legging": {
-    "v": 24323,
-    "tris": [
-     3513,
-     1313,
-     252
-    ],
-    "ms": 1846
-   },
-   "roupa_saia-short": {
-    "v": 16555,
-    "tris": [
-     4151,
-     2963,
-     252
-    ],
-    "ms": 1056
-   },
    "roupa_camiseta": {
-    "v": 14317,
+    "v": 19998,
     "tris": [
-     3394,
-     1286,
-     270
+     4718,
+     1193,
+     269
     ],
-    "ms": 587
-   },
-   "roupa_regata": {
-    "v": 14754,
-    "tris": [
-     2316,
-     857,
-     270
-    ],
-    "ms": 476
-   },
-   "roupa_top": {
-    "v": 14461,
-    "tris": [
-     1624,
-     568,
-     234
-    ],
-    "ms": 544
-   },
-   "roupa_manga-longa": {
-    "v": 12615,
-    "tris": [
-     4119,
-     1459,
-     287
-    ],
-    "ms": 607
-   },
-   "roupa_corta-vento": {
-    "v": 21388,
-    "tris": [
-     5142,
-     2092,
-     306
-    ],
-    "ms": 761
+    "ms": 7339
    },
    "tenis": {
     "L": {
-     "v": 4729,
+     "v": 6872,
      "tris": [
-      1568,
-      354,
-      64
+      2205,
+      474,
+      96
      ],
      "comprimento": 0.299
     },
     "R": {
-     "v": 4697,
+     "v": 6863,
      "tris": [
-      1570,
-      336,
-      64
+      2216,
+      466,
+      94
      ],
      "comprimento": 0.299
     }
@@ -177,15 +90,15 @@
     ]
    },
    "cabelo_rabo_inflado": [
-    0.015,
-    0.015
+    0.009,
+    0.0112
    ],
    "cabelo_rabo": {
-    "v": 4575,
+    "v": 4700,
     "tris": [
      3000,
-     840,
-     365
+     733,
+     308
     ]
    },
    "cabelo_coque_inflado": [
@@ -205,11 +118,11 @@
     0.015
    ],
    "cabelo_longo": {
-    "v": 4199,
+    "v": 4197,
     "tris": [
      3000,
-     874,
-     300
+     841,
+     314
     ]
    },
    "cabelo_raspado_inflado": [
@@ -225,22 +138,22 @@
     ]
    },
    "corpo": {
-    "celulas": 58,
+    "celulas": 64,
     "tris": [
-     9972,
-     4030
+     9962,
+     3978
     ],
     "lod2": {
-     "top+legging+rabo": 802,
-     "top+legging+rabo+meia": 824,
-     "regata+short+rabo": 850,
-     "regata+short+rabo-meia": 804,
-     "camiseta+legging+coque": 764,
-     "camiseta+legging+coque+meia": 786,
-     "top+short+curto": 856,
+     "top+legging+rabo": 797,
+     "top+legging+rabo+meia": 827,
+     "regata+short+rabo": 899,
+     "regata+short+rabo-meia": 857,
+     "camiseta+legging+coque": 790,
+     "camiseta+legging+coque+meia": 820,
+     "top+short+curto": 852,
      "top+short+curto-meia": 810
     },
-    "peApagado": 1184
+    "peApagado": 1194
    },
    "textura": {
     "pele": 71823,
@@ -268,10 +181,10 @@
   }
  },
  "arquivos": {
-  "corredor-f.js": 332087,
-  "roupas.js": 450778,
-  "cabelos.js": 260792
+  "corredor-f.js": 346433,
+  "roupas.js": 66483,
+  "cabelos.js": 255417
  },
- "totalBytes": 1043657,
- "segundos": 22.9
+ "totalBytes": 668333,
+ "segundos": 15.6
 }

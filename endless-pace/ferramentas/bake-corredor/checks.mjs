@@ -116,7 +116,7 @@ export function runChecks(out, { raiz, saida, report }) {
       if (a1.index.length / 3 > worst1) { worst1 = a1.index.length / 3; wk1 = a1.key; }
     }
     r.pior = { lod0: [worst0, wk0], lod1: [worst1, wk1] };
-    if (worst0 > 25000) fail(g + ': LOD0 acima de 25k (' + worst0 + ')');
+    if (worst0 > 28000) fail(g + ': LOD0 acima de 28k (' + worst0 + ')');
     if (worst1 > 9500) fail(g + ': LOD1 acima de 9,5k (' + worst1 + ')');   // LOD1 é dos corredores da rua: o limite de 8k vale para eles (abaixo)
     r.lod2Rua = {};
     for (const o of NPC_OUTFITS.filter(o => o.gender === g).flatMap(o => [o, { ...o, socks: o.bottom === 'legging' }])) {

@@ -8,6 +8,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var t = function (k, p) { return EP.i18n.t(k, p); };
   var UI = EP.UI, AU = EP.AudioManager, MU = EP.MetaUI;
+  var _camDir = new THREE.Vector3();
   var META_MODALS = ['tela-item', 'tela-loja', 'tela-conquistas', 'tela-missoes', 'tela-opcoes', 'tela-recordes'];
 
   var G = EP.Game = {
@@ -24,16 +25,22 @@
       MU.init(this);
       this._applySettings();
       if (!this._webgl()) { UI.error(t('boot.noWebgl')); return; }
-      var self = this;
-      // antes de abrir: o corredor do jogador e um corredor da rua já esculpidos (em segundo plano)
-      var RR = EP.RunnerRig, heroApp = this._look(), npc0 = RR.NPC_OUTFITS[0], left = 2;
+      var self = this, MD = EP.ModelData;
       var go = function () {
-        if (--left > 0) return;
         try { self._init3d(); }
         catch (e) { UI.error(t('boot.noWebgl')); if (window.console) console.error(e); }
       };
-      EP.BodyModel.prepare(heroApp.gender, RR.outfitOf(heroApp), 0, go);
-      EP.BodyModel.prepare(npc0.gender, npc0, 1, go);
+      // corredores assados (dados/modelos): decodificar é rápido e acontece ao montar o primeiro corredor.
+      // Só as texturas de pele (imagens embutidas) carregam sozinhas: espera um pouco por elas (no máximo
+      // 1,5 s) com a tela de carregamento, para o corredor não aparecer escuro no primeiro quadro.
+      var tex = [];
+      var lite = this.save.settings.quality === 'low';   // modo leve: sem mapa de normais
+      if (MD && MD.ok()) ['m', 'f'].forEach(function (g) { tex.push(MD.texture(g, 'skin')); if (!lite) MD.texture(g, 'normal'); });
+      var t0 = Date.now();
+      (function wait() {
+        var ready = tex.every(function (x) { return !x || !x.image || x.image.complete; });
+        if (ready || Date.now() - t0 > 1500) setTimeout(go, 0); else setTimeout(wait, 30);
+      })();
     },
 
     _webgl: function () {
@@ -79,7 +86,8 @@
       this.scene.add(this.rig.root);
       this.player = new EP.RunnerController(this.rig, B.run);
       this.npcs = new EP.NPCManager(this.scene, EP.data.npcs, B.run.laneLimit);
-      setTimeout(function () { EP.RunnerRig.warmNpcs(); }, 400);   // as outras roupas da rua, aos poucos
+      // as outras roupas da rua, aos poucos (a completa só serve para quem passa bem perto, fora do modo leve)
+      setTimeout(function () { EP.RunnerRig.warmNpcs(null, save.settings.quality === 'low' ? [1, 2] : [1, 2, 0]); }, 400);
 
       this.rhythm = new EP.TapRhythmSystem(B.rhythm);
       this.flow = new EP.FlowSystem(B.flow);
@@ -221,7 +229,7 @@
     // depois de trocar um item: bônus na corrida, roupa no boneco e as telas abertas
     _afterGear: function () {
       EP.Meta.applyTo(this);
-      this.rig.setAppearance(this._look());
+      if (this.dressing) this.rig.setAppearanceSoon(this._look()); else this.rig.setAppearance(this._look());
       this._persist();
       if (UI.isOpen('tela-equipar')) MU.equip();
       if (UI.isOpen('tela-loja')) MU.shop();
@@ -285,7 +293,8 @@
       this.creator.open({
         profile: this.save.profile,
         editing: editing,
-        onChange: function (p) { self.rig.setAppearance(self._look(p, true)); },
+        // troca de cabelo/roupa espera um instante (clicar em vários seguidos não monta o molde de cada um)
+        onChange: function (p) { self.rig.setAppearanceSoon(self._look(p, true)); },
         onDone: function (p) {
           var first = !self.save.profile.created;
           self.save.profile.name = p.name;
@@ -514,11 +523,16 @@
       var seg = this.world.segmentAt(this.player.z), route = EP.data.routes[seg ? seg.route : 'bairro'];
       var density = idle ? 0.5 : (route.modifiers.npcDensity || 1) * ((seg && seg.def.npcDensity) || 1);
       var self = this;
+      var q = this.save.settings.quality;
       return {
         playerSpeed: idle ? 0 : this.speed.value,
         runDistance: this.progression.run ? this.progression.run.distance : 0,
         density: density, gen: this.world, home: idle,
-        onOvertake: idle ? null : function (n) { self._onOvertake(n); }
+        onOvertake: idle ? null : function (n) { self._onOvertake(n); },
+        // nível de detalhe dos corredores da rua pela distância à câmera; o completo só de perto e se
+        // o aparelho dá conta (qualidade alta, ou automática sem ter precisado baixar a resolução)
+        camZ: this.camera.position.z, camFz: this.camera.getWorldDirection(_camDir).z,
+        lod0: q === 'high' || (q === 'auto' && (this.resScale || 1) >= 0.99)
       };
     },
 

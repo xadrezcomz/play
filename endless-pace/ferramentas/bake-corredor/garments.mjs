@@ -2,16 +2,19 @@
 // pela espessura/folga do tecido (com caimento, dobras, colisão e camadas), com barra dobrada para dentro,
 // espaços de cor por faixa e oclusão. Saída explícita (posição, normal, ossos, atributos) — ver §6.1 na espec.
 import * as G from './gltf.mjs';
-import { K, KN, garmentTerms, evalR, limbCoords, hemY } from './label.mjs';
+import { K, KN, garmentTerms, evalR, limbCoords, hemY, sleeveLen } from './label.mjs';
 const KN0 = KN;
 import { BI, NB } from './body.mjs';
 import { BVH, neighbors, vertexNormals, boundaryLoops, smoothField, smoothstep, smax, clamp, noise3, rng, seedOf, rayAO, compact, taubin, weld, surfaceNets, components } from './geom.mjs';
 import { zeroAlong, gradAt } from './proxy.mjs';
 import { simplifier } from './encode.mjs';
+import { drapeBase, DRAPE_KINDS, isLoose } from './drape.mjs';
 import { SL } from './consts.mjs';
 
 const MAT = { cotton: 1, tech: 2 };
 export const smoothstepX = smoothstep;
+// margem (m, valor de R_g) a partir da qual a pele embaixo da roupa some (máscara de cobertura)
+export const cullMargin = kind => (!process.env.EP_OLD_GARMENTS && isLoose(kind)) ? -0.035 : -0.015;
 export const GSPEC = {
   camiseta: { mat: MAT.cotton, layer: 3, lod: [4000, 1600, 300] },
   regata: { mat: MAT.cotton, layer: 3, lod: [3000, 1200, 300] },
@@ -238,7 +241,7 @@ function offsets(kind, g, V, n, idx, Lm, terms, slices, seed, bridge = null) {
     for (const k in terms) tv[k] = -terms[k](V, o);   // δ por termo
     switch (kind) {
       case 'camiseta': {
-        const Ls = f ? 0.115 : 0.135;
+        const Ls = sleeveLen(g);
         d = (f ? 0.0065 : 0.0075) * (1 - armB) + armB * (0.007 + 0.010 * smoothstep(0.03, Ls, Math.max(0, sA)));
         d += 0.004 * smoothstep(Yhem + 0.06, Yhem, y) * (1 - armB);
         fold = 0.002 * smoothstep(Yhem + 0.14, Yhem + 0.03, y) * (1 - armB) * Math.sin(2 * Math.PI * (y + 0.012 * nz(x, y, z, 18)) / 0.05);
@@ -347,14 +350,12 @@ function offsets(kind, g, V, n, idx, Lm, terms, slices, seed, bridge = null) {
 export function buildGarment(C, kind, ctx) {
   const { Aw, widx, Lm, bodyBVH, lower } = ctx;
   const spec = GSPEC[kind], terms = garmentTerms(kind, C.g, Lm);
-  // tops: recortados de um corpo "procurador" alisado (sem mamilo, peitoral, abdômen e deltoide marcados); o
-  // corta-vento usa um ainda mais liso. O caimento (casco por fatia) também sai dele.
+  const top = spec.layer === 3;
+  if (DRAPE_KINDS.includes(kind) && !process.env.EP_OLD_GARMENTS) return buildDraped(C, kind, ctx, spec, terms);
   const isTop = spec.layer === 3, proxy = isTop ? (kind === 'corta-vento' ? ctx.proxy.loose : ctx.proxy.fit) : null;
-  // roupas de baixo: casca da grade de voxels (fundilho e sem "V"); meia: a própria pele
   const nb = spec.layer === 2 && ctx.nets ? (kind === 'legging' || kind === 'saia-short' ? ctx.nets.tight : ctx.nets.loose) : null;
   const cs = nb ? cutAndSubdivide(nb.V, nb.idx, terms, false) : cutAndSubdivide(proxy ? proxy.Aw : Aw, widx, terms);
   let { V, idx, n } = cs;
-  const top = spec.layer === 3;
   const slices = top ? proxy.slices : null;
   // alisa a base da casca (umbigo, abdômen e dobras finas do corpo não marcam o tecido) e refaz as normais
   {
@@ -515,6 +516,125 @@ export function buildGarment(C, kind, ctx) {
   return finishShell(C, kind, spec, { V, P, idx: Uint32Array.from(idx), n, SF, terms, Lm, bodyBVH, lower, ctx });
 }
 
+// ---------------------------------------------------------------- roupa caída (v5, drape.mjs)
+// O volume da peça já é o tecido (folga, queda, dobras): recorta pela região R_g, alisa de leve, colide com o corpo,
+// passa por cima das camadas de baixo e segue para as faixas de cor/LODs/barra.
+function buildDraped(C, kind, ctx, spec, terms) {
+  const { Aw, Lm, bodyBVH, lower } = ctx, top = spec.layer === 3, loose = isLoose(kind);
+  const DB = drapeBase(kind, C, Aw);
+  const cs = cutAndSubdivide(DB.V, DB.idx, terms, false);
+  const { V, idx, n } = cs;
+  if (process.env.DBG_LOOPS === kind) {   // depuração: laços de borda e o termo que corta cada um
+    for (const l of boundaryLoops(idx)) {
+      const c = [0, 0, 0], tc = {};
+      for (const v of l) { for (let k = 0; k < 3; k++) c[k] += V[v * KN + k] / l.length; let best = null, bv = -1e9; for (const nm in terms) { if (nm === '_R') continue; const x = terms[nm](V, v * KN); if (x > bv) { bv = x; best = nm; } } tc[best] = (tc[best] || 0) + 1; }
+      const r0 = V[l[0] * KN + K.dr], t0 = V[l[0] * KN + K.tb], s0 = V[l[0] * KN + K.sx], sa = V[l[0] * KN + K.sA], wa = V[l[0] * KN + K.wArm];
+      console.log('  LAÇO', l.length, c.map(x => x.toFixed(3)).join(','), JSON.stringify(tc), 'dr', r0.toFixed(2), 'tb', t0.toFixed(2), 'sx', s0.toFixed(3), 'sA', sa.toFixed(3), 'wArm', wa.toFixed(2));
+    }
+  }
+  {   // tira o degrau da grade (surface nets) sem mexer na borda
+    const adj = neighbors(idx, n), fixed = new Uint8Array(n);
+    for (const l of boundaryLoops(idx)) for (const v of l) fixed[v] = 1;
+    const B = new Float64Array(n * 3), m = new Float64Array(n);
+    for (let i = 0; i < n; i++) { for (let k = 0; k < 3; k++) B[i * 3 + k] = V[i * KN + k]; m[i] = fixed[i] ? 0 : 1; }
+    taubin(B, adj, m, 3);
+    const NN = vertexNormals(B, idx, n);
+    for (let i = 0; i < n; i++) {
+      const o = i * KN, s0 = NN[i * 3] * V[o + 3] + NN[i * 3 + 1] * V[o + 4] + NN[i * 3 + 2] * V[o + 5] < 0 ? -1 : 1;
+      for (let k = 0; k < 3; k++) { V[o + k] = B[i * 3 + k]; V[o + 3 + k] = NN[i * 3 + k] * s0; }
+    }
+  }
+  const P = new Float64Array(n * 3);
+  for (let i = 0; i < n; i++) for (let k = 0; k < 3; k++) P[i * 3 + k] = V[i * KN + k];
+  const BN = C.body.NW, BW = C.body.widx;
+  const nrmAt = h => {
+    const a = BW[h.tri * 3] * 3, b = BW[h.tri * 3 + 1] * 3, c = BW[h.tri * 3 + 2] * 3;
+    return G.norm([BN[a] * h.u + BN[b] * h.v + BN[c] * h.w, BN[a + 1] * h.u + BN[b + 1] * h.v + BN[c + 1] * h.w, BN[a + 2] * h.u + BN[b + 2] * h.v + BN[c + 2] * h.w]);
+  };
+  // colisão: o tecido fica a ≥ dmin da pele (pela normal do ponto mais próximo)
+  const dmin = loose ? 0.003 : spec.mat === MAT.tech ? 0.0012 : 0.0016;
+  const collide = () => {
+    for (let i = 0; i < n; i++) {
+      const h = bodyBVH.closest(P[i * 3], P[i * 3 + 1], P[i * 3 + 2], 0.08);
+      if (h.tri < 0) continue;
+      const nn = nrmAt(h), sd = (P[i * 3] - h.x) * nn[0] + (P[i * 3 + 1] - h.y) * nn[1] + (P[i * 3 + 2] - h.z) * nn[2];
+      if (sd < dmin) for (let k = 0; k < 3; k++) P[i * 3 + k] += nn[k] * (dmin - sd);
+    }
+  };
+  collide();
+  // camadas: por cima das roupas de baixo (todas do gênero) com folga
+  if (lower && lower.length) {
+    const marg = top ? 0.005 : 0.002, need = new Float64Array(n);
+    for (const L of lower) for (let i = 0; i < n; i++) {
+      const p0 = [P[i * 3], P[i * 3 + 1], P[i * 3 + 2]], bn = [V[i * KN + 3], V[i * KN + 4], V[i * KN + 5]];
+      // raio de dentro para fora pela normal da superfície: a camada de baixo que estiver até 4 cm para dentro
+      const o = G.sub(p0, G.scl(bn, 0.04));
+      let t0 = 0;
+      for (let guard = 0; guard < 6; guard++) {
+        const h = L.bvh.ray(o[0] + bn[0] * t0, o[1] + bn[1] * t0, o[2] + bn[2] * t0, bn[0], bn[1], bn[2], 0.08);
+        if (!h || t0 + h.t > 0.06) break;
+        const a = L.idx[h.tri * 3] * 3, b = L.idx[h.tri * 3 + 1] * 3, c = L.idx[h.tri * 3 + 2] * 3, w0 = 1 - h.u - h.v, Nn = L.N;
+        const hn = G.norm([Nn[a] * w0 + Nn[b] * h.u + Nn[c] * h.v, Nn[a + 1] * w0 + Nn[b + 1] * h.u + Nn[c + 1] * h.v, Nn[a + 2] * w0 + Nn[b + 2] * h.u + Nn[c + 2] * h.v]);
+        if (G.dot(hn, bn) >= 0.4) need[i] = Math.max(need[i], t0 + h.t - 0.04 + marg);
+        t0 += h.t + 0.0005;
+      }
+    }
+    const adjL = neighbors(idx, n);
+    for (let it = 0; it < 2; it++) { const t = Float64Array.from(need); for (let i = 0; i < n; i++) for (let q = adjL.off[i]; q < adjL.off[i + 1]; q++) t[i] = Math.max(t[i], need[adjL.nb[q]]); need.set(t); }
+    smoothField(need, 1, adjL, 3, 0.5);
+    for (let i = 0; i < n; i++) if (need[i] > 0) for (let k = 0; k < 3; k++) P[i * 3 + k] += V[i * KN + 3 + k] * need[i];
+    collide();
+  }
+  // costura lateral das roupas de baixo tirada da própria peça (lisa, sem os calombos do corpo): a listra/painel sai dela
+  if (spec.layer === 2) ctx = { ...ctx, seam: { L: garmentSeam(V, n, 'L', Lm), R: garmentSeam(V, n, 'R', Lm) } };
+  // tops soltos: costuras laterais (linha mais de fora do tronco abaixo da axila) e de ombro (cume do ombro)
+  if (top && loose) ctx = { ...ctx, seamTop: topSeams(V, n, Lm) };
+  const SF = slotFields(kind, C.g, Lm, terms, ctx);
+  return finishShell(C, kind, spec, { V, P, idx: Uint32Array.from(idx), n, SF, terms, Lm, bodyBVH, lower, ctx, draped: true });
+}
+function topSeams(V, n, Lm) {
+  const apY = Lm.Sy - 0.1, out = { side: {}, ridge: {}, apY };
+  const sm = (pts, ks) => { for (let it = 0; it < 3; it++) { const t = pts.map(p => p.slice()); for (let i = 0; i < pts.length; i++) { const acc = [0, 0, 0]; let c = 0; for (let j = Math.max(0, i - 3); j <= Math.min(pts.length - 1, i + 3); j++) { for (const k of ks) acc[k] += pts[j][k]; c++; } for (const k of ks) t[i][k] = acc[k] / c; } for (let i = 0; i < pts.length; i++) pts[i] = t[i]; } return pts; };
+  const ext = pts => { if (pts.length > 1) { const a = pts[0], b = pts[1], c = pts[pts.length - 1], d = pts[pts.length - 2]; pts.unshift(G.add(a, G.scl(G.sub(a, b), 3))); pts.push(G.add(c, G.scl(G.sub(c, d), 3))); } return pts; };
+  for (const sd of ['L', 'R']) {
+    const sg = sd === 'L' ? -1 : 1, side = [], ridge = [];
+    let yLo = 1e9; for (let i = 0; i < n; i++) if (V[i * KN + K.tb] < 0.5) yLo = Math.min(yLo, V[i * KN + 1]);
+    for (let y = yLo; y <= apY; y += 0.01) {
+      let best = null, bx = -1;
+      for (let i = 0; i < n; i++) { const o = i * KN; if (V[o + K.tb] > 0.5 || Math.abs(V[o + 1] - y) > 0.006 || V[o] * sg < bx) continue; bx = V[o] * sg; best = [V[o], y, V[o + 2]]; }
+      if (best) side.push(best);
+    }
+    let xMax = 0; for (let i = 0; i < n; i++) { const o = i * KN; if (V[o + K.tb] < 0.5 && V[o + 1] > Lm.Sy - 0.05) xMax = Math.max(xMax, V[o] * sg); }
+    for (let x = 0.07; x <= xMax + 1e-9; x += 0.005) {
+      let best = null, by = -1;
+      for (let i = 0; i < n; i++) { const o = i * KN; if (V[o + K.tb] > 0.5 || Math.abs(V[o] * sg - x) > 0.003 || V[o + 1] < Lm.Sy - 0.08 || V[o + 1] < by) continue; by = V[o + 1]; best = [sg * x, V[o + 1], V[o + 2]]; }
+      if (best) ridge.push(best);
+    }
+    out.side[sd] = ext(sm(side, [0, 2])); out.ridge[sd] = ext(sm(ridge, [1, 2]));
+  }
+  return out;
+}
+
+// ponto mais de fora de cada fatia de 1 cm (lado sd) da superfície da peça, alisado em x e z (média móvel ±4 cm)
+function garmentSeam(V, n, sd, Lm) {
+  let yLo = 1e9, yHi = -1e9;
+  for (let i = 0; i < n; i++) { yLo = Math.min(yLo, V[i * KN + 1]); yHi = Math.max(yHi, V[i * KN + 1]); }
+  const pts = [];
+  for (let y = yLo; y <= yHi + 1e-9; y += 0.01) {
+    let best = null, bx = -1;
+    for (let i = 0; i < n; i++) { const o = i * KN; if (Math.abs(V[o + 1] - y) > 0.006) continue; const x = sd === 'L' ? -V[o] : V[o]; if (x > bx) { bx = x; best = [V[o], y, V[o + 2]]; } }
+    if (best) pts.push(best);
+  }
+  for (let it = 0; it < 3; it++) {
+    const t = pts.map(p => p.slice());
+    for (let i = 0; i < pts.length; i++) { let ax = 0, az = 0, c = 0; for (let j = Math.max(0, i - 4); j <= Math.min(pts.length - 1, i + 4); j++) { ax += pts[j][0]; az += pts[j][2]; c++; } t[i][0] = ax / c; t[i][2] = az / c; }
+    for (let i = 0; i < pts.length; i++) pts[i] = t[i];
+  }
+  // prolonga 3 cm nas pontas (o campo não acaba antes da borda)
+  if (pts.length > 1) { const a = pts[0], b = pts[1], c = pts[pts.length - 1], d = pts[pts.length - 2]; pts.unshift(G.add(a, G.scl(G.sub(a, b), 3))); pts.push(G.add(c, G.scl(G.sub(c, d), 3))); }
+  return pts;
+}
+
 // costura lateral de cada perna: o ponto mais de fora de cada fatia horizontal (sem braço/mão), alisado em y e
 // colado na pele — uma curva contínua da cintura ao tornozelo (a listra lateral sai daqui)
 function lateralSeam(Aw, Lm, bodyBVH, sd) {
@@ -557,35 +677,46 @@ function slotFields(kind, g, Lm, terms, ctx) {
   const arm = (A, o) => A[o + K.sA] >= 0;
   const T = SL;
   const stripe = hw => {
-    const sL = lateralSeam(ctx.Aw, Lm, ctx.bodyBVH, 'L'), sR = lateralSeam(ctx.Aw, Lm, ctx.bodyBVH, 'R');
+    const sL = ctx.seam ? ctx.seam.L : lateralSeam(ctx.Aw, Lm, ctx.bodyBVH, 'L'), sR = ctx.seam ? ctx.seam.R : lateralSeam(ctx.Aw, Lm, ctx.bodyBVH, 'R');
     const u = (A, o) => seamU(A[o] < 0 ? sL : sR, [A[o], A[o + 1], A[o + 2]]);
+    const w = typeof hw === 'function' ? hw : () => hw;
     // um campo só: |u| − meia largura (com o refinamento perto das linhas, a interpolação de |u| não serrilha)
-    return [['stripe', (A, o) => Math.min(Math.abs(u(A, o)), 0.05) - hw]];
+    return [['stripe', (A, o) => Math.min(Math.abs(u(A, o)), 0.06) - w(A[o + 1])]];
   };
   // debrum/cós: largura medida pela distância geodésica até o laço de borda daquele tipo (gola, manga, barra, cós,
   // perna, punho de meia) — a linha de cor fica paralela à borda de verdade
   const trimBy = (widths, extra, rule) => { const SFo = { fields: [['trim', (A, o) => SFo.trimD(A, o)], ...extra], rule, trimWidths: widths }; return SFo; };
+  // costura da cava (v5): faixa de 3 mm, cor de acabamento, na linha onde o tronco encontra a manga (zero da folga com
+  // sinal entre os tubos). Dois campos com sinal (um por borda) para o corte ficar exato em triângulos grandes.
+  const seams = (sleeves) => {
+    if (!ctx.seamTop || !sleeves) return [];
+    const hw = 0.001;   // v6: linha fina (2 mm), sem relevo
+    return [['seamA', (A, o) => A[o + K.jn] - hw], ['seamB', (A, o) => -A[o + K.jn] - hw]];
+  };
   switch (kind) {
-    case 'camiseta': return trimBy({ neck: 0.016, sleeve: 0.018, hem: 0.018 }, [], n => n.trim ? T.shirtTrim : T.shirt);
-    case 'regata': return trimBy({ neck: 0.014, sleeve: 0.012, hem: 0.018 }, [], n => n.trim ? T.shirtTrim : T.shirt);
+    case 'camiseta': return trimBy({ neck: 0.016, sleeve: 0.018, hem: 0.018 }, seams(true), n => n.trim || (n.seamA && n.seamB) ? T.shirtTrim : T.shirt);
+    case 'regata': return trimBy({ neck: 0.014, sleeve: 0.012, hem: 0.018 }, seams(false), n => n.trim || (n.seamA && n.seamB) ? T.shirtTrim : T.shirt);
     case 'top': {   // debrum pela distância geodésica à borda da casca (−R dava ilhas no encontro bojo/alça)
       const SFo = { fields: [['trim', (A, o) => Math.min(SFo.edge(A, o) - 0.009, A[o + 1] - (Lm.Ybra + 0.02))]], rule: n => n.trim ? T.shirtTrim : T.shirt, needEdge: true };
       return SFo;
     }
-    case 'manga-longa': return trimBy({ neck: 0.016, sleeve: 0.025, hem: 0.018 }, [], n => n.trim ? T.shirtTrim : T.shirt);   // sem a linha raglan (virava lascas brancas no ombro)
+    case 'manga-longa': return trimBy({ neck: 0.016, sleeve: 0.03, hem: 0.018 }, seams(true), n => n.trim || (n.seamA && n.seamB) ? T.shirtTrim : T.shirt);
     case 'corta-vento': {
       const Yb = Lm.Sy - 0.12;
       const SFo = {
-        trimWidths: { sleeve: 0.02, hem: 0.02 },
+        trimWidths: { sleeve: 0.03, hem: 0.022 },
         fields: [['zip', (A, o) => Math.max(Math.abs(A[o]) - 0.006, A[o + 2] - Lm.cz)],
-          ['trim', (A, o) => SFo.trimD(A, o)],
+          ['trim', (A, o) => SFo.trimD(A, o)], ...seams(true),
           // faixa refletiva só nas costas (na frente cruzava o zíper e formava uma cruz)
           ['band', (A, o) => Math.max(Math.abs(A[o + 1] - Yb) - 0.007, (Lm.cz + 0.03) - A[o + 2], A[o + K.wArm] - 0.3)]],
-        rule: n => n.zip ? T.shirtAccent : n.trim ? T.shirtTrim : n.band ? T.shirtAccent : T.shirt };
+        rule: n => n.zip ? T.shirtAccent : n.trim || (n.seamA && n.seamB) ? T.shirtTrim : n.band ? T.shirtAccent : T.shirt };
       return SFo;
     }
-    case 'short': case 'bermuda': case 'saia-short': return trimBy({ waist: 0.035, leg: 0.015 }, stripe(0.0075), n => n.trim ? T.shortsTrim : n.stripe ? T.shortsAccent : T.shorts);
-    case 'legging': return trimBy({ waist: 0.045, leg: 0.012 }, stripe(0.006), n => n.trim ? T.shortsTrim : n.stripe ? T.shortsAccent : T.shorts);
+    case 'short': case 'bermuda': return trimBy({ waist: 0.035, leg: 0.015 }, stripe(0.0075), n => n.trim ? T.shortsTrim : n.stripe ? T.shortsAccent : T.shorts);
+    // short de baixo da saia: liso, da cor da saia (só aparece com a perna levantada)
+    case 'saia-short': return trimBy({ waist: 0.035, leg: 0.012 }, [], n => T.shorts);
+    // legging: painel lateral largo (como a corsário de referência): 2,4 cm de meia largura no quadril → 1,3 cm na barra
+    case 'legging': return trimBy({ waist: 0.045, leg: 0.012 }, stripe(y => 0.013 + 0.011 * smoothstep(Lm.Kn.L[1] - 0.05, Lm.H[1] - 0.02, y)), n => n.trim ? T.shortsTrim : n.stripe ? T.shortsAccent : T.shorts);
     case 'meia': return trimBy({ top: 0.018 }, [], n => n.trim ? T.sockTrim : T.sock);
   }
   throw new Error('sem faixas: ' + kind);
@@ -676,7 +807,7 @@ export function refineNear(M, fns, maxLen, maxTris = 60000) {
   const split = (a, b) => {
     const key = ek(a, b), rec = new Float64Array(KK);
     for (let k = 0; k < KK; k++) rec[k] = (Vl[a * KK + k] + Vl[b * KK + k]) / 2;
-    const nl = Math.hypot(rec[3], rec[4], rec[5]) || 1; rec[3] /= nl; rec[4] /= nl; rec[5] /= nl;
+    if (KK === KN0) { const nl = Math.hypot(rec[3], rec[4], rec[5]) || 1; rec[3] /= nl; rec[4] /= nl; rec[5] /= nl; }   // só registros de roupa têm normal em [3..5]
     const mi = addVert(rec, [(Pl[a * 3] + Pl[b * 3]) / 2, (Pl[a * 3 + 1] + Pl[b * 3 + 1]) / 2, (Pl[a * 3 + 2] + Pl[b * 3 + 2]) / 2]);
     for (const u of [...emap.get(key)]) {
       const w = [tris[u * 3], tris[u * 3 + 1], tris[u * 3 + 2]];
@@ -806,13 +937,16 @@ function finishShell(C, kind, spec, S) {
     const yMax = Math.max(...info.map(q => q.y)), W = SF.trimWidths, typed = [];
     loops.forEach((l, li) => {
       const f = info[li];
-      let w;
-      if (kind === 'meia') w = f.y > S.Lm.An.L[1] + 0.03 ? W.top : null;
-      else if (top) w = f.y === yMax && kind !== 'corta-vento' ? W.neck : f.x > 0.12 ? W.sleeve : W.hem;
-      else w = f.y === yMax ? W.waist : W.leg;
-      if (w != null) typed.push([segsOf(l), w]);
+      let ty;
+      if (kind === 'meia') ty = f.y > S.Lm.An.L[1] + 0.03 ? 'top' : null;
+      else if (top) ty = f.y === yMax && kind !== 'corta-vento' ? 'neck' : f.x > 0.12 ? 'sleeve' : 'hem';
+      else ty = f.y === yMax ? 'waist' : 'leg';
+      if (ty && W[ty] != null) typed.push([segsOf(l), W[ty], ty]);
     });
     SF.trimD = (A, o) => { let d = 0.2; for (const [segs, w] of typed) d = Math.min(d, dSegs(segs, A, o) - w); return d; };
+    // faixa dupla em relevo (barra dobrada, ribana da gola, cós elástico, punho): altura por tipo de borda
+    const RAISE = { neck: 0.0016, sleeve: kind === 'camiseta' ? 0.0009 : 0.0014, hem: 0.0009, waist: 0.0013, leg: 0.0008, top: 0.0007 };
+    SF.trimRaise = (A, o) => { let d = 1e9, r = 0; for (const [segs, w, ty] of typed) { const x = dSegs(segs, A, o) - w; if (x < d) { d = x; r = RAISE[ty] || 0; } } return r; };
   }
   const fns = SF.fields.map(f => f[1]);
   // 3. LODs da casca lisa
@@ -828,7 +962,7 @@ function finishShell(C, kind, spec, S) {
   }
   // barra: ~2 triângulos por aresta de borda depois da simplificação (arestas de ~1,2 cm)
   const perim = l => l.reduce((a, v, j) => { const w = l[(j + 1) % l.length]; return a + Math.hypot(P[v * 3] - P[w * 3], P[v * 3 + 1] - P[w * 3 + 1], P[v * 3 + 2] - P[w * 3 + 2]); }, 0);
-  const lipTris = Math.round(lipLoops.reduce((a, l) => a + 2 * perim(l) / 0.012, 0));
+  const lipTris = Math.round(lipLoops.reduce((a, l) => a + 2 * perim(l) / 0.012, 0) * (S.draped && isLoose(kind) ? 2.6 : 1));
   // v4: a borda também é simplificada (dentro do erro de 2,5 mm) — a casca da grade de voxels tem borda de 5 mm, que
   // travada comia o orçamento do miolo (facetado e dobras na virilha)
   const U0 = simp(idx, Math.max(spec.lod[0] * 0.88 - lipTris, spec.lod[0] * 0.45), 0.0025, ['ErrorAbsolute']);
@@ -838,6 +972,7 @@ function finishShell(C, kind, spec, S) {
   if (process.env.DBG_LOD) console.log(kind, 'casca', idx.length / 3, 'U', U0.length / 3, U1.length / 3, U2.length / 3, 'barra', lipTris);
   // 4. monta cada LOD
   const OP = [], ON = [], OV = [], OSL = [], OFL = [], lods = [];
+  OFL.src = [];   // v6: vértice de origem na casca (barra e forro herdam os pesos dele)
   let neckLoop = null, neckP = null;
   [U0, U1, U2].forEach((U, l) => {
     const cp = compact(U, n), back = cp.back, m = back.length;
@@ -849,14 +984,16 @@ function finishShell(C, kind, spec, S) {
     let M = { V: Vs, P: Ps, n: m, idx: Array.from(cp.idx), K: KN };
     // LOD0/1: triângulos grandes cruzados por uma linha de cor são bissectados (aresta mais longa, com o vizinho)
     // até ≤ 5 mm / 10 mm — o campo é avaliado exato nos pontos novos e a linha cortada fica lisa. LOD2: sem cortes.
-    if (l < 2) M = refineNear(M, fns, l ? 0.010 : 0.005);
+    // costuras (linhas finas) só no LOD0
+    const useF = SF.fields.map(f => l === 0 || !f[0].startsWith('seam'));
+    if (l < 2) M = refineNear(M, fns.filter((fn, q) => useF[q]), l ? 0.010 : 0.005);
     M.F = fns.map(fn => { const a = []; for (let i = 0; i < M.n; i++) a.push(fn(M.V, i * KN)); return a; });
     flips({ n: 'refina' + l, V: M.V }, M.P, M.idx);
-    if (l < 2) for (let fi = 0; fi < fns.length; fi++) M = cutBy(M, fi);
+    if (l < 2) for (let fi = 0; fi < fns.length; fi++) if (useF[fi]) M = cutBy(M, fi);
     flips({ n: 'corte' + l, V: M.V }, M.P, M.idx);
     // espaço por triângulo pela regra; ilhas pequenas somem
     const nt = M.idx.length / 3, names = SF.fields.map(f => f[0]), tslot = new Uint8Array(nt);
-    for (let t = 0; t < nt; t++) { const neg = {}; if (l < 2) names.forEach((nm, q) => { const f = M.F[q]; neg[nm] = f[M.idx[t * 3]] + f[M.idx[t * 3 + 1]] + f[M.idx[t * 3 + 2]] < 0; }); tslot[t] = SF.rule(neg); }   // LOD2: só a cor principal
+    for (let t = 0; t < nt; t++) { const neg = {}; if (l < 2) names.forEach((nm, q) => { const f = M.F[q]; neg[nm] = useF[q] && f[M.idx[t * 3]] + f[M.idx[t * 3 + 1]] + f[M.idx[t * 3 + 2]] < 0; }); tslot[t] = SF.rule(neg); }   // LOD2: só a cor principal
     cleanIslands(M.idx, M.P, tslot, [1.5e-4, 4e-4, 9e-4][l]);
     let dup = splitSlots(M, { fields: SF.fields, rule: (ng, t) => tslot[t] });
     // os cortes deixam lascas (ponto de corte perto de um vértice): simplificação com erro de 0,6 mm, divisas de
@@ -867,17 +1004,39 @@ function finishShell(C, kind, spec, S) {
     }
     flips({ n: 'final' + l, V: dup.V }, dup.P, dup.idx);
     // normais lisas pela malha cortada (antes da duplicação das divisas)
-    const wIdx = Uint32Array.from(dup.idx, i => dup.orig[i]), NW = vertexNormals(M.P, wIdx, M.n);
+    const wIdx = Uint32Array.from(dup.idx, i => dup.orig[i]);
+    let NW = vertexNormals(M.P, wIdx, M.n);
+    // faixas de acabamento em relevo (tecido dobrado): sobe pela normal dentro da faixa, zero na linha de cor
+    const ti = SF.fields.findIndex(f => f[0] === 'trim');
+    if (S.draped && l < 2 && ti >= 0 && SF.trimRaise) {
+      const done = new Uint8Array(M.n);
+      for (const i of wIdx) {
+        if (done[i]) continue; done[i] = 1;
+        const tf = M.F[ti][i]; if (!(tf < 0)) continue;
+        const a = SF.trimRaise(M.V, i * KN) * smoothstep(0, 0.0022, -tf);
+        for (let k = 0; k < 3; k++) M.P[i * 3 + k] += NW[i * 3 + k] * a;
+      }
+      for (let i = 0; i < dup.n; i++) for (let k = 0; k < 3; k++) dup.P[i * 3 + k] = M.P[dup.orig[i] * 3 + k];
+      NW = vertexNormals(M.P, wIdx, M.n);
+    }
+    // v6: zíper do corta-vento em relevo (fita de 12 mm com 1,4 mm de altura)
+    const zi = SF.fields.findIndex(f => f[0] === 'zip');
+    if (S.draped && l < 2 && zi >= 0) {
+      const done = new Uint8Array(M.n);
+      for (const i of wIdx) { if (done[i]) continue; done[i] = 1; const zf = M.F[zi][i]; if (!(zf < 0)) continue; const a = 0.0014 * smoothstep(0, 0.0018, -zf); for (let k = 0; k < 3; k++) M.P[i * 3 + k] += NW[i * 3 + k] * a; }
+      for (let i = 0; i < dup.n; i++) for (let k = 0; k < 3; k++) dup.P[i * 3 + k] = M.P[dup.orig[i] * 3 + k];
+      NW = vertexNormals(M.P, wIdx, M.n);
+    }
     const base = OP.length / 3;
     for (let i = 0; i < dup.n; i++) {
       for (let k = 0; k < 3; k++) { OP.push(dup.P[i * 3 + k]); ON.push(NW[dup.orig[i] * 3 + k]); }
       for (let k = 0; k < KN; k++) OV.push(dup.V[i * KN + k]);
-      OSL.push(dup.slot[i]); OFL.push(0);
+      OSL.push(dup.slot[i]); OFL.push(0); OFL.src.push(-1);
     }
     const L = Array.from(dup.idx, i => i + base);
     if (l === 0) {
       // barra dobrada para dentro (só LOD0)
-      const lp = buildLips(kind, S, dup, wIdx, M.n, NW, base, OP, ON, OV, OSL, OFL);
+      const lp = S.draped && isLoose(kind) ? hemFinish(kind, S, dup, wIdx, M, NW, base, OP, ON, OV, OSL, OFL) : buildLips(kind, S, dup, wIdx, M.n, NW, base, OP, ON, OV, OSL, OFL);
       for (const i of lp.tris) L.push(i);
       neckLoop = lp.neckLoop; neckP = M.P;
     }
@@ -885,9 +1044,11 @@ function finishShell(C, kind, spec, S) {
   });
   const nv = OP.length / 3, REC = new Int32Array(nv);
   for (let i = 0; i < nv; i++) REC[i] = i;
-  const FLAGS = Uint8Array.from(OFL);
-  const res = { kind, nv, P: Float64Array.from(OP), N: Float64Array.from(ON), REC, V: Float64Array.from(OV), SLOT: Uint8Array.from(OSL), FLAGS, lods, mat: spec.mat, layer: spec.layer, Wx: null };
+  const FLAGS = Uint8Array.from(OFL), SRC = Int32Array.from(OFL.src);
+  const res = { kind, nv, P: Float64Array.from(OP), N: Float64Array.from(ON), REC, V: Float64Array.from(OV), SLOT: Uint8Array.from(OSL), FLAGS, SRC, lods, mat: spec.mat, layer: spec.layer, Wx: null };
   if (kind === 'corta-vento' && neckLoop) addExtra(res, collar(neckLoop, neckP, S.Lm), [true, true, false]);
+  if (S.draped && (kind === 'short' || kind === 'bermuda')) { const X = drawcord(res, S.Lm); if (X) addExtra(res, X, [true, false, false]); }
+  if (S.draped && kind === 'corta-vento') { const X = cordLock(res, S.Lm); if (X) addExtra(res, X, [true, false, false]); }
   if (kind === 'saia-short') {
     // raio de cada direção = superfície mais de fora (casca do short + corpo), vista de fora para dentro
     const Aw = S.ctx.Aw, WI = S.ctx.widx, sb = new BVH(P, idx), sb1 = new BVH(res.P, res.lods[1]);   // casca cheia e a do LOD1 (inflada)
@@ -986,7 +1147,7 @@ function buildLips(kind, S, dup, wIdx, nM, NW, base, OP, ON, OV, OSL, OFL) {
       skip.push(S.Lm.crotchY !== undefined && (Math.abs(V[r]) < 0.035 || Math.abs(q[0]) < 0.025) && V[r + 1] < S.Lm.crotchY && (kind === 'short' || kind === 'bermuda' || kind === 'saia-short' || kind === 'legging'));
       for (const [pp, fl] of [[q, outer], [inn, inner]]) {
         fl.push(OP.length / 3);
-        OP.push(...pp); ON.push(...tout); for (let k = 0; k < KN; k++) OV.push(V[r + k]); OSL.push(sl); OFL.push(1);
+        OP.push(...pp); ON.push(...tout); for (let k = 0; k < KN; k++) OV.push(V[r + k]); OSL.push(sl); OFL.push(1); OFL.src.push(base + firstDup[i]);
       }
     }
     const lt = [];
@@ -995,6 +1156,78 @@ function buildLips(kind, S, dup, wIdx, nM, NW, base, OP, ON, OV, OSL, OFL) {
       const a = lt[t] * 3, b = lt[t + 1] * 3, c = lt[t + 2] * 3;
       const fn = G.cross([OP[b] - OP[a], OP[b + 1] - OP[a + 1], OP[b + 2] - OP[a + 2]], [OP[c] - OP[a], OP[c + 1] - OP[a + 1], OP[c + 2] - OP[a + 2]]);
       if (G.dot(fn, [ON[a], ON[a + 1], ON[a + 2]]) < 0) { const k = lt[t + 1]; lt[t + 1] = lt[t + 2]; lt[t + 2] = k; }
+    }
+    for (const i of lt) tris.push(i);
+  }
+  return { tris, neckLoop };
+}
+
+// acabamento das bordas das peças soltas (v5): borda enrolada (meia-cana de espessura t) e, por dentro, uma faixa de
+// forro (a própria casca a até D da borda, deslocada t para dentro, com as faces invertidas) — vista de baixo a barra
+// tem espessura e o interior da roupa aparece escuro, não vazado.
+function hemFinish(kind, S, dup, wIdx, M, NW, base, OP, ON, OV, OSL, OFL) {
+  const nM = M.n, PM = M.P, top = ['camiseta', 'regata', 'manga-longa', 'corta-vento'].includes(kind);
+  let loops = boundaryLoops(wIdx);
+  const firstDup = new Int32Array(nM).fill(-1);
+  for (let i = 0; i < dup.n; i++) if (firstDup[dup.orig[i]] < 0) firstDup[dup.orig[i]] = i;
+  const my = l => l.reduce((a, i) => a + PM[i * 3 + 1], 0) / l.length, mx = l => l.reduce((a, i) => a + Math.abs(PM[i * 3]), 0) / l.length;
+  const yTop = Math.max(...loops.map(my));
+  let neckLoop = null;
+  if (kind === 'corta-vento') { neckLoop = loops.reduce((b, l) => (!b || my(l) > my(b)) ? l : b, null); loops = loops.filter(l => l !== neckLoop); }
+  // profundidade do forro por tipo de borda
+  const depthOf = l => { const y = my(l), x = mx(l); if (top) return Math.abs(y - yTop) < 1e-6 ? 0.012 : x > 0.12 ? 0.028 : 0.04; return Math.abs(y - yTop) < 1e-6 ? 0.015 : 0.038; };
+  const t = top ? 0.0026 : 0.0024;
+  // distância (pelo grafo, posições soldadas) até cada laço
+  const adj = neighbors(wIdx, nM), dist = new Float64Array(nM).fill(1e9), lim = new Float64Array(nM).fill(0), q = [];
+  for (const l of loops) { const D = depthOf(l); for (const v of l) { dist[v] = 0; lim[v] = D; q.push(v); } }
+  for (let it = 0; it < q.length; it++) {
+    const v = q[it];
+    for (let k = adj.off[v]; k < adj.off[v + 1]; k++) {
+      const u = adj.nb[k], d = dist[v] + Math.hypot(PM[u * 3] - PM[v * 3], PM[u * 3 + 1] - PM[v * 3 + 1], PM[u * 3 + 2] - PM[v * 3 + 2]);
+      if (d < dist[u] && d < lim[v] + 0.012) { dist[u] = d; lim[u] = lim[v]; q.push(u); }
+    }
+  }
+  const tris = [];
+  // faixa de forro: triângulos (duplicados por cor) com os três cantos dentro da faixa
+  const inMap = new Map();
+  const innerOf = i => {   // i = índice dup
+    if (inMap.has(i)) return inMap.get(i);
+    const w = dup.orig[i], id = OP.length / 3;
+    for (let k = 0; k < 3; k++) { OP.push(dup.P[i * 3 + k] - NW[w * 3 + k] * t); ON.push(-NW[w * 3 + k]); }
+    for (let k = 0; k < KN; k++) OV.push(dup.V[i * KN + k]);
+    OSL.push(dup.slot[i]); OFL.push(2); OFL.src.push(base + i);
+    inMap.set(i, id); return id;
+  };
+  for (let k = 0; k < dup.idx.length; k += 3) {
+    const a = dup.idx[k], b = dup.idx[k + 1], c = dup.idx[k + 2], wa = dup.orig[a], wb = dup.orig[b], wc = dup.orig[c];
+    if (!(dist[wa] <= lim[wa] && dist[wb] <= lim[wb] && dist[wc] <= lim[wc])) continue;
+    tris.push(innerOf(a), innerOf(c), innerOf(b));
+  }
+  // cor da borda: a do triângulo vizinho à aresta
+  const edgeSlot = new Map(), edgeDup = new Map();
+  for (let k = 0; k < dup.idx.length; k += 3) for (let e = 0; e < 3; e++) { const key = wIdx[k + e] + '_' + wIdx[k + (e + 1) % 3]; edgeSlot.set(key, dup.slot[dup.idx[k + e]]); edgeDup.set(key, dup.idx[k + e]); }
+  // meia-cana: 3 anéis intermediários entre a face de fora (borda) e a de dentro (borda − t·n)
+  const ANG = [Math.PI * 0.3, Math.PI * 0.62, Math.PI * 0.86];
+  for (const loop of loops) {
+    const m = loop.length; if (m < 3) continue;
+    const rings = [[], [], [], [], []];   // 0 = fora (borda), 1..3 meia-cana, 4 = dentro
+    for (let j = 0; j < m; j++) {
+      const w = loop[j], wp = loop[(j + 1) % m], wm = loop[(j - 1 + m) % m];
+      const e = [PM[wp * 3] - PM[wm * 3], PM[wp * 3 + 1] - PM[wm * 3 + 1], PM[wp * 3 + 2] - PM[wm * 3 + 2]], nn = [NW[w * 3], NW[w * 3 + 1], NW[w * 3 + 2]];
+      const tout = G.norm(G.cross(e, nn)), B = [PM[w * 3], PM[w * 3 + 1], PM[w * 3 + 2]];
+      const di = edgeDup.get(w + '_' + wp) ?? firstDup[w], sl = edgeSlot.get(w + '_' + wp) ?? dup.slot[firstDup[w]];
+      const add = (p, nr, fl) => { const id = OP.length / 3; OP.push(...p); ON.push(...nr); for (let k = 0; k < KN; k++) OV.push(dup.V[di * KN + k]); OSL.push(sl); OFL.push(fl); OFL.src.push(base + di); return id; };
+      rings[0].push(add(B, nn, 1));
+      ANG.forEach((a, r) => rings[r + 1].push(add(G.add(B, G.add(G.scl(tout, t * 0.5 * Math.sin(a)), G.scl(nn, -t * 0.5 * (1 - Math.cos(a))))), G.norm(G.add(G.scl(nn, Math.cos(a)), G.scl(tout, Math.sin(a)))), 1)));
+      rings[4].push(add(G.sub(B, G.scl(nn, t)), G.scl(nn, -1), 1));
+    }
+    const lt = [];
+    for (let r = 0; r < 4; r++) for (let j = 0; j < m; j++) { const k2 = (j + 1) % m, a = rings[r][j], b = rings[r][k2], c = rings[r + 1][k2], d = rings[r + 1][j]; lt.push(a, d, c, a, c, b); }
+    for (let k = 0; k < lt.length; k += 3) {   // frente para fora da meia-cana
+      const a = lt[k] * 3, b = lt[k + 1] * 3, c = lt[k + 2] * 3;
+      const fn = G.cross([OP[b] - OP[a], OP[b + 1] - OP[a + 1], OP[b + 2] - OP[a + 2]], [OP[c] - OP[a], OP[c + 1] - OP[a + 1], OP[c + 2] - OP[a + 2]]);
+      const nn = [ON[a] + ON[b] + ON[c], ON[a + 1] + ON[b + 1] + ON[c + 1], ON[a + 2] + ON[b + 2] + ON[c + 2]];
+      if (G.dot(fn, nn) < 0) { const x = lt[k + 1]; lt[k + 1] = lt[k + 2]; lt[k + 2] = x; }
     }
     for (const i of lt) tris.push(i);
   }
@@ -1010,10 +1243,70 @@ function addExtra(R, X, inLod) {
   R.REC = grow(R.REC, 1, Int32Array); for (let i = n0; i < nv; i++) R.REC[i] = 0;
   R.SLOT = grow(R.SLOT, 1, Uint8Array); R.SLOT.set(X.slot, n0);
   R.FLAGS = grow(R.FLAGS, 1, Uint8Array); R.FLAGS.set(X.flags || new Uint8Array(n), n0);
+  if (R.SRC) { R.SRC = grow(R.SRC, 1, Int32Array); for (let i = n0; i < nv; i++) R.SRC[i] = -1; }
   if (!R.Wx) R.Wx = new Map();
   for (let i = 0; i < n; i++) R.Wx.set(n0 + i, X.W.subarray(i * NB, i * NB + NB));
   R.lods = R.lods.map((L, k) => { if (!inLod[k]) return L; const o = new Uint32Array(L.length + X.idx.length); o.set(L); for (let j = 0; j < X.idx.length; j++) o[L.length + j] = X.idx[j] + n0; return o; });
   R.nv = nv;
+}
+
+// cordão do cós (shorts/bermuda): dois cordões saindo da frente do cós, caindo 6,5 cm na frente do tecido, com
+// ponteira. Pesos: quadril.
+function drawcord(R, Lm) {
+  const L0 = R.lods[0], sh = []; for (let t = 0; t < L0.length; t += 3) if (!((R.FLAGS[L0[t]] | R.FLAGS[L0[t + 1]] | R.FLAGS[L0[t + 2]]) & 3)) sh.push(L0[t], L0[t + 1], L0[t + 2]);
+  const bvh = new BVH(R.P, sh);
+  let yTop = -1e9; for (const i of sh) if (Math.abs(R.P[i * 3]) < 0.02 && R.P[i * 3 + 2] < Lm.H[2]) yTop = Math.max(yTop, R.P[i * 3 + 1]);
+  if (yTop < 0) return null;
+  const zAt = (x, y) => { const h = bvh.ray(x, y, -1, 0, 0, 1, 2); return h ? -1 + h.t : null; };
+  const OUT = [], NOR = [], SLOT = [], idx = [], SIDES = 6;
+  for (const sx of [-1, 1]) {
+    const pts = [];
+    for (let k = 0; k <= 8; k++) {
+      const u = k / 8, y = yTop - 0.014 - 0.066 * u, x = sx * (0.007 + 0.013 * u * u);
+      const z = zAt(x, y); if (z === null) return null;
+      pts.push([x, y, z - 0.0032 - 0.003 * u]);
+    }
+    const base = OUT.length / 3;
+    pts.forEach((c, k) => {
+      const d = G.norm(G.sub(pts[Math.min(8, k + 1)], pts[Math.max(0, k - 1)])), a = G.norm(G.cross(d, [0, 0, 1])), b = G.cross(d, a);
+      const r = k >= 7 ? 0.0026 : 0.0019, slot = k >= 7 ? SL.shortsTrim : SL.shortsAccent;
+      for (let j = 0; j < SIDES; j++) { const th = 2 * Math.PI * j / SIDES, nn = G.add(G.scl(a, Math.cos(th)), G.scl(b, Math.sin(th))); OUT.push(...G.add(c, G.scl(nn, r))); NOR.push(...nn); SLOT.push(slot); }
+    });
+    for (let k = 0; k < 8; k++) for (let j = 0; j < SIDES; j++) { const a = base + k * SIDES + j, b = base + k * SIDES + (j + 1) % SIDES, c = base + (k + 1) * SIDES + (j + 1) % SIDES, d = base + (k + 1) * SIDES + j; idx.push(a, b, c, a, c, d); }
+    const tip = OUT.length / 3; OUT.push(...G.add(pts[8], [0, -0.002, 0])); NOR.push(0, -1, 0); SLOT.push(SL.shortsTrim);
+    for (let j = 0; j < SIDES; j++) idx.push(base + 8 * SIDES + j, base + 8 * SIDES + (j + 1) % SIDES, tip);
+  }
+  orientFaces(OUT, idx, NOR);
+  const n = OUT.length / 3, W = new Float32Array(n * NB);
+  for (let i = 0; i < n; i++) W[i * NB + BI.hips] = 1;
+  return { P: Float64Array.from(OUT), N: Float64Array.from(NOR), slot: Uint8Array.from(SLOT), idx: Uint32Array.from(idx), W };
+}
+
+// trava do cordão da barra do corta-vento (v6): um botão-trava (cilindro de 9 × 14 mm) na barra, do lado esquerdo da
+// frente, com as duas pontas do cordão saindo dele. Pesos: os do registro do vértice da barra mais perto.
+function cordLock(R, Lm) {
+  const L0 = R.lods[0]; let best = -1, bd = 1e9;
+  for (const i of L0) { if (R.FLAGS[i] & 2) continue; const x = R.P[i * 3], y = R.P[i * 3 + 1], z = R.P[i * 3 + 2]; if (z > Lm.cz - 0.03) continue; const d = Math.hypot(x + 0.115, (y - (Lm.T[1] - 0.075)) * 3); if (d < bd) { bd = d; best = i; } }
+  if (best < 0) return null;
+  // ponto mais baixo da barra perto de x = −11,5 cm (frente)
+  let lo = best; for (const i of L0) { if (R.FLAGS[i] & 2) continue; if (Math.abs(R.P[i * 3] - R.P[best * 3]) < 0.008 && R.P[i * 3 + 2] < Lm.cz - 0.03 && R.P[i * 3 + 1] < R.P[lo * 3 + 1]) lo = i; }
+  const p0 = [R.P[lo * 3], R.P[lo * 3 + 1], R.P[lo * 3 + 2]], nn = G.norm([R.N[lo * 3], 0, R.N[lo * 3 + 2]]);
+  const OUT = [], NOR = [], SLOT = [], idx = [], SIDES = 8;
+  const tube = (c0, c1, r0, r1, slot) => {   // cilindro de c0 a c1 com tampas
+    const d = G.norm(G.sub(c1, c0)), a = G.norm(G.cross(d, Math.abs(d[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0])), b = G.cross(d, a), base = OUT.length / 3;
+    for (const [c, r] of [[c0, r0], [c1, r1]]) for (let j = 0; j < SIDES; j++) { const th = 2 * Math.PI * j / SIDES, q = G.add(G.scl(a, Math.cos(th)), G.scl(b, Math.sin(th))); OUT.push(...G.add(c, G.scl(q, r))); NOR.push(...q); SLOT.push(slot); }
+    for (let j = 0; j < SIDES; j++) { const k = (j + 1) % SIDES; idx.push(base + j, base + k, base + SIDES + k, base + j, base + SIDES + k, base + SIDES + j); }
+    for (const [end, c, sg] of [[0, c0, -1], [1, c1, 1]]) { const ci = OUT.length / 3; OUT.push(...c); NOR.push(...G.scl(d, sg)); SLOT.push(slot); for (let j = 0; j < SIDES; j++) idx.push(ci, base + end * SIDES + j, base + end * SIDES + (j + 1) % SIDES); }
+  };
+  const c = G.add(p0, G.add(G.scl(nn, 0.006), [0, -0.012, 0]));
+  tube(G.add(c, [0, 0.007, 0]), G.add(c, [0, -0.007, 0]), 0.0045, 0.0045, SL.shirtTrim);
+  for (const sx of [-1, 1]) tube(G.add(p0, G.add(G.scl(nn, 0.004), [sx * 0.002, 0, 0])), G.add(c, [sx * 0.0015, 0.004, 0]), 0.0014, 0.0014, SL.shirtAccent);
+  tube(G.add(c, [0, -0.007, 0]), G.add(c, [0.002, -0.03, 0.002]), 0.0013, 0.0011, SL.shirtAccent);
+  orientFaces(OUT, idx, NOR);
+  const n = OUT.length / 3, W = new Float32Array(n * NB), o = R.REC[lo] * KN;
+  let s0 = 0; for (let b = 0; b < NB; b++) s0 += Math.max(0, R.V[o + K.w0 + b]);
+  for (let i = 0; i < n; i++) for (let b = 0; b < NB; b++) W[i * NB + b] = Math.max(0, R.V[o + K.w0 + b]) / (s0 || 1);
+  return { P: Float64Array.from(OUT), N: Float64Array.from(NOR), slot: Uint8Array.from(SLOT), idx: Uint32Array.from(idx), W };
 }
 
 // gola do corta-vento: sobe 35 mm a partir do decote, fechando até o raio do pescoço + 12 mm
@@ -1066,8 +1359,18 @@ function collar(loop0, P0, Lm) {
 // as pernas entram aos poucos para baixo (frente até 0,65, lados 0,25, trás 0,4) e se dividem entre L e R por uma
 // função larga e lisa de x — a saia estica entre as pernas em vez de rasgar em abas.
 function skirt(Lm, slices, outerAt) {
-  const T0 = Lm.T[1] + 0.002, y1 = Lm.H[1] - 0.155, yY = Lm.H[1] - 0.045, AR = 54, trimH = 0.016, NP = 9;
-  const ts = [0, 0.1, 0.2, 0.32, 0.44, 0.56, 0.68, 0.8, 0.9, 1 - trimH / (T0 - y1), 1 - trimH / (T0 - y1), 1];   // linha repetida = divisa da barra
+  // v6: 11 godês macios (flautas arredondadas que crescem para a barra, amplitude variando em volta), barra levemente
+  // assimétrica e cós de 2,8 cm (cor de acabamento) no alto
+  const T0 = Lm.T[1] + 0.002, y1 = Lm.H[1] - 0.155, yY = Lm.H[1] - 0.045, AR = 48, trimH = 0.014, NP = 11, wbH = 0.028;
+  // v5: linhas extras na altura das barras dos tops (−6 mm): a parte da saia escondida pelo top some numa linha limpa
+  const tH = [hemY('camiseta', Lm) - 0.006, hemY('corta-vento', Lm) - 0.006].map(y => (T0 - y) / (T0 - y1));
+  const tWB = wbH / (T0 - y1), tTr = 1 - trimH / (T0 - y1);
+  const base = [...new Set([0, tWB * 0.5, 0.1, 0.2, 0.32, 0.44, 0.56, 0.68, 0.8, 0.9, ...tH].map(v => +v.toFixed(4)))].filter(v => v !== +tWB.toFixed(4)).sort((a, b) => a - b);
+  const ts = [], slotRow = [];
+  for (const v of base) if (v < tWB) { ts.push(v); slotRow.push(1); }
+  ts.push(tWB, tWB); slotRow.push(1, 0);   // linha repetida = divisa do cós
+  for (const v of base) if (v > tWB && v < tTr) { ts.push(v); slotRow.push(0); }
+  ts.push(tTr, tTr, 1); slotRow.push(0, 1, 1);   // divisa da barra
   const sl0 = slices.get(Math.floor(T0 * 100)) || [...slices.values()][0];
   const cx = sl0.c[0], cz = sl0.c[1];
   const hullAt = (y, dx, dz) => outerAt(cx, y, cz, dx, dz);
@@ -1075,18 +1378,21 @@ function skirt(Lm, slices, outerAt) {
   const add = (p, nn, sl) => { OUT.push(...p); NOR.push(...nn); SLOT.push(sl); return OUT.length / 3 - 1; };
   let rHip = 0;
   const runMax = new Float64Array(AR);
-  const pleat = th => { const u = Math.sin(NP * th + 0.35 * Math.sin(3 * th)); return Math.sign(u) * Math.pow(Math.abs(u), 0.7); };
+  const godet = th => { const u = Math.sin(NP * th + 0.55 * Math.sin(3 * th + 0.4)); return Math.sign(u) * Math.pow(Math.abs(u), 0.85) * (0.75 + 0.5 * noise3(Math.cos(th) * 1.3, Math.sin(th) * 1.3, 2, 91)); };
   ts.forEach((t, r) => {
     const yb = T0 + (y1 - T0) * t, row = [];
     for (let a = 0; a < AR; a++) {
       const th = 2 * Math.PI * a / AR, dx = Math.sin(th), dz = -Math.cos(th);
       for (let yy = yb + 0.003; yy >= yb - 0.02; yy -= 0.003) runMax[a] = Math.max(runMax[a], hullAt(yy, dx, dz));
-      const front = smoothstep(0, 1, -dz);
-      const tf = clamp((yY - yb) / (yY - y1), 0, 1), pl = pleat(th) * smoothstep(0.15, 1, tf);
-      const rr = runMax[a] + 0.0045 + 0.017 * smoothstep(0, 0.35, tf) + 0.05 * Math.pow(tf, 1.5) + 0.012 * tf * front + 0.0055 * pl;
-      const y = yb + 0.004 * pl * smoothstep(0.7, 1, t);   // barra levemente ondulada nas pregas
+      const front = smoothstep(0, 1, -dz), side = dx * dx;   // side = 1 nos lados (onde pendem as mãos)
+      const tf = clamp((yY - yb) / (yY - y1), 0, 1), pl = godet(th) * smoothstep(0.1, 1, tf);
+      const wb = slotRow[r] && t <= tWB + 1e-6 ? 1 : 0;   // cós: justo
+      // evasê na frente e atrás; nos lados pouco (o punho pendurado fica a ~3 cm da coxa e não pode entrar na saia)
+      const rr = runMax[a] + 0.006 + ((wb ? 0 : 0.011 * smoothstep(0, 0.4, (T0 - yb) / 0.06)) + 0.017 * smoothstep(0, 0.35, tf) + 0.055 * Math.pow(tf, 1.5)) * (1 - 0.8 * side) + 0.012 * tf * front + 0.016 * pl * tf * (1 - 0.6 * side);
+      // barra: ondulada nos godês e levemente assimétrica (mais longa atrás à esquerda)
+      const y = yb + smoothstep(0.7, 1, t) * (0.005 * pl + 0.005 * Math.sin(th + 0.7) + 0.003 * noise3(Math.cos(th) * 2, Math.sin(th) * 2, 4, 33));
       rHip = Math.max(rHip, rr);
-      row.push(add([cx + dx * rr, y, cz + dz * rr], G.norm([dx, 0.3, dz]), r >= ts.length - 2 ? SL.shortsTrim : SL.shorts));
+      row.push(add([cx + dx * rr, y, cz + dz * rr], G.norm([dx, 0.3, dz]), slotRow[r] ? SL.shortsTrim : SL.shorts));
       TF.push(t);
     }
     ring.push(row);
@@ -1096,8 +1402,9 @@ function skirt(Lm, slices, outerAt) {
   for (let r = 0; r < ts.length - 1; r++) { if (ts[r + 1] === ts[r]) continue; for (let a = 0; a < AR; a++) { const b = (a + 1) % AR; outIdx.push(ring[r][a], ring[r + 1][a], ring[r + 1][b], ring[r][a], ring[r + 1][b], ring[r][b]); } }
   orientFaces(OUT, outIdx, NOR);
   { const nO = OUT.length / 3, NN = vertexNormals(OUT, outIdx, nO); for (let i = 0; i < nO; i++) { const l = Math.hypot(NN[i * 3], NN[i * 3 + 1], NN[i * 3 + 2]); if (l > 0.5) for (let k = 0; k < 3; k++) NOR[i * 3 + k] = NN[i * 3 + k]; } }
-  // linhas repetidas (divisa da cor) ficam com a normal da de cima
-  for (let r = 1; r < ts.length; r++) if (ts[r] === ts[r - 1]) for (let a = 0; a < AR; a++) for (let k = 0; k < 3; k++) NOR[ring[r][a] * 3 + k] = NOR[ring[r - 1][a] * 3 + k];
+  // linhas repetidas (divisa da cor) ficam com a normal da outra cópia (a de cima no cós, a de cima na barra)
+  for (let r = 1; r < ts.length; r++) if (ts[r] === ts[r - 1]) for (let a = 0; a < AR; a++) for (let k = 0; k < 3; k++) { const src = ring[r - 1][a], dst = ring[r][a]; const m = (NOR[src * 3 + k] + NOR[dst * 3 + k]); NOR[src * 3 + k] = NOR[dst * 3 + k] = m; }
+  for (let i = 0; i < OUT.length / 3; i++) { const l = Math.hypot(NOR[i * 3], NOR[i * 3 + 1], NOR[i * 3 + 2]) || 1; for (let k = 0; k < 3; k++) NOR[i * 3 + k] /= l; }
   const nOut = OUT.length / 3;
   const inner = ring.map(row => row.map(v => { const p = OUT.slice(v * 3, v * 3 + 3), nn = NOR.slice(v * 3, v * 3 + 3); TF.push(TF[v]); return add([p[0] - nn[0] * 0.0025, p[1], p[2] - nn[2] * 0.0025], [-nn[0], -nn[1], -nn[2]], SL.shorts); }));
   for (const t of outIdx) idx.push(t);
@@ -1118,10 +1425,13 @@ function skirt(Lm, slices, outerAt) {
   const n = OUT.length / 3, W = new Float32Array(n * NB), flags = new Uint8Array(n);
   for (let i = 0; i < n; i++) {
     const x = OUT[i * 3], z = OUT[i * 3 + 2], t = TF[i];
-    const c = -(z - cz) / rHip, sx = clamp((x - cx) / (0.8 * rHip), -1, 1);   // c > 0 frente; lado esquerdo do jogo = x negativo
-    const ty = Math.pow(smoothstep(0.05, 1, t), 1.1);
-    const wl = ty * (0.25 + 0.4 * smoothstep(0, 1, c) + 0.15 * smoothstep(0, 1, -c));
-    const sL = 0.5 - 0.5 * Math.sin(clamp(sx * 1.4, -1, 1) * Math.PI / 2);
+    const c = -(z - cz) / rHip;   // c > 0 frente; lado esquerdo do jogo = x negativo
+    // v6: a frente acompanha a coxa desde cedo e a barra da frente é toda da coxa (joelho alto: a saia sobe com a
+    // perna em vez de a coxa atravessar); L/R por uma rampa estreita (±3,5 cm) — o meio estica entre as pernas
+    const front = smoothstep(0, 1, c), backn = smoothstep(0, 1, -c);
+    const ty = smoothstep(0.2 - 0.12 * front, 0.78, t);
+    const wl = ty * (0.45 + 0.55 * front + 0.35 * backn);
+    const sL = smoothstep(0.035, -0.035, x - cx);
     W[i * NB + BI.hips] = 1 - wl; W[i * NB + BI.legL] = wl * sL; W[i * NB + BI.legR] = wl * (1 - sL);
     flags[i] = i >= nOut ? 2 | 4 : 4;   // bit2 = saia (bit1 = forro e borda)
   }
@@ -1146,45 +1456,178 @@ export function garmentAO(G0, bodyBVH, rays) {
   const used = new Uint8Array(G0.nv);
   for (const L of G0.lods) for (const i of L) used[i] = 1;
   const ao = rayAO([bodyBVH, own], G0.P, G0.N, G0.nv, { rays, maxD: 0.25, k: 0.6, offset: 0.002, only: used });
-  for (let i = 0; i < G0.nv; i++) { if (G0.FLAGS[i] & 1) ao[i] *= 0.8; if (G0.FLAGS[i] & 2) ao[i] *= 0.6; }
+  // v6: oclusão perto (raios curtos, 4 cm): escurece debaixo da barra, debaixo da manga, no vale das dobras e onde o
+  // tecido encosta no corpo; mais o fundo das dobras pela curvatura (vale côncavo = mais escuro). Assim as dobras e
+  // as barras aparecem com luz chapada.
+  const near = rayAO([bodyBVH, own], G0.P, G0.N, G0.nv, { rays, maxD: 0.04, k: 0.55, offset: 0.0015, only: used, seed: 11 });
+  const wd = weld(G0.P, G0.nv, 1e-6), nw = wd.nw, L0 = [];
+  for (let t = 0; t < G0.lods[0].length; t += 3) { const a = G0.lods[0][t], b = G0.lods[0][t + 1], c = G0.lods[0][t + 2]; if ((G0.FLAGS[a] | G0.FLAGS[b] | G0.FLAGS[c]) & 3) continue; L0.push(wd.wid[a], wd.wid[b], wd.wid[c]); }
+  const adj = neighbors(Uint32Array.from(L0), nw), PW = new Float64Array(nw * 3), NWv = new Float64Array(nw * 3), cav = new Float64Array(nw);
+  for (let i = 0; i < G0.nv; i++) { const w = wd.wid[i]; for (let k = 0; k < 3; k++) { PW[w * 3 + k] = G0.P[i * 3 + k]; NWv[w * 3 + k] += G0.N[i * 3 + k]; } }
+  for (let w = 0; w < nw; w++) {
+    const o = adj.off[w], e = adj.off[w + 1]; if (e - o < 3) continue;
+    let mx = 0, my = 0, mz = 0, el = 0;
+    for (let q = o; q < e; q++) { const u = adj.nb[q]; mx += PW[u * 3]; my += PW[u * 3 + 1]; mz += PW[u * 3 + 2]; el += Math.hypot(PW[u * 3] - PW[w * 3], PW[u * 3 + 1] - PW[w * 3 + 1], PW[u * 3 + 2] - PW[w * 3 + 2]); }
+    const m = e - o, nl = Math.hypot(NWv[w * 3], NWv[w * 3 + 1], NWv[w * 3 + 2]) || 1;
+    const d = ((mx / m - PW[w * 3]) * NWv[w * 3] + (my / m - PW[w * 3 + 1]) * NWv[w * 3 + 1] + (mz / m - PW[w * 3 + 2]) * NWv[w * 3 + 2]) / nl, h = el / m;
+    cav[w] = d / (h * h + 1e-9);   // ≈ curvatura média × 2 (m⁻¹), + = côncavo
+  }
+  smoothField(cav, 1, adj, 3, 0.5);
+  for (let i = 0; i < G0.nv; i++) {
+    if (!used[i]) continue;
+    const c = (G0.FLAGS[i] & 3) ? 0 : cav[wd.wid[i]];
+    ao[i] *= (0.35 + 0.65 * near[i]) * (1 - 0.32 * smoothstep(4, 40, c)) * (1 + 0.06 * smoothstep(4, 30, -c));
+    if (G0.FLAGS[i] & 1) ao[i] *= 0.82; if (G0.FLAGS[i] & 2) ao[i] *= 0.55;
+    ao[i] = Math.min(1, ao[i]);
+  }
   return ao;
 }
 
-// pesos densos (17) de cada vértice da roupa
-export function garmentWeights(G0, Lm = null) {
-  const W = new Float32Array(G0.nv * NB);
-  for (let i = 0; i < G0.nv; i++) {
-    if (G0.Wx && G0.Wx.has(i)) { W.set(G0.Wx.get(i), i * NB); continue; }
-    const o = G0.REC[i] * KN;
-    let s = 0;
-    for (let b = 0; b < 17; b++) { W[i * NB + b] = Math.max(0, G0.V[o + K.w0 + b]); s += W[i * NB + b]; }
-    for (let b = 0; b < 17; b++) W[i * NB + b] /= s || 1;
-  }
-  // tops: a passagem tronco → braço espalhada pela casca (braço levantado acima da cabeça: sem bolha na axila nem
-  // nas costas). Laplaciano dos pesos só onde há mistura de braço, na malha soldada por posição (costuras iguais).
-  if (G0.layer === 3) {
-    const wd = weld(G0.P, G0.nv, 1e-6), nw = wd.nw, Ww = new Float64Array(nw * NB), cnt = new Float64Array(nw), all = [];
-    for (let i = 0; i < G0.nv; i++) { if (G0.Wx && G0.Wx.has(i)) continue; cnt[wd.wid[i]]++; for (let b = 0; b < NB; b++) Ww[wd.wid[i] * NB + b] += W[i * NB + b]; }
-    for (let w = 0; w < nw; w++) if (cnt[w]) for (let b = 0; b < NB; b++) Ww[w * NB + b] /= cnt[w];
-    for (const L of G0.lods) for (const i of L) all.push(wd.wid[i]);
-    const adj = neighbors(Uint32Array.from(all), nw), arm = w => Ww[w * NB + BI.armL] + Ww[w * NB + BI.armR] + Ww[w * NB + BI.elbowL] + Ww[w * NB + BI.elbowR];
-    const mix = new Uint8Array(nw); for (let w = 0; w < nw; w++) { const a = arm(w); mix[w] = cnt[w] && a > 0.02 && a < 0.98 ? 1 : 0; }
-    for (let it = 0; it < 2; it++) { const t = Uint8Array.from(mix); for (let w = 0; w < nw; w++) if (mix[w]) for (let q = adj.off[w]; q < adj.off[w + 1]; q++) t[adj.nb[q]] = cnt[adj.nb[q]] ? 1 : 0; mix.set(t); }
-    smoothField(Ww, NB, adj, 8, 0.5, Uint8Array.from(mix, m => 1 - m));
-    for (let i = 0; i < G0.nv; i++) { if (G0.Wx && G0.Wx.has(i)) continue; let s2 = 0; for (let b = 0; b < NB; b++) { const v = Math.max(0, Ww[wd.wid[i] * NB + b]); W[i * NB + b] = v; s2 += v; } for (let b = 0; b < NB; b++) W[i * NB + b] /= s2 || 1; }
-    // mangas (v4): passada a costura do ombro a manga é do braço (≥ 0,8, 0,95 a 5 cm) — com o braço acima da cabeça a
-    // manga vai junto em vez de ficar de "asa" presa ao tronco
-    if (Lm) for (let i = 0; i < G0.nv; i++) {
-      if (G0.Wx && G0.Wx.has(i)) continue;
-      const o = G0.REC[i] * KN, wArm = G0.V[o + K.wArm]; if (wArm < 0.3) continue;
-      const sd = G0.V[o] < 0 ? 'L' : 'R', S = Lm.S[sd], ax = G.norm(G.sub(Lm.E[sd], S)), t = G.dot(G.sub([G0.V[o], G0.V[o + 1], G0.V[o + 2]], S), ax);
-      const Lt = (0.8 + 0.15 * smoothstep(0.0, 0.05, t)) * smoothstep(0.3, 0.55, wArm) * smoothstep(-0.03, 0.0, t);
-      const a = BI['arm' + sd], e = BI['elbow' + sd], L = W[i * NB + a] + W[i * NB + e];
-      if (L >= Lt || Lt <= 0) continue;
-      const ka = L > 1e-6 ? Lt / L : 0, kr = (1 - Lt) / Math.max(1e-6, 1 - L);
-      for (let b = 0; b < NB; b++) W[i * NB + b] *= (b === a || b === e) ? ka : kr;
-      if (L <= 1e-6) W[i * NB + a] = Lt;
+// pesos densos (17) de cada vértice da roupa (v6, ESPEC §15.2). O tecido se move como a pele que está EMBAIXO dele:
+// cada vértice da casca LOD0 lança um raio para dentro (contra a normal) e pega os pesos baricêntricos da face do corpo
+// atingida (ponto mais próximo como reserva). Onde a casca se afasta da pele (pontes da axila e da virilha, folgas) o
+// campo é alisado pela malha da peça (soldada por posição: costuras e faixas de cor têm o mesmo peso), tanto mais quanto
+// mais longe da pele; na cava (junção tronco ↔ manga) há uma faixa larga de mistura (±6 cm). Peças justas (meia, top,
+// legging) quase não são alisadas: a pele não fura porque o tecido repete a deformação dela. Shorts e bermuda soltos:
+// a perna da peça segue a coxa aos poucos (≥ 0,35 na virilha → 1 na barra). Os LOD1/2, a barra e o forro copiam o
+// campo da casca LOD0 pelo ponto mais próximo. Só os ossos da região da peça contam (top sem cabeça/pernas etc.).
+const ALLOW = { 3: ['hips', 'torso', 'armL', 'elbowL', 'armR', 'elbowR'], 2: ['hips', 'torso', 'legL', 'kneeL', 'footL', 'legR', 'kneeR', 'footR'],
+  1: ['legL', 'kneeL', 'footL', 'legR', 'kneeR', 'footR'] };
+function beneathBVH(C, layer) {
+  const key = '_bnBVH' + layer;
+  if (C[key]) return C[key];
+  const Aw = C.Aw, WI = C.body.widx, avg = (t, k) => (Aw[WI[t * 3] * KN + k] + Aw[WI[t * 3 + 1] * KN + k] + Aw[WI[t * 3 + 2] * KN + k]) / 3;
+  const f = layer === 3 ? t => avg(t, K.hand) < 0.3 && avg(t, K.head) < 0.6 : layer === 2 ? t => avg(t, K.wArm) < 0.3 && avg(t, K.hand) < 0.3 : t => avg(t, K.wLeg) > 0.5;
+  return (C[key] = new BVH(C.body.PW, WI, f));
+}
+export function garmentWeights(G0, C, kind) {
+  const nv = G0.nv, layer = G0.layer, W = new Float32Array(nv * NB), Lm = C.Lm, Aw = C.Aw, WI = C.body.widx, PW = C.body.PW;
+  const allow = new Uint8Array(NB); for (const b of ALLOW[layer]) allow[BI[b]] = 1;
+  const bvh = beneathBVH(C, layer), loose = isLoose(kind);
+  const isX = i => G0.Wx && G0.Wx.has(i);
+  // casca LOD0 (sem barra/forro/peças extras): os vértices que recebem o raio
+  const L0 = G0.lods[0], shellT = [];
+  for (let t = 0; t < L0.length; t += 3) { const a = L0[t], b = L0[t + 1], c = L0[t + 2]; if (isX(a) || isX(b) || isX(c) || ((G0.FLAGS[a] | G0.FLAGS[b] | G0.FLAGS[c]) & 3)) continue; shellT.push(a, b, c); }
+  const wd = weld(G0.P, nv, 1e-6), nw = wd.nw, inShell = new Uint8Array(nw), rep = new Int32Array(nw).fill(-1);
+  for (const i of shellT) { inShell[wd.wid[i]] = 1; if (rep[wd.wid[i]] < 0) rep[wd.wid[i]] = i; }
+  const Ws = new Float64Array(nw * NB), dist = new Float64Array(nw), rec = new Float64Array(NB);
+  const dmax = layer === 1 ? 0.025 : 0.08;
+  for (let w = 0; w < nw; w++) {
+    if (!inShell[w]) continue;
+    const i = rep[w], p = [G0.P[i * 3], G0.P[i * 3 + 1], G0.P[i * 3 + 2]], n = [G0.N[i * 3], G0.N[i * 3 + 1], G0.N[i * 3 + 2]];
+    let tri = -1, bw = null, d = 0;
+    const h = bvh.ray(p[0] + n[0] * 0.002, p[1] + n[1] * 0.002, p[2] + n[2] * 0.002, -n[0], -n[1], -n[2], dmax);
+    if (h) {
+      const a = WI[h.tri * 3] * 3, b = WI[h.tri * 3 + 1] * 3, c = WI[h.tri * 3 + 2] * 3;
+      const fn = G.cross([PW[b] - PW[a], PW[b + 1] - PW[a + 1], PW[b + 2] - PW[a + 2]], [PW[c] - PW[a], PW[c + 1] - PW[a + 1], PW[c + 2] - PW[a + 2]]);
+      if (G.dot(fn, n) > 0.2 * G.len(fn)) { tri = h.tri; bw = [1 - h.u - h.v, h.u, h.v]; d = Math.max(0, h.t - 0.002); }
     }
+    if (tri < 0) { const c = bvh.closest(p[0], p[1], p[2], 0.3); if (c.tri >= 0) { tri = c.tri; bw = [c.u, c.v, c.w]; d = c.d; } }
+    dist[w] = d;
+    if (tri < 0) { Ws[w * NB + (layer === 3 ? BI.torso : layer === 2 ? BI.hips : BI[p[0] < 0 ? 'kneeL' : 'kneeR'])] = 1; continue; }
+    rec.fill(0);
+    for (let e = 0; e < 3; e++) { const o = WI[tri * 3 + e] * KN; for (let b = 0; b < NB; b++) rec[b] += bw[e] * Math.max(0, Aw[o + K.w0 + b]); }
+    let s = 0; for (let b = 0; b < NB; b++) { if (!allow[b]) rec[b] = 0; s += rec[b]; }
+    if (s < 1e-6) { rec[layer === 3 ? BI.torso : layer === 2 ? BI.hips : BI[p[0] < 0 ? 'kneeL' : 'kneeR']] = 1; s = 1; }
+    for (let b = 0; b < NB; b++) Ws[w * NB + b] = rec[b] / s;
+  }
+  // grafo soldado da casca
+  const wsh = Uint32Array.from(shellT, i => wd.wid[i]), adj = neighbors(wsh, nw);
+  // alisamento adaptativo: λ cresce com a distância até a pele (justa ≈ fixa, solta ≈ difusão larga)
+  const lam = new Float64Array(nw);
+  for (let w = 0; w < nw; w++) lam[w] = inShell[w] ? 0.04 + 0.5 * smoothstep(0.008, 0.03, dist[w]) : 0;
+  const smoothAdaptive = (iters, lamOf) => {
+    const T = new Float64Array(nw * NB);
+    for (let it = 0; it < iters; it++) {
+      T.set(Ws);
+      for (let w = 0; w < nw; w++) {
+        const l = lamOf(w); if (!(l > 0)) continue;
+        const o = adj.off[w], e = adj.off[w + 1]; if (e === o) continue;
+        for (let b = 0; b < NB; b++) { let m = 0; for (let q = o; q < e; q++) m += Ws[adj.nb[q] * NB + b]; T[w * NB + b] = Ws[w * NB + b] + l * (m / (e - o) - Ws[w * NB + b]); }
+      }
+      Ws.set(T);
+    }
+  };
+  smoothAdaptive(loose ? 30 : 6, w => lam[w]);
+  const sleeve = kind === 'camiseta' || kind === 'manga-longa' || kind === 'corta-vento';
+  if (layer === 3 && sleeve) {
+    // cava (junção tronco ↔ manga): interpolação harmônica dos pesos pela malha da peça entre o tronco a ≥ 7 cm da
+    // linha de junção (zero do campo jn) e a parte de baixo da manga (os 4 cm da barra da manga curta; na longa, do
+    // cotovelo para baixo). A passagem tronco → braço fica larga como na pele (axila, ombro, escápula): com o braço
+    // balançando ou erguido o tecido estica por igual, sem dobrar nem abrir fenda debaixo do braço.
+    const jn = new Float64Array(nw), sx = new Float64Array(nw), tb = new Float64Array(nw);
+    for (let w = 0; w < nw; w++) if (inShell[w]) { const o = G0.REC[rep[w]] * KN; jn[w] = G0.V[o + K.jn]; sx[w] = G0.V[o + K.sx]; tb[w] = G0.V[o + K.tb]; }
+    const gd = new Float64Array(nw).fill(1e9), q = [];
+    for (let w = 0; w < nw; w++) { if (!inShell[w]) continue; for (let k = adj.off[w]; k < adj.off[w + 1]; k++) if ((jn[adj.nb[k]] > 0) !== (jn[w] > 0)) { gd[w] = 0; q.push(w); break; } }
+    for (let it = 0; it < q.length; it++) {   // distância geodésica (Bellman-Ford em fila; malha pequena)
+      const v = q[it];
+      for (let k = adj.off[v]; k < adj.off[v + 1]; k++) {
+        const u = adj.nb[k], i0 = rep[v], i1 = rep[u], d = gd[v] + Math.hypot(G0.P[i0 * 3] - G0.P[i1 * 3], G0.P[i0 * 3 + 1] - G0.P[i1 * 3 + 1], G0.P[i0 * 3 + 2] - G0.P[i1 * 3 + 2]);
+        if (d < gd[u] - 1e-9 && d < 0.2) { gd[u] = d; q.push(u); }
+      }
+    }
+    // faixa livre: até 6 cm (pela malha) de cada lado da linha de junção; a barra da manga curta (1,4 cm) fica presa
+    const Ls = kind === 'camiseta' ? sleeveLen(C.g) - 0.014 : Lm.upperLen - 0.035;
+    const free = new Uint8Array(nw);
+    // só do lado da manga: o tronco fica com os pesos da pele (com o braço erguido o lado do tronco não sai de cima da
+    // axila); a manga vai do peso do tronco na junção ao do braço na barra
+    for (let w = 0; w < nw; w++) if (inShell[w]) free[w] = jn[w] > 0 && gd[w] < 0.07 && !(tb[w] > 0.5 && sx[w] >= Ls) ? 1 : 0;
+    const T = new Float64Array(nw * NB);
+    for (let it = 0; it < 700; it++) {
+      T.set(Ws);
+      for (let w = 0; w < nw; w++) {
+        if (!free[w]) continue;
+        const o = adj.off[w], e = adj.off[w + 1]; if (e === o) continue;
+        for (let b = 0; b < NB; b++) { let m = 0; for (let k = o; k < e; k++) m += Ws[adj.nb[k] * NB + b]; T[w * NB + b] = m / (e - o); }
+      }
+      Ws.set(T);
+    }
+  }
+  if (kind === 'short' || kind === 'bermuda') {
+    // perna solta: modelo liso em vez da pele de baixo (a virilha da pele vira degrau no joelho alto). Cós = quadril/
+    // tronco da pele; dali para baixo a coxa entra por uma rampa lisa ao longo do eixo da coxa até 1 logo abaixo da
+    // virilha (a perna da peça é um tubo rígido com a coxa). L/R por uma rampa de ±2,5 cm no meio.
+    for (let w = 0; w < nw; w++) {
+      if (!inShell[w]) continue;
+      const i = rep[w], p = [G0.P[i * 3], G0.P[i * 3 + 1], G0.P[i * 3 + 2]];
+      const sd = p[0] < 0 ? 'L' : 'R', A = Lm.Lg[sd], ax = G.norm(G.sub(Lm.Kn[sd], A)), s = G.dot(G.sub(p, A), ax);
+      const sC = A[1] - Lm.crotchY, sW = A[1] - (Lm.T[1] - 0.012);
+      const r = smoothstep(sW + 0.035, sC + 0.03, s), fL = smoothstep(0.025, -0.025, p[0]);
+      let ht = Ws[w * NB + BI.hips] + Ws[w * NB + BI.torso]; if (ht < 1e-6) { Ws[w * NB + BI.hips] = 1; ht = 1; }
+      const kh = (1 - r) / ht;
+      for (let b = 0; b < NB; b++) Ws[w * NB + b] = (b === BI.hips || b === BI.torso) ? Ws[w * NB + b] * kh : 0;
+      Ws[w * NB + BI.legL] = r * fL; Ws[w * NB + BI.legR] = r * (1 - fL);
+    }
+    smoothAdaptive(6, () => 0.4);
+  }
+  // casca: pesos finais; o resto (LOD1/2, barra, forro) pelo ponto mais próximo da casca LOD0
+  const out = new Float64Array(NB);
+  const norm = (src, o) => { let s = 0; for (let b = 0; b < NB; b++) { out[b] = Math.max(0, src[o + b]); s += out[b]; } for (let b = 0; b < NB; b++) out[b] /= s || 1; return out; };
+  const sb = new BVH(G0.P, Uint32Array.from(shellT));
+  for (let i = 0; i < nv; i++) {
+    if (isX(i)) {
+      W.set(G0.Wx.get(i), i * NB);
+      // saia: a parte do quadril vira a mistura quadril/tronco da pele mais perto (igual à barra do top por cima: os dois
+      // se movem juntos no giro do tronco e o cós da saia não atravessa a barra)
+      if ((G0.FLAGS[i] & 4) && C.noArmBVH) {
+        const c = C.noArmBVH.closest(G0.P[i * 3], G0.P[i * 3 + 1], G0.P[i * 3 + 2], 0.3);
+        if (c.tri >= 0) {
+          let h = 0, t = 0; const bw = [c.u, c.v, c.w];
+          for (let e = 0; e < 3; e++) { const o = WI[c.tri * 3 + e] * KN; h += bw[e] * Aw[o + K.w0 + BI.hips]; t += bw[e] * Aw[o + K.w0 + BI.torso]; }
+          const hp = W[i * NB + BI.hips], st = h + t;
+          if (st > 1e-6) { W[i * NB + BI.hips] = hp * h / st; W[i * NB + BI.torso] = hp * t / st; }
+        }
+      }
+      continue;
+    }
+    const w = wd.wid[i];
+    if (inShell[w]) { W.set(norm(Ws, w * NB), i * NB); continue; }
+    if (G0.SRC && G0.SRC[i] >= 0 && inShell[wd.wid[G0.SRC[i]]]) { W.set(norm(Ws, wd.wid[G0.SRC[i]] * NB), i * NB); continue; }
+    const c = sb.closest(G0.P[i * 3], G0.P[i * 3 + 1], G0.P[i * 3 + 2], 0.2);
+    if (c.tri < 0) { W[i * NB + (layer === 3 ? BI.torso : BI.hips)] = 1; continue; }
+    const tri = [wd.wid[shellT[c.tri * 3]], wd.wid[shellT[c.tri * 3 + 1]], wd.wid[shellT[c.tri * 3 + 2]]], bw = [c.u, c.v, c.w];
+    const acc = new Float64Array(NB); for (let e = 0; e < 3; e++) for (let b = 0; b < NB; b++) acc[b] += bw[e] * Ws[tri[e] * NB + b];
+    W.set(norm(acc, 0), i * NB);
   }
   return W;
 }
