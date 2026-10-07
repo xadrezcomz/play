@@ -718,7 +718,10 @@
   // repouso da coxa e da canela; o pé fica com a inclinação th
   function legIK(R, leg, knee, foot, hipY, ay, af, th) {
     var T = R.THIGH, S = R.SHIN, dy = ay - hipY, d = Math.sqrt(dy * dy + af * af);
-    if (d > R.LEG_MAX) { dy *= R.LEG_MAX / d; af *= R.LEG_MAX / d; d = R.LEG_MAX; }
+    // alcance "macio": perto da perna esticada o joelho não trava de estalo (o acos tem quina em 1);
+    // o pé chega no máximo poucos milímetros acima do alvo
+    var SS = 0.045, ds = R.LEG_MAX - SS;
+    if (d > ds) { var dn = ds + SS * (1 - Math.exp(-(d - ds) / SS)); dy *= dn / d; af *= dn / d; d = dn; }
     d = Math.max(d, 1e-4);
     var t1 = Math.atan2(af, -dy) + Math.acos(U.clamp((T * T + d * d - S * S) / (2 * T * d), -1, 1));
     var t2 = t1 + Math.acos(U.clamp((T * T + S * S - d * d) / (2 * T * S), -1, 1)) - Math.PI;
@@ -726,6 +729,34 @@
     knee.rotation.x = t2 - R.aS - leg.rotation.x;
     foot.rotation.x = th - (t2 - R.aS);
   }
+
+  // tornozelo do pé apoiado na fração k do apoio: calcanhar toca, pé plano, empurra com a ponta
+  function stanceAnkle(R, k, land, D, thTD, thTO, out) {
+    var heel = land + R.HEEL_F - D * k;
+    out.th = k < 0.2 ? thTD * (1 - U.smooth(k / 0.2)) : k > 0.5 ? thTO * U.smooth((k - 0.5) / 0.5) : 0;
+    if (out.th >= 0) ankleOn(R, heel, out.th, R.HEEL_F, out); else ankleOn(R, heel + R.TOE_F - R.HEEL_F, out.th, R.TOE_F, out);
+    return out;
+  }
+  var _sa = { y: 0, f: 0, th: 0 };
+  // maior altura de base do quadril em que, somada à curva amp·cos(2(φ − off)), as pernas apoiadas
+  // alcançam o chão em todo o ciclo, com o joelho levemente dobrado (guardada por velocidade)
+  P._hipBase = function (speed, D, land, duty, thTD, thTO, amp, off) {
+    var c = this._hbc;
+    if (c && Math.abs(c.speed - speed) < 0.04 && c.scale === this.body.scale.y) return c.base;
+    var R = this.R, L = R.LEG_MAX * 0.985, base = 9, N = 48, j, i;
+    for (j = 0; j < N; j++) {
+      var ph = j / N * Math.PI * 2, top = 9;
+      for (i = 0; i < 2; i++) {
+        var u = ((j / N + i * 0.5) % 1 + 1) % 1, k = (u - 0.5 + duty / 2) / duty;
+        if (k < 0 || k > 1) continue;
+        stanceAnkle(R, k, land, D, thTD, thTO, _sa);
+        top = Math.min(top, _sa.y + Math.sqrt(Math.max(0, L * L - _sa.f * _sa.f)));
+      }
+      base = Math.min(base, top - R.LEG_Y - amp * Math.cos(2 * (ph - off)));
+    }
+    this._hbc = { speed: speed, scale: this.body.scale.y, base: base };
+    return base;
+  };
 
   // A passada acompanha a velocidade real: cadência de corredor e pés plantados por IK (o pé apoiado
   // não escorrega). Braço oposto à perna, cotovelo dobrado para a frente; o cabelo balança com molas.
@@ -744,29 +775,36 @@
     var D = speed / 3.6 / this.body.scale.y * duty / freq;
     var land = D * U.lerp(0.48, 0.38, run) + 0.02;
     var thTD = U.lerp(0.28, 0.12, run), thTO = -U.lerp(0.4, 0.75, run);
-    var lift = U.lerp(0.07, 0.3, run) + sprint * 0.12, hipMax = 9, step = 0, i, HEEL_F = R.HEEL_F, TOE_F = R.TOE_F;
+    var lift = U.lerp(0.07, 0.36, run) + sprint * 0.14, step = 0, i, HEEL_F = R.HEEL_F, TOE_F = R.TOE_F;
+    // tangente do pé no começo e no fim do balanço = a mesma velocidade do apoio (o pé não para de
+    // repente ao sair do chão nem ao pousar: o movimento é contínuo)
+    var mT = -D * (1 - duty) / duty * U.lerp(0.35, 0.6, run);
     for (i = 0; i < 2; i++) {
       var t = _t[i], u = ((ph / (Math.PI * 2) + i * 0.5) % 1 + 1) % 1, k = (u - 0.5 + duty / 2) / duty;
       if (k >= 0 && k <= 1) {   // apoio: calcanhar toca, pé plano, empurra com a ponta
-        var heel = land + HEEL_F - D * k;
-        t.th = k < 0.2 ? thTD * (1 - U.smooth(k / 0.2)) : k > 0.5 ? thTO * U.smooth((k - 0.5) / 0.5) : 0;
-        if (t.th >= 0) ankleOn(R, heel, t.th, HEEL_F, t); else ankleOn(R, heel + TOE_F - HEEL_F, t.th, TOE_F, t);
-        hipMax = Math.min(hipMax, t.y + Math.sqrt(Math.max(0, R.LEG_MAX * R.LEG_MAX - t.f * t.f)));
+        stanceAnkle(R, k, land, D, thTD, thTO, t);
         if (!(this._stance & (1 << i))) { this._stance |= 1 << i; step = i ? 1 : -1; }
-      } else {                   // balanço: o pé sobe e volta para a frente
-        var w = (k > 1 ? k - 1 : k + 1 / duty - 1) * duty / (1 - duty), e = U.smooth(w);
+      } else {                   // balanço: o calcanhar sobe atrás (correndo) e a perna volta para a frente
+        var w = (k > 1 ? k - 1 : k + 1 / duty - 1) * duty / (1 - duty), w2 = w * w, w3 = w2 * w;
         ankleOn(R, land + HEEL_F - D + TOE_F - HEEL_F, thTO, TOE_F, _fa);
         ankleOn(R, land + HEEL_F, thTD, HEEL_F, _fb);
-        t.f = U.lerp(_fa.f, _fb.f, e);
-        t.y = U.lerp(_fa.y, _fb.y, e) + lift * Math.pow(Math.sin(Math.PI * Math.pow(w, 0.75)), 1.2);
-        t.th = U.lerp(thTO, thTD, U.smooth(w * 1.4 - 0.2));
+        var hm = (3 * w2 - 2 * w3), ht = (w - 2 * w2 + w3) + (w3 - w2);
+        t.f = _fa.f + (_fb.f - _fa.f) * hm + mT * ht - run * 0.1 * Math.sin(Math.PI * w) * (1 - w) * 2;
+        t.y = U.lerp(_fa.y, _fb.y, hm) + lift * Math.pow(Math.sin(Math.PI * Math.pow(w, U.lerp(0.85, 0.7, run))), 1.3);
+        t.th = U.lerp(thTO, thTD, U.smooth(w * 1.3 - 0.15));
         this._stance &= ~(1 << i);
       }
     }
-    var bob = Math.abs(Math.cos(ph - 0.35));
-    var hy = R.HIP_H - run * 0.035 - U.lerp(0.012, 0.045, run) * (bob - 0.5) - 0.012 * (1 - run);
-    this.hips.position.y = Math.max(Math.min(hy, hipMax - R.LEG_Y), hy - 0.07);
-    this.hips.rotation.set(0, -0.08 * s, 0.035 * c * (1 - run * 0.4));
+    // Quadril: curva suave (sem quinas). Caminhando ele sobe no meio do apoio (pêndulo invertido);
+    // correndo ele desce no apoio (o joelho amortece) e sobe no voo. A altura de base é a maior que
+    // deixa as duas pernas alcançarem o chão em todo o ciclo, então nunca precisa "cortar" o quadril.
+    var amp = U.lerp(0.016, 0.03, run) + sprint * 0.008, sg = U.lerp(1, -1, run), off = 0.15 * run;
+    var base = this._hipBase(speed, D, land, duty, thTD, thTO, amp * sg, off);
+    var nominal = R.HIP_H - run * 0.03 - 0.008 * (1 - run);
+    this._hb = this._hb === undefined || dt <= 0 ? Math.min(nominal, base) : U.damp(this._hb, Math.min(nominal, base), 8, dt);
+    var bob = Math.cos(2 * (ph - off));
+    this.hips.position.y = this._hb + amp * sg * bob;
+    this.hips.rotation.set(0, -0.08 * s, 0.03 * c * (1 - run * 0.4));
     var hipY = this.hips.position.y + R.LEG_Y;
     legIK(R, this.legL, this.kneeL, this.footL, hipY, _t[0].y, _t[0].f, _t[0].th);
     legIK(R, this.legR, this.kneeR, this.footR, hipY, _t[1].y, _t[1].f, _t[1].th);
@@ -774,17 +812,19 @@
     this.footL.rotation.z = -0.015 - this.hips.rotation.z; this.footR.rotation.z = 0.015 - this.hips.rotation.z;   // sola plana
     // braços: o esquerdo vai para a frente quando a perna direita vai (e vice-versa); o cotovelo dobra
     // para a frente, mais quanto mais rápido. O repouso já vem aberto: o braço fecha até ~5° do corpo.
-    var aa = U.lerp(0.26, 0.55, run) + sprint * 0.2, elbow = U.lerp(0.3, 1.5, run) + sprint * 0.12 - R.foreFlex;
+    // os braços vêm um pouco atrasados em relação às pernas (balanço solto, não marchado)
+    var sa = Math.sin(ph - U.lerp(0.12, 0.22, run));
+    var aa = U.lerp(0.34, 0.55, run) + sprint * 0.2, elbow = U.lerp(0.38, 1.5, run) + sprint * 0.12 - R.foreFlex;
     var abd = R.armAbd - (0.07 + run * 0.03);
-    this.armL.rotation.set(-aa * s - 0.04 * run, 0, abd);
-    this.armR.rotation.set(aa * s - 0.04 * run, 0, -abd);
-    this.elbowL.rotation.set(elbow + 0.2 * Math.max(0, s) * run, 0, 0.16 * run);
-    this.elbowR.rotation.set(elbow + 0.2 * Math.max(0, -s) * run, 0, -0.16 * run);
+    this.armL.rotation.set(-aa * sa - 0.06 * run, 0, abd + 0.04 * run * Math.max(0, -sa));
+    this.armR.rotation.set(aa * sa - 0.06 * run, 0, -abd - 0.04 * run * Math.max(0, sa));
+    this.elbowL.rotation.set(elbow + 0.25 * Math.max(0, sa) * run - 0.08 * Math.max(0, -sa) * run, 0, 0.16 * run);
+    this.elbowR.rotation.set(elbow + 0.25 * Math.max(0, -sa) * run - 0.08 * Math.max(0, sa) * run, 0, -0.16 * run);
     // tronco: inclina com a velocidade e gira levemente
     var lean = U.lerp(0.035, 0.11, run) + sprint * 0.06;
-    this.torso.rotation.set(-lean, 0.14 * s * (0.6 + run * 0.4), -0.02 * c);
+    this.torso.rotation.set(-lean + 0.012 * bob * sg, 0.14 * sa * (0.6 + run * 0.4), -0.02 * c);
     // a cabeça olha para a frente (compensa o giro do tronco)
-    this.head.rotation.set(lean * 0.7 + 0.02 * (bob - 0.5) * run, -0.1 * s * (0.6 + run * 0.4), 0.02 * c);
+    this.head.rotation.set(lean * 0.7 - 0.012 * bob * sg, -0.1 * s * (0.6 + run * 0.4), 0.02 * c);
     // aceleração de lado (desvios do jogador) também mexe o cabelo
     var vx = opts.lateral || 0, ax = dt > 0 ? U.clamp((vx - this._vx) / dt, -8, 8) : 0;
     this._vx = vx;
