@@ -1,6 +1,6 @@
 {
  "versao": 1,
- "inicio": "2026-10-07T01:12:21.647Z",
+ "inicio": "2026-10-07T01:12:37.380Z",
  "generos": {
   "f": {
    "bindErr": 4.318840167855109e-7,
@@ -36,13 +36,13 @@
     "cz": -0.004
    },
    "roupa_camiseta": {
-    "v": 19998,
+    "v": 20582,
     "tris": [
-     4718,
-     1193,
+     5035,
+     1097,
      269
     ],
-    "ms": 7339
+    "ms": 7610
    },
    "tenis": {
     "L": {
@@ -182,9 +182,9 @@
  },
  "arquivos": {
   "corredor-f.js": 346433,
-  "roupas.js": 66483,
+  "roupas.js": 69479,
   "cabelos.js": 255417
  },
- "totalBytes": 668333,
- "segundos": 15.6
+ "totalBytes": 671329,
+ "segundos": 15.5
 }

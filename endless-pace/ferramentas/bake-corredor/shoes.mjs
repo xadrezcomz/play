@@ -70,13 +70,14 @@ export function buildShoe(C, sd, opts = {}) {
   const frame = p => { const d = G.sub(p, F.heel); return [(G.dot(d, F.a) + mHeel) / Ls, G.dot(d, F.L), p[1]]; };
   const fromFrame = (s, l, y) => { const t = s * Ls - mHeel; return [F.heel[0] + F.a[0] * t + F.L[0] * l, y, F.heel[2] + F.a[2] * t + F.L[2] * l]; };
   const tab = (arr, s) => { const u = clamp((s * Ls - mHeel) / F.Lf, 0, 1) * F.NS, k = Math.min(F.NS - 1, Math.floor(u)), t = u - k; return arr[k] + (arr[k + 1] - arr[k]) * t; };
-  const spring = s => 0.012 * Math.pow(smoothstep(0.78, 1.0, s), 2);
+  const spring = s => 0.011 * Math.pow(smoothstep(0.7, 1.0, s), 1.6);   // v6: bico levantado ~1 cm (toe spring)
   const midTop = s => 0.031 - 0.01 * smoothstep(0.3, 0.75, s);   // entressola: 31 mm no calcanhar → 21 mm na frente (drop 10 mm)
   // perfil de cima (paramétrico): colarinho no calcanhar, lingueta, peito do pé, biqueira
-  const HP = [[0, 0.098], [0.12, 0.094], [0.3, 0.083], [0.45, 0.088], [0.58, 0.08], [0.75, 0.064], [0.9, 0.05], [1, 0.042]];
+  // v6: colarinho/contraforte mais altos atrás, peito do pé cheio e biqueira alta e redonda (volume de tênis de corrida)
+  const HP = [[0, 0.106], [0.1, 0.104], [0.28, 0.09], [0.45, 0.092], [0.6, 0.084], [0.76, 0.071], [0.9, 0.058], [1, 0.047]];
   const Htab = s => { s = clamp(s, 0, 1); for (let i = 1; i < HP.length; i++) if (s <= HP[i][0]) { const t = (s - HP[i - 1][0]) / (HP[i][0] - HP[i - 1][0]), e = t * t * (3 - 2 * t); return HP[i - 1][1] + (HP[i][1] - HP[i - 1][1]) * e; } return 0.042; };
   const maxFore = Math.max(...F.half.slice(Math.round(F.NS * 0.55)));
-  const Wraw = s => (s > 0.55 ? Math.max(tab(F.half, s), maxFore * (1 - 0.22 * smoothstep(0.75, 1, s))) : tab(F.half, s)) + 0.006;
+  const Wraw = s => (s > 0.55 ? Math.max(tab(F.half, s), maxFore * (1 - 0.18 * smoothstep(0.78, 1, s))) : tab(F.half, s)) + 0.0072;
   // pontas arredondadas: calcanhar em arco de círculo nos últimos 14% (vista de cima redonda, parede de trás alta),
   // bico em elipse nos últimos 24%
   const rEnd = s => s < 0.14 ? Math.sqrt(Math.max(0, 1 - Math.pow(1 - s / 0.14, 2))) : s > 0.76 ? Math.pow(Math.max(0, 1 - Math.pow((s - 0.76) / 0.24, 2.2)), 1 / 2.2) : 1;
@@ -122,7 +123,7 @@ export function buildShoe(C, sd, opts = {}) {
     ST.push(s);
     const row = [];
     for (let j = 0; j < NA; j++) {
-      const phi = -Math.PI / 2 + 2 * Math.PI * j / NA, ex = Math.cos(phi), ey = Math.sin(phi), p = ey < 0 ? 8 : 2.6;
+      const phi = -Math.PI / 2 + 2 * Math.PI * j / NA, ex = Math.cos(phi), ey = Math.sin(phi), p = ey < 0 ? 8 : 2.25;
       let l = w * Math.sign(ex) * Math.pow(Math.abs(ex), 2 / p);
       // calcanhar: a parede de trás continua alta até a ponta (a última seção é uma linha vertical, não um ponto)
       let y = q.hh * (s < 0.5 ? Math.pow(0.3 + 0.7 * r, 0.3) : Math.pow(r, 0.5)) * Math.sign(ey) * Math.pow(Math.abs(ey), 2 / p);
@@ -199,11 +200,12 @@ export function buildShoe(C, sd, opts = {}) {
   // faixa lateral (swoosh): sobe da entressola perto da frente (s 0,72) até o meio do pé alto (s 0,28), afinando
   const yc = s2 => yMid(s2) + 0.008 + 0.034 * Math.pow(clamp((0.72 - s2) / 0.44, 0, 1), 1.2), hwS = s2 => 0.0035 + 0.0062 * Math.sin(Math.PI * clamp((s2 - 0.28) / 0.44, 0, 1));
   const fields = [
-    ['open', (V, o) => Math.max(dwell(V[o], V[o + 2]), 0.055 - V[o + 1], -V[o + 5])],
-    ['base', (V, o) => yMid(V[o + 3]) - 0.004 - V[o + 1]],   // abaixo da linha da entressola o cabedal sai (fica dentro dela)
+    // abertura: mais baixa nos lados (abaixo do maléolo), alta atrás (contraforte e colarinho do tendão)
+    ['open', (V, o) => Math.max(dwell(V[o], V[o + 2]), 0.058 + 0.026 * smoothstep(-0.2, 0.9, (V[o + 2] - wl.cz) / wl.rz) - V[o + 1], -V[o + 5])],
+    ['base', (V, o) => yMid(V[o + 3]) - 0.0065 - V[o + 1]],   // abaixo da linha da entressola o cabedal sai (fica dentro dela)
     ['collar', (V, o) => Math.max(dwell(V[o], V[o + 2]) - 0.011, 0.06 - V[o + 1])],
-    ['hc', (V, o) => Math.max(V[o + 1] - (yMid(V[o + 3]) + 0.036 * (1 - smoothstep(0.02, 0.21, V[o + 3]))), V[o + 3] - 0.21)],   // contraforte
-    ['toe', (V, o) => Math.max(V[o + 1] - (yMid(V[o + 3]) + 0.012), 0.905 - V[o + 3])],   // biqueira de borracha
+    ['hc', (V, o) => Math.max(V[o + 1] - (yMid(V[o + 3]) + 0.006 + 0.04 * Math.pow(1 - smoothstep(0.0, 0.24, V[o + 3]), 1.3)), V[o + 3] - 0.24)],   // contraforte (curva lisa)
+    ['toe', (V, o) => V[o + 1] - (yMid(V[o + 3]) + 0.004 + 0.016 * smoothstep(0.84, 0.99, V[o + 3]))],   // biqueira de borracha (sobe no bico, some na lateral)
     ['st1', (V, o) => V[o + 1] - (yc(V[o + 3]) + hwS(V[o + 3]))], ['st2', (V, o) => (yc(V[o + 3]) - hwS(V[o + 3])) - V[o + 1]],
     ['st3', (V, o) => V[o + 3] - 0.72], ['st4', (V, o) => 0.28 - V[o + 3]], ['st5', (V, o) => 0.5 - Math.abs(V[o + 4])]
   ];
@@ -336,7 +338,7 @@ function collarRoll(loopPts, well) {
     const B = loopPts[j], T = G.norm(G.sub(loopPts[(j + 1) % n], loopPts[(j - 1 + n) % n]));
     const din = G.norm([well.cx - B[0], 0, well.cz - B[2]]), back = smoothstep(0.0, 0.8, (B[2] - well.cz) / well.rz);
     let upv = G.norm(G.cross(T, din)); if (upv[1] < 0) upv = G.scl(upv, -1);
-    const out = G.scl(din, -1), r = 0.0042 * (1 + 0.45 * back), Cc = G.add(G.add(B, G.scl(din, r * 0.55)), G.scl(upv, -r * 0.15));
+    const out = G.scl(din, -1), r = 0.0058 * (1 + 0.5 * back), Cc = G.add(G.add(B, G.scl(din, r * 0.5)), G.scl(upv, -r * 0.1));   // v6: colarinho acolchoado de 12–17 mm
     rows.push(ANG.map(a => { const nn = G.add(G.scl(out, Math.cos(a)), G.scl(upv, Math.sin(a))); return addV(M, G.add(Cc, G.scl(nn, r)), nn, a > 1.2 ? SL.lining : SL.shoeAccent); }));
   }
   for (let j = 0; j < n; j++) for (let q = 0; q + 1 < ANG.length; q++) { const a = rows[j][q], b = rows[(j + 1) % n][q], c = rows[(j + 1) % n][q + 1], d = rows[j][q + 1]; M.idx.push(a, b, c, a, c, d); }
@@ -353,7 +355,7 @@ function heelTab(loopPts, well) {
   const base0 = G.add(back, G.scl(up, -0.012)), rows = [];
   const prof = [[-1, 0], [-1, 0.75], [-0.75, 1], [0, 1.08], [0.75, 1], [1, 0.75], [1, 0]];
   for (const [u, v] of prof) {
-    const p = G.add(G.add(base0, G.scl(side, u * 0.0105)), G.scl(up, v * 0.028));
+    const p = G.add(G.add(base0, G.scl(side, u * 0.012)), G.scl(up, v * 0.034));
     rows.push([addV(M, G.add(p, G.scl(out, 0.0022)), out, SL.shoeAccent), addV(M, G.sub(p, G.scl(out, 0.0012)), G.scl(out, -1), SL.lining)]);
   }
   const cIn = addV(M, G.add(G.add(base0, G.scl(up, 0.012)), G.scl(out, 0.0022)), out, SL.shoeAccent), cBk = addV(M, G.sub(G.add(base0, G.scl(up, 0.012)), G.scl(out, 0.0012)), G.scl(out, -1), SL.lining);
@@ -374,11 +376,12 @@ function tongue(base, front, lod) {
   const fwd = n => { const d = G.dot(n, F.a); return d > 0.15 ? n : G.norm(G.add(n, G.scl(F.a, 0.15 - d + 0.2))); };
   const pts = center.map(c => ({ p: G.add(c.p, G.scl(c.n, 0.0016)), n: fwd(c.n) }));
   const topN = G.norm(G.add(G.scl(F.a, 1), [0, 0.45, 0]));
-  pts.push({ p: G.add(G.add(front, [0, 0.019, 0]), G.scl(F.a, 0.005)), n: topN, w: 0.023 });
+  pts.push({ p: G.add(G.add(front, [0, 0.017, 0]), G.scl(F.a, 0.006)), n: topN, w: 0.019 });
   const rows = pts.map((c, r) => {
-    const t = r / (pts.length - 1), w = c.w || 0.021, across = G.norm(G.cross(c.n, F.a)), lat = G.dot(across, F.L) < 0 ? G.scl(across, -1) : across;
+    const t = r / (pts.length - 1), w = c.w || 0.0175, across = G.norm(G.cross(c.n, F.a)), lat = G.dot(across, F.L) < 0 ? G.scl(across, -1) : across;
     return cols.map(u => {
-      const round = r === pts.length - 1 ? 1 - 0.35 * u * u : 1, sag = -0.0025 * u * u * (1 - t);
+      // v6: mais estreita (cabe na garganta) e curvada sobre o peito do pé (as bordas descem até a pele do cabedal)
+      const round = r === pts.length - 1 ? 1 - 0.35 * u * u : 1, sag = -0.0045 * u * u * (1 - 0.6 * t);
       const p = G.add(G.add(c.p, G.scl(lat, w * u * round)), G.scl(c.n, sag));
       return [addV(M, p, c.n, r === pts.length - 1 ? SL.shoeAccent : SL.shoe), addV(M, G.sub(p, G.scl(c.n, 0.0055)), G.scl(c.n, -1), SL.lining)];
     });
@@ -392,39 +395,44 @@ function tongue(base, front, lod) {
   return M;
 }
 
-// cadarços: 5 passadas atravessando a lingueta (barras arqueadas) e um laço na de cima (LOD0)
+// cadarços (v6): fitas chatas (5,5 × 1,2 mm) assentadas na lingueta — 0,5 mm acima dela no meio e as pontas entrando
+// no cabedal (ilhós) —, 5 passadas no LOD0 (3 no LOD1); laço baixo e chato na de cima com duas pontas curtas
 function laces(base, front, lod) {
   const { surf, F } = base, M = part(), sF = base.frame(front)[0], nRow = lod === 0 ? 5 : 3;
-  const bar = (s0, h, half, w, th) => {
-    const segs = lod === 0 ? 4 : 3, rows = [];
+  const ribbon = (pts, w, th) => {   // pts: [{ c, n, t }] centro, normal da superfície, tangente ao longo da fita
+    const rows = pts.map(q => { const side = G.norm(G.cross(q.n, q.t)); return [[-1, 1], [1, 1], [1, -1], [-1, -1]].map(([a, b]) => addV(M, G.add(G.add(q.c, G.scl(side, a * w / 2)), G.scl(q.n, b * th / 2)), G.norm(G.add(G.scl(side, a * 0.35), G.scl(q.n, b))), SL.lace)); });
+    for (let q = 0; q + 1 < rows.length; q++) for (let k = 0; k < 4; k++) { const a = rows[q][k], b = rows[q][(k + 1) % 4], c = rows[q + 1][(k + 1) % 4], d = rows[q + 1][k]; M.idx.push(a, b, c, a, c, d); }
+  };
+  const bar = (s0, half, w, th) => {
+    const segs = lod === 0 ? 6 : 3, pts = [];
     for (let q = 0; q <= segs; q++) {
-      const u = -1 + 2 * q / segs, phi = Math.PI / 2 + half * u, sp = surf(clamp(s0, 0, 1), phi), lift = 0.0009 + (h - 0.0009) * (1 - u * u);
-      const c = G.add(sp.p, G.scl(sp.n, lift)), side = G.norm(G.cross(sp.n, F.a)), along = G.norm(G.cross(side, sp.n));
-      rows.push([[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => addV(M, G.add(G.add(c, G.scl(along, a * w / 2)), G.scl(sp.n, b * th / 2)), G.norm(G.add(G.scl(along, a), G.scl(sp.n, b))), SL.lace)));
+      const u = -1 + 2 * q / segs, phi = Math.PI / 2 + half * u, sp = surf(clamp(s0, 0, 1), phi);
+      const lift = th / 2 + 0.0005 * (1 - u * u) - 0.0012 * Math.pow(Math.abs(u), 6);   // pontas entram no cabedal
+      const sp2 = surf(clamp(s0, 0, 1), phi + 0.01), t = G.norm(G.sub(sp2.p, sp.p));
+      pts.push({ c: G.add(sp.p, G.scl(sp.n, lift)), n: sp.n, t });
     }
-    for (let q = 0; q < segs; q++) for (let k = 0; k < 4; k++) { const a = rows[q][k], b = rows[q][(k + 1) % 4], c = rows[q + 1][(k + 1) % 4], d = rows[q + 1][k]; M.idx.push(a, b, c, a, c, d); }
+    ribbon(pts, w, th);
   };
   const m2s = d => d / base.Ls;
-  for (let k = 0; k < nRow; k++) bar(sF + m2s(0.013 + k * (lod === 0 ? 0.017 : 0.028)), 0.0036, 0.62 - 0.05 * k, 0.003, 0.0018);
-  if (lod === 0) {   // laço: duas alças deitadas e duas pontas caindo para os lados
-    const sp = surf(clamp(sF + m2s(0.016), 0, 1), Math.PI / 2), c0 = G.add(sp.p, G.scl(sp.n, 0.0046)), side = G.norm(G.cross(sp.n, F.a));
+  for (let k = 0; k < nRow; k++) bar(sF + m2s(0.014 + k * (lod === 0 ? 0.0165 : 0.028)), 0.6 - 0.05 * k, lod === 0 ? 0.0055 : 0.006, 0.0012);
+  if (lod === 0) {   // laço chato: duas alças deitadas e duas pontas curtas caindo para os lados
+    const s0 = sF + m2s(0.018);
     for (const sg of [-1, 1]) {
-      const ring = [];
-      for (let q = 0; q < 6; q++) {
-        const th = 2 * Math.PI * q / 6, cc = G.add(G.add(c0, G.scl(side, sg * (0.008 + 0.007 * Math.cos(th)))), G.add(G.scl(F.a, 0.0045 * Math.sin(th)), G.scl(sp.n, 0.0015 * (1 + Math.cos(th)))));
-        const tg = G.norm(G.add(G.scl(side, -sg * Math.sin(th)), G.scl(F.a, Math.cos(th)))), nn = G.norm(G.cross(tg, sp.n)), bn = sp.n;
-        ring.push([[1, 0], [0, 1], [-1, 0], [0, -1]].map(([a, b]) => addV(M, G.add(cc, G.add(G.scl(nn, a * 0.0012), G.scl(bn, b * 0.0008))), G.norm(G.add(G.scl(nn, a), G.scl(bn, b))), SL.lace)));
+      const loop = [];
+      for (let q = 0; q <= 8; q++) {
+        const th = Math.PI * q / 8, phi = Math.PI / 2 + sg * (0.1 + 0.32 * Math.sin(th)), ds = m2s(0.006 * Math.cos(th) - 0.001);
+        const sp = surf(clamp(s0 + ds, 0, 1), phi), sp2 = surf(clamp(s0 + ds + m2s(0.002) * -Math.sin(th), 0, 1), phi + sg * 0.02 * Math.cos(th));
+        loop.push({ c: G.add(sp.p, G.scl(sp.n, 0.0024 + 0.0008 * Math.sin(th))), n: sp.n, t: G.norm(G.sub(sp2.p, sp.p)) });
       }
-      for (let q = 0; q < 6; q++) for (let k = 0; k < 4; k++) { const a = ring[q][k], b = ring[q][(k + 1) % 4], c = ring[(q + 1) % 6][(k + 1) % 4], d = ring[(q + 1) % 6][k]; M.idx.push(a, b, c, a, c, d); }
-      // ponta caindo
+      ribbon(loop, 0.004, 0.001);
       const tail = [];
-      for (let q = 0; q <= 2; q++) { const u = q / 2, ps = surf(clamp(sF + m2s(0.02 + 0.02 * u), 0, 1), Math.PI / 2 + sg * (0.2 + 0.55 * u)), cc = G.add(ps.p, G.scl(ps.n, 0.0038 - 0.0018 * u)); tail.push([[1, 1], [-1, 1], [-1, -1], [1, -1]].map(([a, b]) => addV(M, G.add(cc, G.add(G.scl(F.a, a * 0.0011), G.scl(ps.n, b * 0.0007))), G.norm(G.add(G.scl(F.a, a), G.scl(ps.n, b))), SL.lace))); }
-      for (let q = 0; q < 2; q++) for (let k = 0; k < 4; k++) { const a = tail[q][k], b = tail[q][(k + 1) % 4], c = tail[q + 1][(k + 1) % 4], d = tail[q + 1][k]; M.idx.push(a, b, c, a, c, d); }
+      for (let q = 0; q <= 3; q++) { const u = q / 3, sp = surf(clamp(s0 + m2s(0.004 + 0.022 * u), 0, 1), Math.PI / 2 + sg * (0.12 + 0.28 * u)), sp2 = surf(clamp(s0 + m2s(0.006 + 0.022 * u), 0, 1), Math.PI / 2 + sg * (0.14 + 0.28 * u)); tail.push({ c: G.add(sp.p, G.scl(sp.n, 0.0019 - 0.0008 * u)), n: sp.n, t: G.norm(G.sub(sp2.p, sp.p)) }); }
+      ribbon(tail, 0.0035, 0.001);
     }
   }
   const nn0 = M.N.slice();
   finishPart(M, (t) => { const v = M.idx[t * 3]; return [nn0[v * 3], nn0[v * 3 + 1], nn0[v * 3 + 2]]; });
-  for (let i = 0; i < nn0.length; i++) M.N[i] = nn0[i];   // normais da seção (aresta viva do cadarço)
+  for (let i = 0; i < nn0.length; i++) M.N[i] = nn0[i];   // normais da seção (aresta viva da fita)
   return M;
 }
 
@@ -443,7 +451,7 @@ function shoeLod(base, lod, Sm) {
   }
   // casca lisa simplificada primeiro (bordas travadas), cortes de cor depois
   {
-    const P32 = Float32Array.from(M.P), tgt = [560, 130, 40][lod], err = [0.0015, 0.004, 0.014][lod];
+    const P32 = Float32Array.from(M.P), tgt = [980, 170, 44][lod], err = [0.0009, 0.004, 0.014][lod];
     if (M.idx.length > tgt * 3) M.idx = Array.from(Sm.simplify(Uint32Array.from(M.idx), P32, 3, tgt * 3, err, lod === 0 ? ['LockBorder', 'ErrorAbsolute'] : ['ErrorAbsolute'])[0]);
   }
   const lps = boundaryLoops(Uint32Array.from(M.idx)), myl = l => l.reduce((a, v) => a + M.P[v * 3 + 1], 0) / l.length;
@@ -453,7 +461,7 @@ function shoeLod(base, lod, Sm) {
   if (lod === 0) {
     // triângulos cruzados por uma linha de cor bissectados até ≤ 6 mm (bordas lisas da faixa e do contraforte)
     const cf = ['hc', 'toe', 'st1', 'st2'].map(nm => base.fields[fi(nm)][1]), coll = M.F[fi('collar')];
-    const R = refineNear({ V: M.V, P: M.P, n: M.n, idx: M.idx, K }, cf, 0.006, 4000);
+    const R = refineNear({ V: M.V, P: M.P, n: M.n, idx: M.idx, K }, cf, 0.0035, 6000);
     const dC = distToLoop(R.P, R.n, opening.map(v => v));   // laço: índices antigos continuam válidos (refine só acrescenta)
     M = { ...R, F: base.fields.map(([nm, fn]) => { const a = []; for (let i = 0; i < R.n; i++) a.push(nm === 'collar' ? Math.min(dC[i], 0.05) - 0.009 : fn(R.V, i * K)); return a; }) };
     for (const nm of colorF) M = cutBy(M, fi(nm));
@@ -464,7 +472,7 @@ function shoeLod(base, lod, Sm) {
     const ng = {}; names.forEach((nm, q) => { const f = M.F[q]; ng[nm] = f[M.idx[t * 3]] + f[M.idx[t * 3 + 1]] + f[M.idx[t * 3 + 2]] < 0; });
     tslot[t] = lod === 0 ? base.rule(ng) : lod === 1 && ng.hc ? SL.shoeAccent : SL.shoe;
   }
-  cleanIslands(M.idx, M.P, tslot, [7e-5, 1.5e-4, 4e-4][lod]);
+  cleanIslands(M.idx, M.P, tslot, [1.6e-4, 3e-4, 6e-4][lod]);
   let dup = splitSlots(M, { fields: base.fields, rule: (ng, t) => tslot[t] });
   if (lod === 0) { const r = Sm.simplify(Uint32Array.from(dup.idx), Float32Array.from(dup.P), 3, 0, 0.0006, ['LockBorder', 'ErrorAbsolute'])[0]; dup = { ...dup, idx: r }; }
   // faixa lateral e contraforte em relevo (0,6 mm), zero na linha de cor (sem rachar a costura)
@@ -473,7 +481,7 @@ function shoeLod(base, lod, Sm) {
     const raised = new Uint8Array(M.n);
     for (let t = 0; t < dup.idx.length; t += 3) if (dup.slot[dup.idx[t]] === SL.shoeAccent) for (let e = 0; e < 3; e++) raised[dup.orig[dup.idx[t + e]]] |= 1;
     for (let t = 0; t < dup.idx.length; t += 3) if (dup.slot[dup.idx[t]] !== SL.shoeAccent) for (let e = 0; e < 3; e++) raised[dup.orig[dup.idx[t + e]]] |= 2;
-    for (let i = 0; i < dup.n; i++) { const w = dup.orig[i]; if (raised[w] === 1) for (let k = 0; k < 3; k++) dup.P[i * 3 + k] += NWd[w * 3 + k] * 0.0006; }
+    // v6: sem relevo (o degrau de 0,6 mm na malha grossa dava serrilhado na borda da cor)
   }
   const wl = base.well, out = part();
   const Nup = vertexNormals(dup.P, Uint32Array.from(dup.idx), dup.n);

@@ -435,7 +435,9 @@ export function garmentVolume(kind, C, Aw) {
       if (process.env.DBG_NOFOLD) return 0;
       const ct = Math.cos(th), st = Math.sin(th);   // ruído amostrado no círculo: periódico em θ (sem costura em θ = 0)
       if (hemA && !process.env.DBG_NOHEM) {
-        const a = hemA * Math.pow(smoothstep(dropY + 0.02, hemY + 0.005, y), 1.15) * (0.4 + 0.6 * st * st) * (0.65 + 0.7 * noise3(ct * 1.1, st * 1.1, 7.3, seedK));
+        // nas costas as colunas começam mais alto (descem das escápulas)
+        const sb = Math.max(0, st), y0f = dropY + 0.02 + 0.05 * sb;
+        const a = hemA * Math.pow(smoothstep(y0f, hemY + 0.005, y), 1.15 - 0.25 * sb) * (0.4 + 0.6 * st * st) * (0.65 + 0.7 * noise3(ct * 1.1, st * 1.1, 7.3, seedK));
         if (a > 0) {
           const n1 = noise3(ct * 0.9 + y * 1.6, st * 0.9, 1.7, seedK), n2 = noise3(ct * 1.3, st * 1.3 + y * 2.4, 5.1, seedK);
           d += a * prof(0.6 * Math.sin((FD.crisp ? 4 : 5) * th + 1.3 * Math.sin(2 * th + 0.4) + 0.6 + 1.1 * n1) + 0.4 * Math.sin((FD.crisp ? 3 : 8) * th + 2.1 + 1.3 * n2));
@@ -448,7 +450,7 @@ export function garmentVolume(kind, C, Aw) {
         for (const sx of [-1, 1]) {
           const side = smoothstep(0.015, 0.06, x * sx);
           if (side <= 0) continue;
-          for (const back of [0, 1]) {
+          for (const back of [0]) {   // só na frente (axila → peito); nas costas as dobras verticais das escápulas bastam
             const wfb = back ? wb : 1 - wb; if (wfb <= 0) continue;
             const ox = sx * (back ? 0.11 : 0.135), oy = back ? Lm.Sy - 0.07 : apY - 0.01;
             const dx = x - ox, dy = yy - oy, ux = -sx * 0.6, uy = -0.8, along = dx * ux + dy * uy, across = dx * uy - dy * ux;
