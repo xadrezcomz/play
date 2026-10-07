@@ -143,7 +143,12 @@ export function regionOf(A, o, Lm) {
 
 // manga curta (v6): até o meio do bíceps — o lado de dentro da barra fica ~3 cm abaixo do ápice da axila (antes a barra
 // de dentro caía no próprio ápice e a manga ficava soldada ao tronco)
-export const sleeveLen = (g) => g === 'f' ? 0.145 : 0.165;
+export const sleeveLen = (g) => process.env.EP_SLV ? +process.env.EP_SLV.split(',')[g === 'f' ? 1 : 0] : g === 'f' ? 0.145 : 0.165;
+// v8 (experimental, desligado): quanto a barra da manga curta desce do lado de dentro (garmentTerms 'camiseta'; o tubo
+// da manga vai até lá). Com 2,5 cm (m) a quina de dentro sai da faixa em que a manga e o tronco ficam a < 1 célula da
+// grade, mas os 2,5 cm a mais de manga viravam uma bolsa atrás da axila na corrida (pior que a dobra que sobra) e no
+// feminino esticavam mais e abriam frestas em repouso — fica 0 (ESPEC §17.6)
+export const slvTilt = g => process.env.EP_SLV_TILT != null ? +process.env.EP_SLV_TILT : 0;
 // barra dos tops (v4): 4,5 cm abaixo do topo do cós do short (corta-vento 6,3 cm) — a camiseta não cobre o short inteiro
 export const hemY = (kind, Lm) => kind === 'corta-vento' ? Lm.T[1] - 0.075 : Lm.T[1] - 0.057;
 // ---------------------------------------------------------------- funções de região das roupas
@@ -184,9 +189,12 @@ export function garmentTerms(kind, g, Lm) {
   };
   const LL = Lm.thigh + Lm.shin;
   const noHead = (A, o) => A[o + K.head] >= 0.5 ? 1 : -1;
+  // v7: barra curva — sobe nas laterais (|sen θ|⁴ em volta do tronco), como a barra de camiseta de corrida
+  const hemS = (Y, lift) => (A, o) => { const th = Math.atan2(A[o], -(A[o + 2] - Lm.cz)), sd = Math.pow(Math.abs(Math.sin(th)), 4); return Y + lift * sd - y(A, o); };
   switch (kind) {
-    case 'camiseta': return { noHead, hem: hem(hemY(kind, Lm)), neck: neck(0.068, 0.03), sleeve: sleeve(sleeveLen(g)) };
-    case 'regata': return { noHead, hem: hem(hemY(kind, Lm)), neck: neck(0.075, f ? 0.10 : 0.09), armhole: armhole(f ? 0.07 : 0.075, f ? 0.14 : 0.15, f ? 0.11 : 0.115), noArm };
+    // EP_SLV_TILT (slvTilt): barra da manga mais comprida do lado de dentro — experimental, desligado
+    case 'camiseta': return { noHead, hem: hemS(hemY(kind, Lm), 0.012), neck: neck(0.068, 0.03), sleeve: sleeve(sleeveLen(g), -slvTilt(g)) };
+    case 'regata': return { noHead, hem: hemS(hemY(kind, Lm), 0.01), neck: neck(0.075, f ? 0.10 : 0.09), armhole: armhole(f ? 0.07 : 0.075, f ? 0.14 : 0.15, f ? 0.11 : 0.115), noArm };
     case 'top': {
       // corpo do top: faixa sob o busto + bojo na frente até a linha de cima (por ângulo em volta do tronco)
       const ay = Lm.apex[1], Yb = Lm.Ybra;
@@ -203,7 +211,7 @@ export function garmentTerms(kind, g, Lm) {
       return { noHead, noArm, hem: hm, line, strap, back,
         _R: (A, o) => smax(smax(smin(smin(smax(hm(A, o), line(A, o), 0.006), smax(strap(A, o), hm(A, o), 0.006), 0.012), back(A, o), 0.01), noArm(A, o), 0.004), noHead(A, o), 0.004) };
     }
-    case 'manga-longa': return { noHead, hem: hem(hemY(kind, Lm)), neck: neck(0.066, 0.025), sleeve: sleeve(Lm.armLen - 0.015) };
+    case 'manga-longa': return { noHead, hem: hemS(hemY(kind, Lm), 0.008), neck: neck(0.066, 0.025), sleeve: sleeve(Lm.armLen - 0.015) };
     case 'corta-vento': return { noHead, hem: hem(hemY(kind, Lm)), neck: neck(0.075, 0.005), sleeve: sleeve(Lm.armLen + 0.005) };
     case 'short': return { waist: top(T[1] - 0.012), legEnd: legEnd(f ? 0.155 : 0.25), noArm };
     // v6: o short de baixo da saia-short é mais curto que a saia (a barra dele não aparece embaixo da saia)

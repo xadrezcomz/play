@@ -153,17 +153,26 @@ export async function bakeGender(g, ctx) {
   // sob o top pelas máscaras de cobertura, então o top não precisa passar por cima dela
   const shellOf = G0 => { const L = G0.lods[0].filter((v, i, a) => { const t = i - i % 3; return !((G0.FLAGS[a[t]] | G0.FLAGS[a[t + 1]] | G0.FLAGS[a[t + 2]]) & 6); }); return { bvh: new BVH(G0.P, L), idx: L, N: G0.N }; };
   const order = ['meia', ...kinds.filter(k => LB.BOTTOMS.includes(k)), ...kinds.filter(k => LB.TOPS.includes(k))];
+  // depuração (v7): EP_GCACHE=pasta guarda/relê as roupas prontas (antes dos pesos) — iterar só nos pesos/empacotamento
+  // sem refazer os volumes; EP_GREBUILD=tipo,tipo refaz só esses
+  const gcFile = process.env.EP_GCACHE ? path.join(process.env.EP_GCACHE, 'roupas-' + g + '.bin') : null, v8 = gcFile ? await import('node:v8') : null;
+  const gc = gcFile && fs.existsSync(gcFile) ? v8.deserialize(fs.readFileSync(gcFile)) : null, rebuild = process.env.EP_GREBUILD ? process.env.EP_GREBUILD.split(',') : [];
   for (const k of order) {
+    if (gc && gc.built[k] && !rebuild.includes(k)) { built[k] = gc.built[k]; rep['roupa_' + k] = gc.rep[k]; console.log('  roupa', k, '(cache)'); continue; }
     if (only && !only.includes(k)) continue;
     const lower = k === 'meia' ? [] : LB.BOTTOMS.includes(k) ? (built.meia ? [shellOf(built.meia)] : []) : kinds.filter(b => LB.BOTTOMS.includes(b) && built[b]).map(b => shellOf(built[b]));
     const t1 = Date.now();
     built[k] = GM.buildGarment(C, k, { ...ctx0, lower });
-    { const T = LB.garmentTerms(k, g, Lm), r = new Float64Array(C.body.weld.nw); for (let w = 0; w < r.length; w++) r[w] = LB.evalR(T, Aw, w * LB.KN);
+    { const T = cullTerms(k, g, Lm), r = new Float64Array(C.body.weld.nw); for (let w = 0; w < r.length; w++) r[w] = LB.evalR(T, Aw, w * LB.KN);
       const lim = GM.cullMargin(k), vis = new BVH(C.body.PW, WI, t => !(r[WI[t * 3]] <= lim && r[WI[t * 3 + 1]] <= lim && r[WI[t * 3 + 2]] <= lim));
       built[k].ao = GM.garmentAO(built[k], vis, ctx.rapido ? 8 : 24); }
     rep['roupa_' + k] = { v: built[k].nv, tris: built[k].lods.map(l => l.length / 3), ms: Date.now() - t1 };
     console.log('  roupa', k, JSON.stringify(rep['roupa_' + k]));
   }
+  if (gcFile) { fs.mkdirSync(process.env.EP_GCACHE, { recursive: true }); fs.writeFileSync(gcFile, v8.serialize({ built, rep: Object.fromEntries(Object.keys(built).map(k => [k, rep['roupa_' + k]])) })); }
+  // v7: vinco atrás do joelho da legging (depois do cache: o cache guarda a oclusão crua)
+  if (built.legging && built.legging.ao) GM.kneeCrease(built.legging, Lm);
+  for (const k of ['camiseta', 'manga-longa', 'corta-vento']) if (built[k] && built[k].ao) GM.pitAOLift(built[k], C);
   C.garments = built;
 
   // ---- 6b. tênis (e o pé que fica dentro dele sai do corpo)
@@ -179,11 +188,13 @@ export async function bakeGender(g, ctx) {
 
   // ---- 7. máscaras de cobertura por triângulo do corpo
   const nw = C.body.weld.nw, Rk = {};
-  for (const k of kinds) { const T = LB.garmentTerms(k, g, Lm), r = new Float64Array(nw); for (let w = 0; w < nw; w++) r[w] = LB.evalR(T, Aw, w * LB.KN); Rk[k] = r; }
+  for (const k of kinds) { const T = cullTerms(k, g, Lm), r = new Float64Array(nw); for (let w = 0; w < nw; w++) r[w] = LB.evalR(T, Aw, w * LB.KN); Rk[k] = r; }
   // v6: short/bermuda soltos — a perna da peça é um tubo rígido com a coxa da virilha para baixo, então a coxa embaixo
   // dela fica (não é cortada) a partir de 9 cm abaixo da virilha: olhando pela boca da perna com o joelho alto aparece
   // a coxa, não o vazio
-  for (const k of ['short', 'bermuda']) {
+  // v7: desligado (EP_COXA=1 religa) — essa pele, rígida com a coxa, girava com a coxa erguida e aparecia por fendas
+  // na frente do short; com os pesos ajustados por poses o tubo acompanha a coxa e basta a faixa normal de 3,5 cm
+  for (const k of process.env.EP_COXA ? ['short', 'bermuda'] : []) {
     if (!Rk[k]) continue;
     for (let w = 0; w < nw; w++) {
       const o = w * LB.KN; if (Aw[o + LB.K.wLeg] < 0.6) continue;
@@ -191,7 +202,8 @@ export async function bakeGender(g, ctx) {
       // só a pele rígida com a coxa (peso do osso da coxa ≥ 0,95): pele com um pouco de quadril fica para trás no
       // joelho alto e furava a frente da bermuda
       if (Aw[o + LB.K.w0 + BD.BI[sd === 'L' ? 'legL' : 'legR']] < 0.95) continue;
-      if (s > (A[1] - Lm.crotchY) + 0.09) Rk[k][w] = Math.max(Rk[k][w], 0.01);
+      // a partir de 9 cm abaixo da virilha, e no máximo 10 cm para dentro da boca (bermuda: só perto do joelho)
+      if (s > Math.max((A[1] - Lm.crotchY) + 0.09, DR.legLen(k, g, Lm) - 0.10)) Rk[k][w] = Math.max(Rk[k][w], 0.01);
     }
   }
   C.Rk = Rk;
@@ -203,28 +215,50 @@ export async function bakeGender(g, ctx) {
   return C;
 }
 
+// termos das máscaras de cobertura. v6: a barra dos tops soltos fica sempre por cima do cós da peça de baixo (4,5 a
+// 6,3 cm de sobreposição), então a pele sob a barra some até 0,5 cm dela (e não 3,5 cm): a faixa de pele que sobrava
+// entre o corte do top e o do cós furava a frente da bermuda no joelho alto
+function cullTerms(k, g, Lm) {
+  const T = LB.garmentTerms(k, g, Lm);
+  if (T.hem && ['camiseta', 'regata', 'manga-longa', 'corta-vento'].includes(k)) { const h0 = T.hem; T.hem = (A, o) => h0(A, o) + 0.03; }
+  // v6: camiseta — do lado de dentro da manga (virado para o tronco) a pele do braço some até 1 cm da barra (e não
+  // 3,5 cm): ali a manga quase encosta no braço e, com o braço para trás na corrida, a parede de dentro (com peso do
+  // tronco) fica para trás e a pele furava ela. (Testado e descartado: 6 cm de pele em toda a volta — EP_SLEEVEBAND —
+  // tapava a axila na comemoração mas piorava esse furo.)
+  if (T.sleeve && k === 'camiseta') {
+    const s0 = T.sleeve, d = process.env.EP_SLEEVEBAND ? +process.env.EP_SLEEVEBAND : 0;
+    const innerOf = (A, o) => { const sd = A[o] < 0 ? 'L' : 'R', S = Lm.S[sd], E = Lm.E[sd], ax = G.norm(G.sub(E, S)), q = G.sub([A[o], A[o + 1], A[o + 2]], S), r = G.sub(q, G.scl(ax, G.dot(q, ax))), l = G.len(r) || 1; return Math.max(0, (sd === 'L' ? r[0] : -r[0]) / l); };
+    const kIn = process.env.EP_INCULL != null ? +process.env.EP_INCULL : 0.025;
+    T.sleeve = (A, o) => { const v = s0(A, o); return v > -0.5 ? v + d - kIn * GM.smoothstepX(0.2, 0.8, innerOf(A, o)) : v; };
+  }
+  // v6: meia — a boca de baixo fica dentro do tênis: a pele perto dela (calcanhar, tendão) some junto (com o pé em
+  // ponta a faixa de pele que sobrava entre o corte da meia e o pé apagado furava a meia no tendão)
+  if (T.bottom && k === 'meia') { const b0 = T.bottom; T.bottom = (A, o) => b0(A, o) - 0.04; }
+  return T;
+}
+
 // ---- empacotamento
 function headOnly(n) { const J = new Uint8Array(n * 4), W = new Uint8Array(n * 4); for (let i = 0; i < n; i++) { J[i * 4] = BD.BI.head; W[i * 4] = 255; } return { J, W }; }
 function attrA(n, mat, slot, ao = 255) { const A = new Uint8Array(n * 4); for (let i = 0; i < n; i++) { A[i * 4] = mat; A[i * 4 + 1] = slot; A[i * 4 + 2] = ao; } return A; }
 
 function bodyCells(C, lod) {
   const b = C.body, wid = b.weld.wid, nt = b.idx.length / 3, mask = new Uint32Array(nt), reg = new Uint8Array(nt);
-  // v5: pele perto da axila fica sob tops soltos com manga/cava (a fresta da cava abre com o braço para trás)
-  if (!C._nearPit) {
-    // v6: só o fundo da axila (3,5 cm em volta do ápice medido): é o que fica exposto com o braço erguido; mais longe a
-    // pele furava a manga no balanço do braço
+  // pele perto da axila fica sob os tops soltos (v5): olhando pela fresta entre o braço e a cava/manga aparece a pele,
+  // não o vazio. v6: raio por peça — regata 3,5 cm (cava funda); camiseta 3 cm (o fundo da axila, visto pela boca da
+  // manga curta, que fica rente à axila); mangas longas, nenhum (sem abertura ali)
+  if (!C._pitD) {
     const ap = DR.armpitApex(C, C.Aw), pits = [ap.L, ap.R];
-    C._nearPit = new Uint8Array(b.weld.nw);
-    for (let w = 0; w < b.weld.nw; w++) for (const q of pits) if (Math.hypot(b.PW[w * 3] - q[0], b.PW[w * 3 + 1] - q[1], b.PW[w * 3 + 2] - q[2]) < 0.035) C._nearPit[w] = 1;
+    C._pitD = new Float64Array(b.weld.nw);
+    for (let w = 0; w < b.weld.nw; w++) C._pitD[w] = Math.min(...pits.map(q => Math.hypot(b.PW[w * 3] - q[0], b.PW[w * 3 + 1] - q[1], b.PW[w * 3 + 2] - q[2])));
   }
-  const pitKinds = new Set(['regata']);   // v6: os tops de manga têm o forro da axila (garments.pitPatch)
+  const PIT_R = { regata: 0.035, camiseta: process.env.EP_PITCAM != null ? +process.env.EP_PITCAM : 0 };   // v7: camiseta sem pele da axila (a manga rígida e a membrana fecham a cava; a ilha de pele furava o tecido)
   for (let t = 0; t < nt; t++) {
     const w = [wid[b.idx[t * 3]], wid[b.idx[t * 3 + 1]], wid[b.idx[t * 3 + 2]]];
     let m = 0;
     // v5: roupas soltas deixam 3,5 cm de pele por dentro das aberturas (barra, manga, perna): olhando por baixo da barra
     // aparece o forro e a pele, nunca o vazio
-    const pit = C._nearPit[w[0]] || C._nearPit[w[1]] || C._nearPit[w[2]];
-    for (const k in C.Rk) { if (pit && pitKinds.has(k) && !process.env.EP_NOPIT) continue; const r = C.Rk[k], lim = GM.cullMargin(k); if (r[w[0]] <= lim && r[w[1]] <= lim && r[w[2]] <= lim) m |= 1 << COVER_BITS[k]; }
+    const pd = Math.min(C._pitD[w[0]], C._pitD[w[1]], C._pitD[w[2]]);
+    for (const k in C.Rk) { if (PIT_R[k] && pd < PIT_R[k] && !process.env.EP_NOPIT) continue; const r = C.Rk[k], lim = GM.cullMargin(k); if (r[w[0]] <= lim && r[w[1]] <= lim && r[w[2]] <= lim) m |= 1 << COVER_BITS[k]; }
     if (C.hairCover) for (const hs in C.hairCover) {
       const hc = C.hairCover[hs][lod ? 1 : 0], ray = C.hairCover[hs][lod ? 3 : 2];
       if (!(hc[w[0]] && hc[w[1]] && hc[w[2]])) continue;
@@ -267,6 +301,7 @@ function pack(C) {
   // células por (máscara, região); LOD0 e LOD1 têm máscaras próprias (o cabelo simplificado cobre menos couro cabeludo)
   const cellsOf = lod => {
     const { mask, reg } = bodyCells(C, lod), map = new Map();
+    if (lod === 0) C._bodyMask0 = mask;   // v7: pele visível por peça (ajuste dos pesos por poses)
     for (let t = 0; t < mask.length; t++) {
       if (C.footDel && C.footDel[t]) continue;
       const key = mask[t] * 32 + reg[t];
@@ -298,7 +333,9 @@ function pack(C) {
   // LOD2 do corpo por combinação dos corredores da rua (só as células visíveis, simplificadas juntas)
   const lod2 = {}, lod2rep = {};
   // cada roupa da rua com e sem meia (o jogo pode trocar a meia); outras combinações caem no LOD1 com aviso
-  for (const o of NPC_OUTFITS.filter(o => o.gender === C.g).flatMap(o => [o, { ...o, socks: o.bottom === 'legging' }])) {
+  // v7: + as combinações com a saia-short (cada top, cabelo padrão, com e sem meia) — longe, a saia vira o cone do LOD2
+  const skirtL2 = C.g === 'f' ? ['camiseta', 'regata', 'top', 'manga-longa', 'corta-vento'].map(t => ({ gender: 'f', top: t, bottom: 'saia-short', hair: 'rabo' })) : [];
+  for (const o of [...NPC_OUTFITS.filter(o => o.gender === C.g), ...skirtL2].flatMap(o => [o, { ...o, socks: o.bottom === 'legging' }])) {
     const m = maskOf(o);
     if (lod2[String(m)]) continue;
     // por grupos (cabeça, cada braço, cada perna, tronco), cada um com a borda travada: o rosto não desaba (erro

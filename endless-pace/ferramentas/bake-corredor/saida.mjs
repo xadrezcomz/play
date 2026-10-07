@@ -1,6 +1,7 @@
 // Escreve os arquivos de dados (scripts clássicos) e as licenças.
 import fs from 'node:fs';
 import path from 'node:path';
+import vm from 'node:vm';
 
 const CREDITO = 'Corredores: Universal Base Characters e Universal Animation Library por Quaternius (CC0) — quaternius.com; decodificador meshoptimizer (MIT, Arseny Kapoulkine).';
 
@@ -20,6 +21,14 @@ export function writeOutputs(out, { saida, raiz, deps, report, fontes }) {
     put('corredor-' + g + '.js', wrap(g === 'm' ? 'corredor masculino' : 'corredor feminino', 'M.corredor = M.corredor || {};\n  M.corredor.' + g, C.data));
   }
   const roupas = {}, cabelos = {};
+  // um gênero só (--so): o outro continua o que já estava nos arquivos de saída
+  if (Object.keys(out).length < 2) {
+    for (const [file, key, dst] of [['roupas.js', 'roupas', roupas], ['cabelos.js', 'cabelos', cabelos]]) {
+      const f = path.join(saida, file); if (!fs.existsSync(f)) continue;
+      const ctx = { window: { EP: { data: {} } } }; vm.createContext(ctx);
+      try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx); Object.assign(dst, ctx.window.EP.data.models[key] || {}); } catch (e) { console.warn('não li', f, e.message); }
+    }
+  }
   for (const g of Object.keys(out)) { if (out[g].roupas) roupas[g] = out[g].roupas; if (out[g].cabelos) cabelos[g] = out[g].cabelos; }
   if (Object.keys(roupas).length) put('roupas.js', wrap('roupas dos corredores', 'M.roupas', roupas));
   if (Object.keys(cabelos).length) put('cabelos.js', wrap('cabelos dos corredores', 'M.cabelos', cabelos));

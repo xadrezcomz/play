@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import * as G from './gltf.mjs';
 import { BI, NB, loadBody } from './body.mjs';
-import { weld, neighbors, vertexNormals, components, boundaryLoops, compact, smoothField, smoothstep, clamp, noise3, worley, BVH, rayAO, basis, rng } from './geom.mjs';
+import { weld, neighbors, vertexNormals, components, boundaryLoops, compact, smoothField, smoothstep, clamp, noise3, worley, BVH, rayAO, basis, rng, taubin } from './geom.mjs';
 import { cutBy } from './garments.mjs';
 import { simplifier } from './encode.mjs';
 import { SL, HAIRS } from './consts.mjs';
@@ -88,11 +88,12 @@ function ponytail(root, seed) {
     return { c: path(t), d, side, up: G.norm(G.cross(side, d)) };
   };
   // raio do rabo inteiro: fino no elástico, cheio no meio, afinando para a ponta
-  const R = t => t < 0.1 ? 0.017 + 0.013 * smoothstep(0.02, 0.1, t) : 0.03 - 0.008 * smoothstep(0.3, 0.9, t);
+  // v7: feixe mais cheio e redondo (raiz 19 mm, meio 32 mm)
+  const R = t => t < 0.1 ? 0.019 + 0.013 * smoothstep(0.02, 0.1, t) : 0.032 - 0.009 * smoothstep(0.3, 0.9, t);
   // v6: o rabo é um feixe redondo de mechas — 7 mechas de seção em gota (a ponta da gota para fora), que se sobrepõem
   // perto do elástico e se separam para a ponta, torcendo 1,3 rad, cada uma afinando até um comprimento diferente
   // (0,8–1,0), + 2 fiapos finos que se soltam mais na ponta, em volta de um miolo que tapa as frestas da raiz
-  const NCL = 7, rnd = rng(seed), P = [], UV = [], idx = [], T = [], tone = [];
+  const NCL = 8, rnd = rng(seed), P = [], UV = [], idx = [], T = [], tone = [];
   const tube = (center, radius, t0, t1, rings, sides, tipT, tn, shape = () => 1) => {
     const base = P.length / 3;
     for (let r = 0; r <= rings; r++) {
@@ -113,38 +114,53 @@ function ponytail(root, seed) {
     for (let a = 0; a < sides; a++) idx.push(base + (a + 1) % sides, base + a, cap);
   };
   // miolo
-  tube(t => path(t), t => 0.62 * R(t) * (1 - 0.85 * smoothstep(0.55, 0.85, t)), 0.02, 0.86, 9, 8, null, 0.8);
+  tube(t => path(t), t => 0.7 * R(t) * (1 - 0.85 * smoothstep(0.55, 0.85, t)), 0.02, 0.86, 9, 8, null, 0.8);
   const clump = (th0, tEnd, spread, tn, rad, twist, sides, rings, out = 0) => {
-    const center = t => { const f = frameAt(Math.min(t, 1)), th = th0 + twist * t, d = R(Math.min(t, 1)) * spread * (1 + 0.45 * smoothstep(0.35, 1, t)) + out * smoothstep(0.5, 1, t); return G.add(f.c, G.add(G.scl(f.side, Math.cos(th) * d), G.scl(f.up, Math.sin(th) * d))); };
-    const radius = t => rad * R(Math.min(t, 1)) * Math.pow(Math.max(0, 1 - Math.pow(smoothstep(0.42, tEnd, t), 1.6)), 0.6);
+    const center = t => { const f = frameAt(Math.min(t, 1)), th = th0 + twist * t, d = R(Math.min(t, 1)) * spread * (1 + 0.2 * smoothstep(0.35, 1, t)) + out * smoothstep(0.5, 1, t); return G.add(f.c, G.add(G.scl(f.side, Math.cos(th) * d), G.scl(f.up, Math.sin(th) * d))); };
+    // v6: afina só no último terço e a ponta fecha arredondada (a ponta de agulha dava o ar espetado)
+    const radius = t => rad * R(Math.min(t, 1)) * Math.pow(Math.max(0, 1 - Math.pow(smoothstep(0.58, tEnd, t), 2.2)), 0.5);
     // gota: mais larga para fora (ang = θ da mecha) e afilada para dentro
     const shape = (ang, t) => { const th = th0 + twist * t, c = Math.cos(ang - th); return 0.82 + 0.26 * c * c * Math.sign(c) * 0.5 + 0.12 * c; };
     tube(center, radius, 0.03, tEnd * 0.985, rings, sides, tEnd, tn, shape);
   };
-  for (let c = 0; c < NCL; c++) clump(2 * Math.PI * c / NCL + 0.35 * (rnd() - 0.5), 0.8 + 0.2 * rnd(), 0.4 + 0.12 * rnd(), 0.88 + 0.16 * rnd(), 0.6 + 0.12 * rnd(), 1.3 + 0.3 * (rnd() - 0.5), 7, 12);
-  // fiapos: finos, soltam-se para fora na metade de baixo
-  for (let c = 0; c < 2; c++) clump(2 * Math.PI * rnd(), 0.72 + 0.15 * rnd(), 0.7, 0.95, 0.22, 1.6, 5, 8, 0.012 + 0.008 * rnd());
-  // elástico: "scrunchie" franzido em volta do rabo em t = 0,035
-  const tie = { P: [], UV: [], idx: [], T: [] };
-  const f0 = frameAt(0.035), Rm = R(0.035) + 0.0058, SEG = 18, SD = 6;
-  for (let a = 0; a < SEG; a++) for (let b = 0; b < SD; b++) {
-    const A = 2 * Math.PI * a / SEG, Bb = 2 * Math.PI * b / SD, ruf = 1 + 0.28 * Math.sin(9 * A + 0.7) * Math.cos(Bb * 0.5 + 0.3);
-    const ring = G.add(G.scl(f0.side, Math.cos(A)), G.scl(f0.up, Math.sin(A) * 0.88));
-    const rm = 0.0068 * ruf, p = G.add(f0.c, G.add(G.scl(ring, Rm + rm * Math.cos(Bb)), G.scl(f0.d, rm * 1.15 * Math.sin(Bb))));
-    tie.P.push(...p); tie.UV.push(0, 0); tie.T.push(0.035);
-  }
-  for (let a = 0; a < SEG; a++) for (let b = 0; b < SD; b++) {
-    const i0 = a * SD + b, i1 = ((a + 1) % SEG) * SD + b, i2 = ((a + 1) % SEG) * SD + (b + 1) % SD, i3 = a * SD + (b + 1) % SD;
-    tie.idx.push(i0, i2, i1, i0, i3, i2);
-  }
+  // v7: mechas mais grossas e mais juntas (o feixe lê redondo, não um leque chato)
+  for (let c = 0; c < NCL; c++) clump(2 * Math.PI * c / NCL + 0.3 * (rnd() - 0.5), 0.86 + 0.14 * rnd(), 0.3 + 0.08 * rnd(), 0.88 + 0.16 * rnd(), 0.8 + 0.1 * rnd(), 1.2 + 0.3 * (rnd() - 0.5), 7, 12);
+  // fiapos: finos, soltam-se um pouco para fora na metade de baixo
+  for (let c = 0; c < 2; c++) clump(2 * Math.PI * rnd(), 0.7 + 0.12 * rnd(), 0.62, 0.95, 0.2, 1.6, 5, 8, 0.005 + 0.004 * rnd());
+  // elástico (v7): "scrunchie" — toro de 20 × 10 lados, seção de 8,5 mm de raio com franzido macio, assentado na raiz
+  const f0 = frameAt(0.035), Rm = R(0.035) + 0.0045;
+  const tie = scrunchie(f0.c, f0.d, f0.side, f0.up, Rm, 0.0085, 0.88);
   // orientação: cada triângulo para fora do eixo do rabo (mechas) / do anel (elástico)
   const outOf = (Pp, ix, cen) => { for (let t = 0; t < ix.length; t += 3) { const a = ix[t] * 3, b = ix[t + 1] * 3, c = ix[t + 2] * 3, pa = [Pp[a], Pp[a + 1], Pp[a + 2]]; const fn = G.cross(G.sub([Pp[b], Pp[b + 1], Pp[b + 2]], pa), G.sub([Pp[c], Pp[c + 1], Pp[c + 2]], pa)); const m = [(Pp[a] + Pp[b] + Pp[c]) / 3, (Pp[a + 1] + Pp[b + 1] + Pp[c + 1]) / 3, (Pp[a + 2] + Pp[b + 2] + Pp[c + 2]) / 3]; if (G.dot(fn, G.sub(m, cen(m))) < 0) { const k = ix[t + 1]; ix[t + 1] = ix[t + 2]; ix[t + 2] = k; } } };
   // centro de referência: o ponto do eixo mais perto (pela altura relativa ao caminho)
   const nearAxis = m => { let best = path(0), bd = 1e9; for (let k = 0; k <= 40; k++) { const q = path(k / 40), d = G.dist(q, m); if (d < bd) { bd = d; best = q; } } return best; };
   // as mechas: centro = eixo da própria mecha (aprox. pelo eixo do rabo deslocado) — usa o eixo do rabo
   outOf(P, idx, nearAxis);
-  outOf(tie.P, tie.idx, m => { const v = G.sub(m, f0.c), ax = G.dot(v, f0.d), radial = G.sub(v, G.scl(f0.d, ax)); return G.add(f0.c, G.add(G.scl(f0.d, ax), G.scl(G.norm(radial), Rm))); });
-  return { tube: { P: Float64Array.from(P), UV: Float64Array.from(UV), idx: Uint32Array.from(idx), n: P.length / 3, T, tone }, tie: { P: Float64Array.from(tie.P), UV: Float64Array.from(tie.UV), idx: Uint32Array.from(tie.idx), n: tie.P.length / 3, T: tie.T }, path };
+  return { tube: { P: Float64Array.from(P), UV: Float64Array.from(UV), idx: Uint32Array.from(idx), n: P.length / 3, T, tone }, tie, path };
+}
+
+// elástico de cabelo (v7): toro franzido em volta do eixo d (centro c; side/up no plano do anel), raio do anel Rm, raio
+// da seção rm (franzido ±16 % em 11 ondas), achatado `flat` no eixo up. Normais lisas do próprio toro.
+function scrunchie(c, d, side, up, Rm, rm0, flat = 1, SEG = 20, SD = 10) {
+  const P = [], N = [], UV = [], idx = [], T = [];
+  for (let a = 0; a < SEG; a++) for (let b = 0; b < SD; b++) {
+    const A = 2 * Math.PI * a / SEG, Bb = 2 * Math.PI * b / SD, ruf = 1 + 0.16 * Math.sin(11 * A + 0.7) * (0.6 + 0.4 * Math.cos(Bb));
+    const ring = G.norm(G.add(G.scl(side, Math.cos(A)), G.scl(up, Math.sin(A) * flat))), rm = rm0 * ruf;
+    const nn = G.norm(G.add(G.scl(ring, Math.cos(Bb)), G.scl(d, Math.sin(Bb))));
+    const p = G.add(c, G.add(G.scl(ring, Rm * (Math.hypot(Math.cos(A), Math.sin(A) * flat)) + rm * Math.cos(Bb)), G.scl(d, rm * 1.1 * Math.sin(Bb))));
+    P.push(...p); N.push(...nn); UV.push(0, 0); T.push(0.035);
+  }
+  for (let a = 0; a < SEG; a++) for (let b = 0; b < SD; b++) {
+    const i0 = a * SD + b, i1 = ((a + 1) % SEG) * SD + b, i2 = ((a + 1) % SEG) * SD + (b + 1) % SD, i3 = a * SD + (b + 1) % SD;
+    idx.push(i0, i1, i2, i0, i2, i3);
+  }
+  // para fora da seção (pela normal do toro)
+  for (let t = 0; t < idx.length; t += 3) {
+    const ia = idx[t] * 3, ib = idx[t + 1] * 3, ic = idx[t + 2] * 3, pa = P.slice(ia, ia + 3);
+    const fn = G.cross(G.sub(P.slice(ib, ib + 3), pa), G.sub(P.slice(ic, ic + 3), pa)), nm = [N[ia] + N[ib] + N[ic], N[ia + 1] + N[ib + 1] + N[ic + 1], N[ia + 2] + N[ib + 2] + N[ic + 2]];
+    if (G.dot(fn, nm) < 0) { const k = idx[t + 1]; idx[t + 1] = idx[t + 2]; idx[t + 2] = k; }
+  }
+  return { P: Float64Array.from(P), N: Float64Array.from(N), UV: Float64Array.from(UV), idx: Uint32Array.from(idx), n: P.length / 3, T };
 }
 
 // orienta as faces para fora (pelo centro da cabeça)
@@ -211,13 +227,25 @@ export function buildHairs(C, rays) {
   // ---- estilos
   const styles = {};
   // curto
-  if (g === 'm') styles.curto = place('Hair_SimpleParted');
+  // v7: o curto masculino tinha a coroa serrilhada (pontas dos cartões no contorno de trás): Taubin leve na malha
+  // soldada, borda presa
+  if (g === 'm') {
+    const M0 = place('Hair_SimpleParted'), wd = weld(M0.P, M0.n, 1e-5), wi = Uint32Array.from(M0.idx, i => wd.wid[i]), adj = neighbors(wi, wd.nw);
+    const pw = new Float64Array(wd.nw * 3), mob = new Float64Array(wd.nw).fill(1);
+    for (let i = 0; i < M0.n; i++) pw.set(M0.P.subarray(i * 3, i * 3 + 3), wd.wid[i] * 3);
+    for (const l of boundaryLoops(wi)) for (const v of l) mob[v] = 0;
+    // só a metade de cima/trás (coroa): a franja e a risca ficam como estão
+    for (let w = 0; w < wd.nw; w++) if (pw[w * 3 + 1] < Hc[1] + 0.02 || pw[w * 3 + 2] < Hc[2] - 0.02) mob[w] *= 0.25;
+    taubin(pw, adj, mob, 6);
+    for (let i = 0; i < M0.n; i++) M0.P.set(pw.subarray(wd.wid[i] * 3, wd.wid[i] * 3 + 3), i * 3);
+    styles.curto = M0;
+  }
   else {
     const L = place('Hair_Long');
     const cutY = Hc[1] - 0.085;
-    // v6: pontas desfiadas em camadas (dentes em V de 1–2,4 cm por mecha, alturas variando) em vez de corte reto
+    // v6: pontas levemente desfiadas (mechas de 3–8 mm, irregulares) — os dentes de 1–2,4 cm viravam serrote
     const tri = u => { const f = u - Math.floor(u); return 1 - Math.abs(2 * f - 1); };
-    styles.curto = cutKeep(L, (x, y, z, i) => { const th = Math.atan2(x - Hc[0], z - Hc[2]), k = Math.floor(th / (2 * Math.PI) * 26 + 13); return cutY + (z < Hc[2] - 0.03 ? 0.015 : 0) - 0.012 + (0.012 + 0.012 * hash01(k)) * Math.pow(tri(th / (2 * Math.PI) * 26), 0.8) + 0.004 * noise3(x * 60, 0, z * 60, 11) - y; });
+    styles.curto = cutKeep(L, (x, y, z, i) => { const th = Math.atan2(x - Hc[0], z - Hc[2]), u = th / (2 * Math.PI) * 38, k = Math.floor(u + 19); return cutY + (z < Hc[2] - 0.03 ? 0.015 : 0) - 0.006 + (0.003 + 0.005 * hash01(k)) * Math.pow(tri(u), 1.6) + 0.003 * noise3(x * 45, 0, z * 45, 11) - y; });
   }
   // raspado
   styles.raspado = smoothHairline(place(g === 'm' ? 'Hair_Buzzed' : 'Hair_BuzzedFemale'), 12);
@@ -259,7 +287,18 @@ export function buildHairs(C, rays) {
     const q = G.rotBetween(G.sub(bc, Hc), d), R = G.compose([0, 0, 0], q), tgt = G.add(sp, G.scl(d, 0.035));
     const P = new Float64Array(bun.n * 3);
     for (let i = 0; i < bun.n; i++) { const p = G.td(R, G.scl(G.sub([bun.P[i * 3], bun.P[i * 3 + 1], bun.P[i * 3 + 2]], bc), 1.15)); P.set(G.add(tgt, p), i * 3); }
-    styles.coque = { parts: [cap, { ...bun, P, noClear: true }] };
+    // v7: elástico na base do coque (toro justo em volta do coque)
+    // (na junção: os vértices do coque a até 6 mm da touca formam o anel onde ele sai da cabeça — centro e raio médio
+    // desse anel; o elástico fica 3 mm acima, justo)
+    const capB = new BVH(cap.P, cap.idx), jn = [];
+    for (let i = 0; i < bun.n; i++) { const p = [P[i * 3], P[i * 3 + 1], P[i * 3 + 2]], h = capB.closest(p[0], p[1], p[2], 0.02); if (h.tri >= 0 && h.d < 0.006) jn.push(p); }
+    let cB = G.add(sp, G.scl(d, 0.006)), rB = 0.02;
+    if (jn.length >= 8) { cB = jn.reduce((a, p) => G.add(a, G.scl(p, 1 / jn.length)), [0, 0, 0]); rB = jn.reduce((a, p) => { const v = G.sub(p, cB); return a + G.len(G.sub(v, G.scl(d, G.dot(v, d)))) / jn.length; }, 0); }
+    const sideB = G.norm(G.cross(d, [0, 1, 0])), upB = G.cross(sideB, d);
+    const tieB = scrunchie(G.add(cB, G.scl(d, 0.004)), d, sideB, upB, clamp(rB * 1.0, 0.014, 0.05), 0.009);
+    const tieBW = new Float32Array(tieB.n * NB); for (let i = 0; i < tieB.n; i++) tieBW[i * NB + BI.head] = 1;
+    C.rep.coqueElastico = { raioJuncao: +rB.toFixed(4), pontos: jn.length };
+    styles.coque = { parts: [cap, { ...bun, P, noClear: true }, { ...tieB, W: tieBW, tone: new Float64Array(tieB.n).fill(1), slot: new Uint8Array(tieB.n).fill(SL.hairTie), noClear: true, keep0: true }] };
   }
   // longo: alongado atrás + molas
   {
@@ -284,7 +323,7 @@ export function buildHairs(C, rays) {
         const dth = th - thc, th2 = thc + dth * (1 - 0.62 * tip), r = Math.hypot(x - Hc[0], z - Hc[2]);
         L.P[i * 3] = Hc[0] + r * Math.sin(th2); L.P[i * 3 + 2] = Hc[2] + r * Math.cos(th2);
         // pontas: o meio da mecha mais comprido que as bordas (ponta em V) e comprimentos bem desencontrados
-        L.P[i * 3 + 1] = y + (0.045 * hk(k + 7) + 0.022 * Math.min(1, Math.pow(dth / (w / 2), 2))) * tip * tip;
+        L.P[i * 3 + 1] = y + (0.028 * hk(k + 7) + 0.012 * Math.min(1, Math.pow(dth / (w / 2), 2))) * tip * tip;
         L.tone[i] *= 1 - 0.22 * Math.min(1, Math.pow(dth / (w / 2), 2)) * tip;
       }
     }
@@ -329,6 +368,26 @@ export function buildHairs(C, rays) {
     const Nn = vertexNormals(withBack.P, withBack.idx, withBack.n);
     // a face de trás leva a normal oposta
     for (let i = 0; i < withBack.n; i++) if (withBack.back[i]) for (let k = 0; k < 3; k++) Nn[i * 3 + k] = -withBack.N0[i * 3 + k];
+    // v7: normais estilizadas nas toucas (peças da Quaternius): normal lisa por posição (sem as quinas entre os cartões)
+    // misturada 55 % com a direção radial a partir do eixo da cabeça (esfera em cima, cilindro abaixo do centro) — a
+    // coroa deixa de ser uma estrela de facetas; faces viradas para dentro ficam só com a normal lisa
+    if (st === 'curto' || st === 'rabo' || st === 'coque' || st === 'longo') {
+      const capV = new Uint8Array(M.n); { let o = 0; for (let k = 0; k < proc.length; k++) { if (!parts[k].noClear) capV.fill(1, o, o + proc[k].n); o += proc[k].n; } }
+      const Pp = withBack.P, wd = weld(Pp, withBack.n, 1e-5), acc = new Float64Array(wd.nw * 3);
+      for (let t = 0; t < M.idx.length; t += 3) {
+        const a = M.idx[t], b = M.idx[t + 1], c = M.idx[t + 2]; if (!capV[a]) continue;
+        const pa = [Pp[a * 3], Pp[a * 3 + 1], Pp[a * 3 + 2]], fn = G.cross(G.sub([Pp[b * 3], Pp[b * 3 + 1], Pp[b * 3 + 2]], pa), G.sub([Pp[c * 3], Pp[c * 3 + 1], Pp[c * 3 + 2]], pa));
+        for (const v of [a, b, c]) for (let k = 0; k < 3; k++) acc[wd.wid[v] * 3 + k] += fn[k];
+      }
+      for (let i = 0; i < M.n; i++) {
+        if (!capV[i]) continue;
+        const w = wd.wid[i], nw = G.norm([acc[w * 3], acc[w * 3 + 1], acc[w * 3 + 2]]), p = [Pp[i * 3], Pp[i * 3 + 1], Pp[i * 3 + 2]];
+        const r = G.norm(G.sub(p, [Hc[0], clamp(p[1], Hc[1] - 0.3, Hc[1]), Hc[2]])), mix = G.dot(nw, r) > 0 ? 0.55 : 0;
+        const nn = G.norm(G.add(G.scl(nw, 1 - mix), G.scl(r, mix)));
+        for (let k = 0; k < 3; k++) Nn[i * 3 + k] = nn[k];
+      }
+      withBack.src.forEach((s0, j) => { if (capV[s0]) for (let k = 0; k < 3; k++) Nn[(M.n + j) * 3 + k] = -Nn[s0 * 3 + k]; });
+    }
     const ownB = new BVH(withBack.P, withBack.idx);
     const ao = rayAO([ownB, headBVH], withBack.P, Nn, withBack.n, { rays, maxD: 0.12, k: 0.55, offset: 0.0015 });
     // camadas de dentro (outra mecha por cima, olhando do centro da cabeça para fora) e faces de baixo/de trás
@@ -346,11 +405,16 @@ export function buildHairs(C, rays) {
     // LODs
     const P32 = Float32Array.from(withBack.P);
     const simp = (src, target, err, flags) => src.length / 3 <= target ? Uint32Array.from(src) : Sm.simplify(Uint32Array.from(src), P32, 3, target * 3, err, flags)[0];
-    const T0 = st === 'cacheado' ? 3800 : st === 'rabo' ? 3600 : 3000;
+    // v7: rabo/coque com o elástico novo (toro) e o feixe mais cheio — orçamento maior para a touca não ser dizimada
+    // até abrir uma fresta na linha do cabelo (a pele do couro aparecia como uma faixa clara acima da franja)
+    const T0 = st === 'cacheado' ? 3800 : st === 'rabo' ? 4000 : st === 'coque' ? 3300 : 3000;
     const keptI = [], restI = [];
     for (let t = 0; t < withBack.idx.length / 3; t++) (t < keepT.length && keepT[t] ? keptI : restI).push(withBack.idx[t * 3], withBack.idx[t * 3 + 1], withBack.idx[t * 3 + 2]);
     const T0r = Math.max(800, T0 - keptI.length / 3);
-    let L0 = null; for (const [e, f] of [[0.004, []], [0.012, []], [0.004, ['Permissive']], [0.008, ['Permissive']], [0.02, ['Permissive']]]) { L0 = simp(restI, T0r, e, f); if (L0.length / 3 <= T0r * 1.02) break; }
+    // v7: toucas de cartões sem o modo "Permissive" (ele colapsava vértices de borda e abria frestas na touca)
+    const passes = st === 'cacheado' || st === 'raspado' ? [[0.004, []], [0.012, []], [0.004, ['Permissive']], [0.008, ['Permissive']], [0.02, ['Permissive']]] : [[0.004, []], [0.008, []], [0.012, []], [0.02, []]];
+    let L0 = null; for (const [e, f] of passes) { L0 = simp(restI, T0r, e, f); if (L0.length / 3 <= T0r * 1.02) break; }
+    C.rep['cabelo_' + st + '_touca'] = { alvo: T0r, obtido: L0.length / 3 };
     if (keptI.length) L0 = Uint32Array.from([...L0, ...keptI]);
     // LOD1/LOD2: só as faces da frente; mechas soltas viram um volume por agrupamento (sloppy), que não abre
     // "carecas" como a simplificação por arestas faz com mechas finas e separadas
@@ -525,6 +589,7 @@ function addBackfaces(M, reach) {
   };
   for (let i = 0; i < n; i++) copy(i, i);
   src.forEach((s, j) => { copy(n + j, s); out.back[n + j] = 1; out.tone[n + j] *= 0.7; });
+  out.src = Int32Array.from(src);
   return out;
 }
 

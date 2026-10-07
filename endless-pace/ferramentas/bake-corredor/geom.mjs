@@ -138,15 +138,27 @@ export function boundaryLoops(idx) {
     const c = cnt.get(kk);
     if (c) c.n++; else cnt.set(kk, { n: 1, a, b });
   }
-  const next = new Map();
-  for (const v of cnt.values()) if (v.n === 1) next.set(v.a, v.b);   // orientação do triângulo
-  const loops = [], seen = new Set();
-  for (const s of next.keys()) {
-    if (seen.has(s)) continue;
-    const loop = [];
-    let c = s;
-    while (c !== undefined && !seen.has(c)) { seen.add(c); loop.push(c); c = next.get(c); }
-    loops.push(loop);
+  // v6: caminhada pelas arestas de borda sem orientação (vértice "pinça" com duas arestas de saída e triângulos de
+  // enrolamento trocado na axila deixavam o laço aberto, e o fecho j → 0 virava uma aresta falsa de 1–4 cm na barra);
+  // depois o laço toma o sentido da maioria das suas arestas (o dos triângulos)
+  const adj = new Map(), dir = new Set();
+  const link = (a, b) => { if (!adj.has(a)) adj.set(a, []); adj.get(a).push(b); };
+  for (const v of cnt.values()) if (v.n === 1) { link(v.a, v.b); link(v.b, v.a); dir.add(v.a + '>' + v.b); }
+  const used = new Set(), ek = (a, b) => a < b ? a + '_' + b : b + '_' + a, loops = [];
+  for (const s0 of adj.keys()) {
+    for (const first of adj.get(s0)) {
+      if (used.has(ek(s0, first))) continue;
+      const loop = [s0]; let prev = s0, c = first; used.add(ek(s0, first));
+      while (c !== s0) {
+        loop.push(c);
+        const nx = adj.get(c).find(u => !used.has(ek(c, u)));
+        if (nx === undefined) break;   // cadeia aberta: fica como está
+        used.add(ek(c, nx)); prev = c; c = nx;
+      }
+      let fwd = 0; for (let j = 0; j + 1 < loop.length; j++) fwd += dir.has(loop[j] + '>' + loop[j + 1]) ? 1 : -1;
+      if (fwd < 0) loop.reverse();
+      loops.push(loop);
+    }
   }
   return loops;
 }
@@ -395,5 +407,34 @@ export function surfaceNets(field, box, h) {
     const s = Math.max(-h * 0.5, Math.min(h * 0.5, d0 / Math.sqrt(g2))), gl = Math.sqrt(gx * gx + gy * gy + gz * gz);
     pos[v * 3] -= gx / gl * s; pos[v * 3 + 1] -= gy / gl * s; pos[v * 3 + 2] -= gz / gl * s;
   }
-  return { pos, idx: Uint32Array.from(I), n };
+  // v8: a projeção pelo gradiente junta vértices vizinhos num vinco do campo (dois vértices no mesmo ponto); os
+  // triângulos de área zero saíam depois no recorte e deixavam furinhos de 4 vértices no meio da peça (com barra e
+  // faixa de acabamento em volta: as "manchas" redondas). Arestas < 0,05·h colapsam aqui (topologia continua fechada).
+  return collapseShortEdges(pos, Uint32Array.from(I), n, h * 0.05);
+}
+
+// v8: colapsa arestas mais curtas que minLen (união dos dois vértices na média), tira os triângulos que ficam com
+// índice repetido e os vértices sem uso. Colapsar uma aresta remove os dois triângulos que a usam: não abre furo.
+export function collapseShortEdges(pos, idx, n, minLen) {
+  const par = Int32Array.from({ length: n }, (_, i) => i);
+  const f = x => { while (par[x] !== x) { par[x] = par[par[x]]; x = par[x]; } return x; };
+  const m2 = minLen * minLen;
+  let merged = 0;
+  for (let t = 0; t < idx.length; t += 3) for (let e = 0; e < 3; e++) {
+    const a = idx[t + e], b = idx[t + (e + 1) % 3];
+    const dx = pos[a * 3] - pos[b * 3], dy = pos[a * 3 + 1] - pos[b * 3 + 1], dz = pos[a * 3 + 2] - pos[b * 3 + 2];
+    if (dx * dx + dy * dy + dz * dz < m2) { const ra = f(a), rb = f(b); if (ra !== rb) { par[rb] = ra; merged++; } }
+  }
+  if (!merged) return { pos, idx, n, merged: 0 };
+  const acc = new Float64Array(n * 3), cnt = new Int32Array(n);
+  for (let v = 0; v < n; v++) { const r = f(v); for (let k = 0; k < 3; k++) acc[r * 3 + k] += pos[v * 3 + k]; cnt[r]++; }
+  const out = [];
+  for (let t = 0; t < idx.length; t += 3) {
+    const a = f(idx[t]), b = f(idx[t + 1]), c = f(idx[t + 2]);
+    if (a === b || b === c || a === c) continue;
+    out.push(a, b, c);
+  }
+  const cp = compact(out, n), m = cp.back.length, P2 = new Float64Array(m * 3);
+  for (let i = 0; i < m; i++) { const r = cp.back[i]; for (let k = 0; k < 3; k++) P2[i * 3 + k] = acc[r * 3 + k] / cnt[r]; }
+  return { pos: P2, idx: cp.idx, n: m, merged };
 }

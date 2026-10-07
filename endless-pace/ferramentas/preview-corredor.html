@@ -39,11 +39,13 @@
   // ---------------------------------------------------------------- material do corredor (cópia simplificada de Materials.js)
   var mats = {};
   function material(g, opts) {
-    var key = g + '|' + (opts.normal ? 1 : 0) + '|' + (opts.flat ? 1 : 0) + '|' + (opts.noTex ? 1 : 0);
+    var key = g + '|' + (opts.normal ? 1 : 0) + '|' + (opts.flat ? 1 : 0) + '|' + (opts.noTex ? 1 : 0) + '|' + (opts.back ? 1 : 0);
     if (mats[key]) return mats[key];
     var m = new THREE.MeshPhongMaterial({ vertexColors: true, skinning: true, specular: new THREE.Color(0x262626), shininess: 22,
       map: opts.noTex ? null : MD.texture(g, 'skin'), color: opts.noTex ? new THREE.Color(1, 1, 1) : new THREE.Color(2, 2, 2) });
     if (opts.normal && MD.texture(g, 'normal')) { m.normalMap = MD.texture(g, 'normal'); m.normalScale = new THREE.Vector2(0.8, 0.8); }
+    m.extensions = { derivatives: true };   // fwidth da trama (WebGL1)
+    if (opts.back) m.side = THREE.DoubleSide;   // depuração (v9): faces de trás em vermelho (triângulos virados / avesso)
     m.onBeforeCompile = function (shader) {
       shader.vertexShader = 'attribute float mat;\nattribute float aov;\nvarying float vMat;\nvarying float vAo;\nvarying vec3 vRest;\n' + shader.vertexShader.replace('#include <begin_vertex>',
         '#include <begin_vertex>\nvMat = mat;\nvAo = aov;\nvRest = position;');
@@ -51,11 +53,16 @@
         .replace('#include <color_fragment>', [
           '#include <color_fragment>',
           'float rm = floor( vMat + 0.5 );',
+          opts.back ? 'if ( !gl_FrontFacing ) diffuseColor.rgb = vec3( 1.0, 0.0, 0.0 );' : '',
           'if ( rm > 2.5 && rm < 3.5 ) {',
           '  float ang = atan( vRest.x, vRest.z - 0.02 );',
           '  diffuseColor.rgb *= 0.86 + 0.22 * pow( abs( sin( ang * 46.0 + vRest.y * 24.0 + sin( ang * 7.0 ) * 2.0 ) ), 3.0 );',
           '} else if ( rm > 0.5 && rm < 2.5 ) {',
-          '  diffuseColor.rgb *= 0.965 + 0.035 * sin( vRest.y * 700.0 ) * sin( ( vRest.x + vRest.z ) * 700.0 );',
+          // v6: trama de 9 mm com antisserrilhado — some quando o período fica menor que ~2 px (fwidth); sem isso a
+          // trama vira moiré diagonal à distância (o mesmo vale para js/world/Materials.js, runnerShader)
+          '  vec2 q = vec2( vRest.y, vRest.x + vRest.z ) * 700.0;',
+          '  float fw = max( fwidth( q.x ), fwidth( q.y ) ), ka = 1.0 - smoothstep( 0.8, 2.2, fw );',
+          '  diffuseColor.rgb *= 0.965 + 0.035 * ka * sin( q.x ) * sin( q.y );',
           '}'
         ].join('\n'))
         .replace('#include <lights_phong_fragment>', [
@@ -109,6 +116,8 @@
     for (var i = 0; i < n; i++) {
       var cc = cols[mesh.slot[i]], k = o.noAo ? 1 : mesh.ao[i];
       if (o.debugCover && mesh.mat[i] === 0) cc = new THREE.Color(1, 0, 1);
+      if (o.debugFlags && (mesh.flags[i] & o.debugFlags)) { cc = new THREE.Color(1, 0, 1); k = 1; }   // depuração: vértices com o bit (2 = forro)
+      if (o.debugSlot != null && mesh.slot[i] === c.slots.indexOf(o.debugSlot)) { cc = new THREE.Color(1, 1, 0); k = 1; }   // depuração: um espaço de cor em amarelo
       if (dbi >= 0 && (mesh.mat[i] !== 0 || o.debugAll)) {   // depuração: peso do osso (azul 0 → vermelho 1) nas peças
         var w = 0; for (var q = 0; q < 4; q++) if (mesh.skinIndex[i * 4 + q] === dbi) w += mesh.skinWeight[i * 4 + q];
         cc = new THREE.Color(w, 0.15 + 0.5 * (1 - Math.abs(2 * w - 1)), 1 - w); k = 1;
@@ -147,7 +156,7 @@
     geo.setAttribute('color', new THREE.BufferAttribute(paint(mesh, g, item), 3));
     geo.setAttribute('aov', new THREE.BufferAttribute(mesh.ao, 1));
     var skel = new THREE.Skeleton(this.bones);
-    this.mesh = new THREE.SkinnedMesh(geo, material(g, { normal: item.normal !== false, noTex: !!item.noTex }));
+    this.mesh = new THREE.SkinnedMesh(geo, material(g, { normal: item.normal !== false, noTex: !!item.noTex, back: !!item.backfaces }));
     this.mesh.frustumCulled = false;
     this.root.add(this.mesh);
     if (item.wire) {   // depuração: arestas por cima
@@ -216,7 +225,8 @@
     }
   };
 
-  var VIEWS = { front: [0, 0], back: [Math.PI, 0], side: [-Math.PI / 2, 0], sideR: [Math.PI / 2, 0], '34': [-0.6, 0.05], '34b': [-2.4, 0.05], top: [0, 1.2], below: [0, -0.5] };
+  var VIEWS = { front: [0, 0], back: [Math.PI, 0], side: [-Math.PI / 2, 0], sideR: [Math.PI / 2, 0], '34': [-0.6, 0.05], '34b': [-2.4, 0.05], top: [0, 1.2], below: [0, -0.5],
+    backTop: [Math.PI, 0.75], '34bt': [-2.4, 0.6], game: [Math.PI, 0.32] };   // game ≈ câmera do jogo (atrás, um pouco acima)
   var labels = [];
   window.render = function (spec) {
     labels.forEach(function (l) { l.remove(); }); labels = [];
@@ -235,7 +245,7 @@
       var key = new THREE.DirectionalLight(0xfff2e0, 1.6); key.position.set(0.5, 1, -0.8); scene.add(key);
       var fill = new THREE.DirectionalLight(0xc8d8ff, 0.35); fill.position.set(-0.8, 0.4, 0.6); scene.add(fill);
       if (it.light === 'top') { key.position.set(0, 1, -0.05); fill.intensity = 0; hemi.intensity = 0.3; }
-      var v = VIEWS[it.view || 'front'] || VIEWS.front, tgt = it.target || [0, 0.9, 0], dist = it.dist || 3.2;
+      var v = it.viewAE || VIEWS[it.view || 'front'] || VIEWS.front, tgt = it.target || [0, 0.9, 0], dist = it.dist || 3.2;   // viewAE = [az, el] livre (depuração: as vistas de posed.mjs)
       var cam;
       if (it.ortho) {
         var hh = it.ortho / 2, asp = tw / th;

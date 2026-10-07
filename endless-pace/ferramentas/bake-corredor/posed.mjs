@@ -3,9 +3,11 @@
 // ModelData.assemble é testada contra o corpo inteiro:
 //   - pele que fura a roupa: vértice de pele que em repouso está por dentro da peça (perto dela) e na pose fica mais de
 //     2 mm por fora (teste "flip" — pele×top, pele×baixo, baixo×top, pele×meia, meia×tênis, pele×tênis);
-//   - roupa vazada: raios ortográficos de 6 vistas; onde o corpo inteiro (sem cortes) é atingido mas a malha montada
+//   - roupa vazada: raios ortográficos de 8 vistas; onde o corpo inteiro (sem cortes) é atingido mas a malha montada
 //     não mostra nenhuma face de frente na mesma profundidade (± 3 cm), o fundo (ou o outro lado) aparece por um furo;
-//   - esticamento: arestas da roupa que passam de 1,6× o comprimento de repouso.
+//     "de dentro" = furo cercado de malha nos dois lados (H e V) — a fresta da silhueta não conta;
+//   - esticamento: arestas da roupa que passam de 1,6× o comprimento de repouso; rasgo = além disso +12 mm e 1,35× o
+//     esticamento da pele embaixo (o que a própria pele estica no LBS não é defeito da roupa).
 // As poses de corrida são as do jogo (cópia da matemática de RunnerRig.animate: IK do pé plantado, braço que fecha até
 // ~5° do corpo); as estáticas são os extremos (sprint, joelho alto, braços à frente/atrás, comemoração a 2,2 rad, pé
 // em ponta).
@@ -246,7 +248,7 @@ function exitAfter(bvh, P, idx, o, d, t0) {
 export const VIEWS6 = [[0, 0], [Math.PI, 0], [Math.PI / 2, 0], [-Math.PI / 2, 0], [0.75, 0.35], [-2.4, 0.35], [2.4, -0.3], [-0.75, -0.3]];
 // asm/aP = malha montada e posição na pose; full/fP = corpo inteiro (LOD0, sem cortes) na pose
 // box = [y0, y1] da faixa testada; passo em m. Devolve vazados por vista e alguns pontos (mundo).
-export function seeThrough(asm, aP, full, fP, { views = VIEWS6, step = 0.006, y0 = 0.05, y1 = 1.58, depthTol = 0.03, img = false } = {}) {
+export function seeThrough(asm, aP, full, fP, { views = VIEWS6, step = 0.006, y0 = 0.05, y1 = 1.58, depthTol = 0.03, img = false, cov = null, topSet = null } = {}) {
   const bA = new BVH(aP, asm.index), bF = new BVH(fP, full.index), res = [];
   let cx = 0, cz = 0, cnt = 0;
   for (let v = 0; v < full.n; v++) { cx += fP[v * 3]; cz += fP[v * 3 + 2]; cnt++; }
@@ -257,8 +259,8 @@ export function seeThrough(asm, aP, full, fP, { views = VIEWS6, step = 0.006, y0
     let r = [d[2], 0, -d[0]]; const rl = Math.hypot(r[0], r[2]) || 1; r = [r[0] / rl, 0, r[2] / rl];
     const u = [r[1] * d[2] - r[2] * d[1], r[2] * d[0] - r[0] * d[2], r[0] * d[1] - r[1] * d[0]];
     const c0 = [cx - d[0] * 2, (y0 + y1) / 2 - d[1] * 2, cz - d[2] * 2], half = (y1 - y0) / 2 + 0.25;
-    let holes = 0; const pts = [];
-    const nA = Math.floor(1.2 / step) + 1, nB = Math.floor(2 * half / step) + 1, ras = img ? new Uint8Array(nA * nB) : null;
+    let holes = 0, lining = 0; const pts = [], hitAt5 = new Map();
+    const nA = Math.floor(1.2 / step) + 1, nB = Math.floor(2 * half / step) + 1, ras = new Uint8Array(nA * nB);
     for (let ia = 0; ia < nA; ia++) for (let ib = 0; ib < nB; ib++) {
       const a = -0.6 + ia * step, b = -half + ib * step;
       const o = [c0[0] + r[0] * a + u[0] * b, c0[1] + r[1] * a + u[1] * b, c0[2] + r[2] * a + u[2] * b];
@@ -269,11 +271,42 @@ export function seeThrough(asm, aP, full, fP, { views = VIEWS6, step = 0.006, y0
       // furo = nada de frente na malha montada, ou o que aparece está ALÉM da saída do primeiro pedaço de corpo atingido
       // (vê-se através dele). Tecido afundado dentro do corpo (pele cortada) não é furo: é só um amassado.
       const tx = ha ? exitAfter(bF, fP, full.index, o, d, hf.t) : 0;
-      if (ha && ha.t < Math.max(hf.t + depthTol, tx + 0.005)) { if (ras) ras[ib * nA + ia] = 2 + (asm.mat[asm.index[ha.tri * 3]] === 0 ? 1 : 0); continue; }
+      if (ha && ha.t < Math.max(hf.t + depthTol, tx + 0.005)) {
+        const i0 = asm.index[ha.tri * 3], i1 = asm.index[ha.tri * 3 + 1], i2 = asm.index[ha.tri * 3 + 2], sk = asm.mat[i0] === 0;
+        // v7: pele que em repouso fica debaixo de uma peça (cov) e aparece aqui → 5 (ilha de pele, se cercada de tecido)
+        // v8: avesso/forro de um top (bit 1) visto de fora → 6 (mancha escura, se cercado de tecido)
+        const fl = asm.flags[i0] | asm.flags[i1] | asm.flags[i2], facing = !sk && (asm.flags[i0] & asm.flags[i1] & asm.flags[i2] & 2) && topSet && topSet[i0];
+        // 2 = casca de fora do top (sem barra/forro); 8 = outro tecido (roupa de baixo, barra, meia, tênis)
+        const shellTop = !sk && topSet && topSet[i0] && !(fl & 3);
+        if (ras) ras[ib * nA + ia] = sk ? (cov && cov[i0] && cov[i1] && cov[i2] ? 5 : 3) : facing ? 6 : shellTop ? 2 : 8;
+        if (ras[ib * nA + ia] === 5 || ras[ib * nA + ia] === 6) hitAt5.set(ib * nA + ia, [o[0] + d[0] * ha.t, o[1] + d[1] * ha.t, o[2] + d[2] * ha.t]);
+        continue;
+      }
+      // v8: o que aparece além da saída do corpo é o forro/avesso da roupa (bit 1) — pele cortada na frente dele (coxa
+      // dentro da perna do short com o joelho alto): vê-se tecido escuro, não o fundo. Conta à parte (não é furo).
+      if (ha) { const j0 = asm.index[ha.tri * 3], j1 = asm.index[ha.tri * 3 + 1], j2 = asm.index[ha.tri * 3 + 2]; if (asm.flags[j0] & asm.flags[j1] & asm.flags[j2] & 2) { lining++; if (ras) ras[ib * nA + ia] = 7; continue; } }
       holes++; if (ras) ras[ib * nA + ia] = 4;
       if (pts.length < 6) pts.push([o[0] + d[0] * hf.t, py, o[2] + d[2] * hf.t].map(x => +x.toFixed(3)));
     }
-    res.push({ view: [az, el], holes, pts, img: ras ? { w: nA, h: nB, d: ras } : null });
+    // furo "de dentro": cercado de malha montada (qualquer acerto) dos dois lados na horizontal E na vertical, até
+    // 4,8 cm — a fresta da silhueta (tecido um pouco por dentro da borda do corpo) encosta no fundo e não conta
+    const R = Math.max(2, Math.round(0.048 / step)), hitAt = (a, b) => a >= 0 && b >= 0 && a < nA && b < nB && ((ras[b * nA + a] >= 1 && ras[b * nA + a] <= 3) || ras[b * nA + a] >= 6);   // 8 = tecido também
+    const side = (a, b, da, db) => { for (let k = 1; k <= R; k++) if (hitAt(a + da * k, b + db * k)) return true; return false; };
+    let inner = 0;
+    for (let b = 0; b < nB; b++) for (let a = 0; a < nA; a++) if (ras[b * nA + a] === 4 && side(a, b, 1, 0) && side(a, b, -1, 0) && side(a, b, 0, 1) && side(a, b, 0, -1)) inner++;
+    // ilhas de pele (v7): pele coberta em repouso, visível, e com tecido (2) como primeira coisa que não é pele nas 4
+    // direções até 4,8 cm — a pele que fura o tecido (a pele vista pela boca da manga/perna encosta em pele descoberta)
+    const clothAt = (a, b, da, db) => { for (let k = 1; k <= R; k++) { const x = a + da * k, y = b + db * k; if (x < 0 || y < 0 || x >= nA || y >= nB) return false; const c = ras[y * nA + x]; if (c === 5) continue; return c === 2 || c === 8; } return false; };
+    let skin = 0; const skinPts = [];
+    for (let b = 0; b < nB; b++) for (let a = 0; a < nA; a++) if (ras[b * nA + a] === 5 && clothAt(a, b, 1, 0) && clothAt(a, b, -1, 0) && clothAt(a, b, 0, 1) && clothAt(a, b, 0, -1)) {
+      skin++; if (skinPts.length < 4) skinPts.push(hitAt5.get(b * nA + a).map(x => +x.toFixed(3)));
+    }
+    // v8: avesso do top cercado de tecido (2) nas 4 direções até 2,4 cm, sem pele perto: o forro aparecendo por um
+    // furo/dobra da casca (as "manchas" escuras redondas). Na barra vista de baixo o avesso encosta em pele/fundo.
+    const R6 = Math.max(2, Math.round(0.024 / step)), cloth6 = (a, b, da, db) => { for (let k = 1; k <= R6; k++) { const x = a + da * k, y = b + db * k; if (x < 0 || y < 0 || x >= nA || y >= nB) return false; const c = ras[y * nA + x]; if (c === 6) continue; return c === 2; } return false; };
+    let facing = 0; const facingPts = [];
+    for (let b = 0; b < nB; b++) for (let a = 0; a < nA; a++) if (ras[b * nA + a] === 6 && cloth6(a, b, 1, 0) && cloth6(a, b, -1, 0) && cloth6(a, b, 0, 1) && cloth6(a, b, 0, -1)) { facing++; if (facingPts.length < 4) facingPts.push(hitAt5.get(b * nA + a).map(x => +x.toFixed(3))); }
+    res.push({ view: [az, el], holes, inner, skin, skinPts, facing, facingPts, lining, pts, img: img ? { w: nA, h: nB, d: ras } : null });
   }
   return res;
 }
@@ -301,7 +334,10 @@ export function stretchTest(m, parts, P0, P1, lim = 1.6, which = ['top', 'bot', 
 
 // rasgo da roupa (v6): aresta da roupa que estica além de 1,6× E mais de 12 mm E bem mais (1,35×) que a pele embaixo
 // dela — o esticamento que a própria pele tem (joelho, nádega, axila: LBS) não é defeito da roupa
-export function tearTest(m, parts, P0, P1, full, fP, { lim = 1.6, abs = 0.012, rel = 1.35, which = ['top', 'bot', 'sock'] } = {}) {
+// v7: e só conta se o esticamento for LOCALIZADO — 1,5× a mediana das arestas vizinhas (2 anéis) da mesma peça: uma
+// faixa larga esticada por igual (membrana da axila, gancho, glúteo no passo longo) é tecido esticado, não rasgo; uma
+// fenda/alça é uma fileira de arestas muito mais esticada que as vizinhas
+export function tearTest(m, parts, P0, P1, full, fP, { lim = 1.6, abs = 0.012, rel = 1.35, loc = 1.5, which = ['top', 'bot', 'sock'] } = {}) {
   const fi = full.index, fp0 = full.position, vs = new Float64Array(full.n).fill(1);
   for (let t = 0; t < fi.length; t += 3) for (let e = 0; e < 3; e++) {
     const a = fi[t + e], b = fi[t + (e + 1) % 3];
@@ -310,32 +346,62 @@ export function tearTest(m, parts, P0, P1, full, fP, { lim = 1.6, abs = 0.012, r
     if (r > vs[a]) vs[a] = r; if (r > vs[b]) vs[b] = r;
   }
   const bvh = new BVH(Float64Array.from(fp0), fi), seen = new Set(), ix = m.index;
-  let n = 0, worst = 0, at = null;
+  // arestas da roupa (sem forro) e a razão de cada uma; vizinhança por vértice soldado (posição) para a mediana local
+  const E = [], key = v => Math.round(P0[v * 3] * 1e5) + ',' + Math.round(P0[v * 3 + 1] * 1e5) + ',' + Math.round(P0[v * 3 + 2] * 1e5), wid = new Map(), W = new Int32Array(m.n).fill(-1);
   for (let t = 0; t < ix.length; t += 3) for (let e = 0; e < 3; e++) {
     const a = ix[t + e], b = ix[t + (e + 1) % 3];
     if (!which.includes(parts[a]) || parts[a] !== parts[b]) continue;
     const k = a < b ? a * 1e6 + b : b * 1e6 + a; if (seen.has(k)) continue; seen.add(k);
     const l0 = Math.hypot(P0[a * 3] - P0[b * 3], P0[a * 3 + 1] - P0[b * 3 + 1], P0[a * 3 + 2] - P0[b * 3 + 2]); if (l0 < 0.002) continue;
-    const l1 = Math.hypot(P1[a * 3] - P1[b * 3], P1[a * 3 + 1] - P1[b * 3 + 1], P1[a * 3 + 2] - P1[b * 3 + 2]), r = l1 / l0;
-    if (r <= lim || l1 - l0 <= abs) continue;
+    const l1 = Math.hypot(P1[a * 3] - P1[b * 3], P1[a * 3 + 1] - P1[b * 3 + 1], P1[a * 3 + 2] - P1[b * 3 + 2]);
+    for (const v of [a, b]) if (W[v] < 0) { const kk = key(v); if (!wid.has(kk)) wid.set(kk, wid.size); W[v] = wid.get(kk); }
+    E.push([a, b, l0, l1, l1 / l0]);
+  }
+  const inc = Array.from({ length: wid.size }, () => []);
+  E.forEach((e, i) => { inc[W[e[0]]].push(i); inc[W[e[1]]].push(i); });
+  const localMed = i => {   // mediana das razões das arestas a até 2 anéis (sem a própria)
+    const e = E[i], vs1 = new Set([W[e[0]], W[e[1]]]), es = new Set();
+    for (const v of [...vs1]) for (const j of inc[v]) { es.add(j); vs1.add(W[E[j][0]]); vs1.add(W[E[j][1]]); }
+    for (const v of vs1) for (const j of inc[v]) es.add(j);
+    es.delete(i); const rs = [...es].map(j => E[j][4]).sort((x, y) => x - y);
+    return rs.length ? rs[rs.length >> 1] : 1;
+  };
+  let n = 0, worst = 0, at = null, nAll = 0;
+  E.forEach(([a, b, l0, l1, r], i) => {
+    if (r <= lim || l1 - l0 <= abs) return;
     const h = bvh.closest((P0[a * 3] + P0[b * 3]) / 2, (P0[a * 3 + 1] + P0[b * 3 + 1]) / 2, (P0[a * 3 + 2] + P0[b * 3 + 2]) / 2, 0.08);
     const rb = h.tri < 0 ? 1 : Math.max(vs[fi[h.tri * 3]], vs[fi[h.tri * 3 + 1]], vs[fi[h.tri * 3 + 2]]);
-    if (r <= rel * rb) continue;
+    if (r <= rel * rb) return;
+    nAll++;
+    if (loc && r <= loc * localMed(i)) return;
     n++; if (l1 - l0 > worst) { worst = l1 - l0; at = [P0[a * 3], P0[a * 3 + 1], P0[a * 3 + 2]].map(x => +x.toFixed(3)); }
-  }
-  return { n, max: +worst.toFixed(4), at };
+  });
+  return { n, max: +worst.toFixed(4), at, all: nAll };
 }
 
 // ---------------------------------------------------------------- bateria completa de uma combinação
+// pele coberta em repouso (v7): vértice de pele com uma peça (topo/baixo/meia, sem forro) a até 4 cm pela normal
+export function coveredSkin(asm, parts) {
+  const ix = asm.index, gt = [];
+  for (let t = 0; t < ix.length; t += 3) { const a = ix[t], b = ix[t + 1], c = ix[t + 2]; if (parts[a] === 'skin' || parts[a] === 'other' || parts[a] === 'shoe' || ((asm.flags[a] | asm.flags[b] | asm.flags[c]) & 2)) continue; gt.push(a, b, c); }
+  const cov = new Uint8Array(asm.n); if (!gt.length) return cov;
+  const bvh = new BVH(asm.position, Uint32Array.from(gt)), P = asm.position, N = asm.normal;
+  for (let v = 0; v < asm.n; v++) { if (asm.mat[v] !== 0) continue; const h = bvh.ray(P[v * 3], P[v * 3 + 1], P[v * 3 + 2], N[v * 3], N[v * 3 + 1], N[v * 3 + 2], 0.04); if (h) cov[v] = 1; }
+  return cov;
+}
 export function posedSuite(MD, g, outfit, poses, { lod = 0, see = true, step = 0.006, views = VIEWS6, img = false } = {}) {
   const ch = MD.char(g), asm = MD.assemble(g, outfit, lod), parts = partsOf(ch, asm);
   const body = MD.part(g, 'body'), full = { n: body.n, position: body.position, normal: body.normal, skinIndex: body.skinIndex, skinWeight: body.skinWeight, index: MD.index(body, 0) };
-  const rest = { P: Float64Array.from(asm.position), N: Float64Array.from(asm.normal) }, out = {};
+  const rest = { P: Float64Array.from(asm.position), N: Float64Array.from(asm.normal) }, out = {}, cov = coveredSkin(asm, parts);
+  const topSet = Uint8Array.from(parts, p => p === 'top' ? 1 : 0);
   for (const pn in poses) {
     const S = skinMats(ch, poses[pn]), ps = skin(asm, S), r = { flip: flipTest(asm, parts, rest, ps), stretch: stretchTest(asm, parts, rest.P, ps.P) };
     const fb = skin(full, S);
     r.tear = tearTest(asm, parts, rest.P, ps.P, full, fb.P);
-    if (see) { r.see = seeThrough(asm, ps.P, full, fb.P, { step, views, img }); r.holes = r.see.reduce((a, x) => a + x.holes, 0); }
+    if (see) { r.see = seeThrough(asm, ps.P, full, fb.P, { step, views, img, cov, topSet }); r.holes = r.see.reduce((a, x) => a + x.holes, 0); r.inner = r.see.reduce((a, x) => a + x.inner, 0); r.skin = r.see.reduce((a, x) => a + x.skin, 0); r.facing = r.see.reduce((a, x) => a + x.facing, 0);
+      // v8: furos vistos de frente / de frente por baixo (boca da perna com a coxa erguida)
+      r.holesFront = r.see.filter(x => Math.abs(x.view[0]) < 0.01 || Math.abs(Math.abs(x.view[0]) - 0.75) < 0.01).reduce((a, x) => a + x.holes, 0);
+      r.lining = r.see.reduce((a, x) => a + x.lining, 0); }
     out[pn] = r;
   }
   return out;

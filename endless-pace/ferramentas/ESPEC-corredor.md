@@ -1,7 +1,10 @@
 # ESPEC-corredor — bake spec: Quaternius UBC → ENDLESS PACE runner
 
-Status: **spec v5 (2026-10-06) — implemented**. §13 lists the v3 changes (review vq1) and §14 the v5 changes (draped
-clothes, real sneakers, hair polish); where a later change overrides an earlier section, the later section wins. Older text marked **[v2]** still explains the v2 reasoning.
+Status: **spec v8 (2026-10-07) — implemented**. §13 lists the v3 changes (review vq1), §14 the v5 changes (draped
+clothes, real sneakers, hair polish), §15 the v6 changes (cloth that moves like cloth), §16 the v7 changes (pose-fitted
+weights, rebuilt sneakers and skirt, folds that read) and §17 the v8 changes (mesh hygiene, soft folds, tight legging
+shell, leg linings, armpit gusset weights, running-shoe sole and laces); where a later change overrides an earlier
+section, the later section wins. Older text marked **[v2]** still explains the v2 reasoning.
 Every place where v1 was changed during implementation is marked **[v2]** with the reason.
 
 - Tool: `node ferramentas/bake-corredor.mjs` (Node 22, ESM). Helper modules live in `ferramentas/bake-corredor/*.mjs`. No Blender.
@@ -856,3 +859,520 @@ The full bake takes about 100 s and is byte-deterministic. Renders: `scratchpad/
 - At `celebrate22` the fused underarm stretches a little (LBS without a clavicle bone, §11.5).
 - With socks off (legging), a sliver of the ankle front can show beside the tongue tip at extreme ankle flexion.
 - Hair cards are still the Quaternius cards (cut, clumped and retoned), not strands.
+
+## 15. v6 changes — cloth that moves like cloth (review of v5)
+
+User feedback (again): "I still see characters whose clothes look like a piece of cloth glued on". The v6 review listed
+17 judged issues (tears at the armhole in the run swing and at `celebrate22`, stiff tee, female tee hugging the waist,
+lumpy windbreaker, lampshade skirt, sneakers, crotch gusset, plank hair, knit moiré, thighs crossing shorts/skirt,
+Achilles through the sock, skirt waistband over the tops' hem, floating laces, no posed tests, LOD1 budget). Only
+`ferramentas/bake-corredor/*`, `ferramentas/preview-corredor.html` and the data in `jogar/dados/modelos/` changed.
+`ModelData.js`, its API and the rig contract (bones, order, rest pose, attributes, cover masks, `assemble`) are
+unchanged. New module: `posed.mjs`.
+
+### 15.1 Draped shape (`drape.mjs`)
+
+- **Tops fall straight.** From the chest (m) or the bust apex (f) the trunk tube may only shrink by the drape slope
+  (tee 0.10 m / 0.06 f per metre of fall), so the waist no longer pulls the tee in; the last 12 cm get extra axial
+  smoothing (the hem does not hug the hip). Hem ease 1.2 (m) / 1.6 cm (f).
+- **Folds** (in the field, so they shade and survive LODs): wide asymmetric "pipes" from the chest/shoulder blades to
+  the hem (6–10 mm; phase and amplitude from slow noise sampled on the circle, so there is no seam at θ = 0; the back
+  ones start at the shoulder blades); diagonal tension folds armpit → chest on the front only (the crossing families
+  made a grid of dents on the back); a helical diagonal pair on the short sleeve (whole turns, no seam); elbow
+  accordion and cuff gathers on long sleeves; the windbreaker uses fewer, crisper (sign·|u|^0.55) folds.
+- **Sleeves.** The sleeve hangs off the deltoid: small cap ease (6–9 mm), axial smoothing 3–4 cm over biceps/deltoid,
+  almost no ease on the inner side (the hem swings free of the trunk). Short sleeve 16.5 cm (m) / 14.5 cm (f) from the
+  shoulder (`label.sleeveLen`), so the inner hem stays below the armpit. Long sleeves taper: forearm drape 0.3–0.4,
+  and the last 5–7 cm return to the wrist hull + cuff ease (elastic cuff, no bell). Windbreaker: 9 mm forearm ease and
+  a shallow elbow accordion (2.4 mm).
+- **Armpit.** `armpitApex(C, Aw)` measures the height where the arm/trunk gap closes (per-side separator) — used by the
+  separating-plane clamps (margin limited to gap/2 − 1.5 mm, so the clamp never pushes cloth into the skin), by the
+  union "membrane" under the arm (radius 24 mm from 1.5 cm below the apex up) and by the weights and culling below.
+  The shoulder union radius is 20 mm (round seam, no step).
+- **Loose bottoms.** Leg flare goes outwards/front/back, almost none on the inner side (the two legs never touch);
+  medial clamp 6 mm; below the crotch the union radius drops to 4 mm (separate leg tubes, no web between the thighs).
+- **Skirt (saia-short).** 11 rounded godets growing towards the hem (amplitude varies around), hem slightly
+  asymmetric, 2.8 cm waistband (trim colour). Under-short leg 11.5 cm. Yoke only 4 mm over the waistband (was 11): at
+  the tops' hem height the skirt stays inside the hem. LOD1 gets its own skirt (20 columns, 5 rows + the top-hem rows,
+  smooth godets); LOD2 has none (as before).
+
+### 15.2 Weights (`garments.garmentWeights`)
+
+Cloth moves like the skin **under** it:
+
+1. Every LOD0 shell vertex casts a ray inwards (against its normal, ≤ 8 cm; socks 2.5 cm) and takes the barycentric
+   weights of the first front-facing body triangle hit (closest point as fallback). Only the bones of the garment's
+   region count (tops: hips, torso, arms, elbows; bottoms: hips, torso, legs; socks: legs). For tops, the **trunk side**
+   (junction field `jn` ≤ 0, or a top without sleeves) only looks at trunk skin: the forearm hanging beside the hem gave
+   the hem elbow weights, and with the arms up the hem rose 8 cm.
+2. Adaptive Laplacian smoothing over the welded shell: λ grows with the distance to the skin (tight ≈ fixed, loose ≈
+   wide diffusion), 30 iterations for loose garments, 6 for tight ones.
+3. Tops, trunk side: no elbow weight; arm weight fades out from 6 to 20 cm below the apex (2 % of arm weight at the hem
+   lifted it 2 cm at 2.2 rad). Armpit diffusion: 60 iterations at λ 0.5 within 5–10 cm of the apex (raw rays fell on
+   arm or flank alternately: neighbours 2 mm apart differed by 0.3 and the edge stretched 9× in the swing).
+4. Sleeved tops: harmonic (Jacobi, 700 it.) interpolation on the sleeve side within 7 cm (geodesic) of the junction;
+   the trunk side and the sleeve-hem band stay fixed. The junction stretches evenly instead of folding.
+5. Shorts/bermuda: smooth model instead of the skin below — waistband = skin hips/torso; down the thigh axis the leg
+   enters by a ramp until 3 cm below the crotch (the leg tube is rigid with the thigh); L/R by a ±2.5 cm ramp, widened
+   to ±5.5 cm above the crotch and on the **crotch saddle** (|x| < 5 cm, from 3 cm below to 5 cm above the crotch),
+   where the legs weigh 0.4–0.55× (the saddle follows the pelvis; the sprint used to stretch 5 cm over 2 cm of saddle).
+6. Skirt (extra with its own weights): legs start below the tee-hem row (earlier at the front); at the hem
+   0.45 + 0.55·front + 0.35·back; L/R by a broad ±9 cm ramp (a ±3.5 cm ramp made a stretched strap in the middle of
+   the front when one knee lifts). The yoke's hip weight is split into hips/torso as the skin under it (no-arm BVH),
+   like the tops' hem over it.
+7. LOD1/2 copy the LOD0 field by the closest shell point; hem roll and facing copy their **source vertex** (`SRC`).
+
+### 15.3 Posed checks (`posed.mjs`, `checks.mjs`)
+
+The skeleton is deformed on the CPU exactly as three.js does (Euler XYZ, bone = parent × T × R, skin = world ×
+inverse rest). Poses: the game run (a copy of `RunnerRig.animate`: planted-foot IK, arms closing to ~5°) at 18 m/s
+(phases π/4·{1,3,5,7}; rapid bake {1,5}) and 10 m/s ({2,6}), plus static extremes: `sprint`, `kneeLift`, `legBack`,
+`armsFwd`, `armsTight` (game swing with the arms closed), `celebrate22` (arms 2.2 rad), `footPF` (pointe 1.4/1.2 rad).
+Every top with the default bottom, every other bottom with the default top, plus f corta-vento + saia-short.
+
+Metrics per pose (8 orthographic views, 8 mm rays):
+- **holes**: the full body is hit but the assembled mesh shows no front face before the body exit (+5 mm) or within
+  3 cm of the body entry; **inner holes** = holes enclosed by mesh on both sides horizontally and vertically within
+  4.8 cm (the silhouette slit — cloth 1 cm inside the body outline — does not count);
+- **skin flips**: skin vertex inside the garment at rest (within 3 cm) and > 2 mm outside in the pose (skin×top,
+  skin×bottom, bottom×top, skin×sock, sock×shoe, skin×shoe, bottom×sock, bottom×shoe);
+- **tears**: garment edges > 1.6× and > 12 mm longer than at rest and > 1.35× the stretch of the skin under them.
+
+Failures (`POSED_LIM`): run poses with > 12 holes in the back views (game camera); > 90 holes in any non-celebrate
+pose; > 170 inner holes at `celebrate22`; > 8 skin vertices through a garment by > 6 mm; > 260 torn edges or a tear
+> 75 mm (celebrate: 700 / 130 mm). The report (`saida-ver/relatorio.json`, `verificacoes.<g>.pose`) keeps every value
+per outfit and pose and `posePior` the worst ones.
+
+### 15.4 Body culling (`pipeline.cullTerms`, `bodyCells`)
+
+- Loose tops hide the skin under the hem up to 0.5 cm from it (not 3.5 cm): the hem always overlaps the bottom's
+  waistband by 4.5–6.3 cm, and the strip of skin left between the two cuts poked through the bermuda at a knee lift.
+- Tee: on the inner side of the sleeve (facing the trunk) the arm skin is hidden up to 1 cm from the hem (not 3.5).
+- Socks: the skin near the sock's lower edge (inside the shoe) is hidden 4 cm further down (the strip between the sock
+  cut and the deleted foot showed through the sock at the Achilles in pointe).
+- Armpit skin is never hidden within 3.5 cm of the apex (regata) / 3 cm (tee): seen through the gap between arm and
+  armhole/sleeve, it shows skin, not the void. Long sleeves: none.
+- Shorts/bermuda: thigh skin rigid with the thigh (leg bone ≥ 0.95) stays from 9 cm below the crotch and at most 10 cm
+  inside the leg opening (bermuda: only near the knee) — seen through the leg opening at a knee lift; skin with some
+  hip weight poked through the bermuda front.
+
+### 15.5 Finishing and geometry
+
+- `geom.boundaryLoops` walks the boundary **edges** without orientation (a pinch vertex with two outgoing edges, or a
+  flipped triangle at the armpit, left the loop open, and the closing edge became a fake 1–4 cm hem segment that tore
+  12 cm at `celebrate22`); the loop then takes the majority orientation of its edges.
+- Hem roll and inner facing take the weights of their source shell vertex; seams are 2 mm slot lines (LOD0).
+- Windbreaker: zipper tape raised 1.4 mm (12 mm wide), raised collar, cord lock (9 × 14 mm cylinder + two cord ends)
+  on the left front of the hem; shorts/bermuda drawcord as in v5.
+- Garment AO: near AO (4 cm rays) × (0.35 + 0.65·near) and a curvature term (concave valleys −32 %, ridges +6 %);
+  roll × 0.82, facing × 0.55.
+- Experimental, off by default: `EP_PITPATCH=1` (body-following underarm lining with the outer shell's AO, FLAGS bit 8;
+  its jagged edge showed under the raised arm), `EP_SLEEVELINING=1` (short-sleeve lining), `EP_SLEEVEBAND=<m>` (more
+  arm skin inside the sleeve), `EP_INCULL=<m>` (inner-sleeve skin cut, default 0.025), `EP_PITCAM=<m>` (tee armpit
+  skin radius, default 0.03), `EP_SLV=m,f` (short-sleeve lengths). Debug: `DBG_W=kind:x,y,z` (junction weights),
+  `DBG_HEM=kind:x,y,z` (hem loops).
+
+### 15.6 Sneakers and socks (`shoes.mjs`)
+
+Toe spring, rounder toe box; upper cut at the midsole line + 0.4 mm (no sawtooth); exact colour cuts refined to
+3.5 mm (toe cap, heel counter, side stripe, collar) without the accent raise; collar roll 5.8 mm (+50 % at the back),
+heel pull tab 11 × 24 mm; flat lace bands seated on the tongue and a flat bow (no floating laces); narrower tongue;
+midsole rows and bulge, flange under the upper; outsole LOD0 as a strip with 6 V flex grooves (lining slot) and end
+fans. Per shoe 2.6k / 0.57k / 0.1k triangles. Socks: see §15.4.
+
+### 15.7 Hair (`hair.mjs`)
+
+- Ponytail: 7 clumps of teardrop section (fuller, 0.72–0.84 of the tail radius), spreading only 20 % at the tips,
+  tapering in the last third to rounded tips, twisting 1.3 rad, lengths 0.86–1.0, plus 2 short flyaways and the core;
+  ruffled scrunchie. Tube and scrunchie are kept out of the LOD0 simplification (`keep0`).
+- Bob: lightly textured blunt cut (3–8 mm irregular locks) instead of the 1–2.4 cm sawtooth.
+- Long hair: clumped tips, lengths varying up to 2.8 cm, V points 1.2 cm.
+
+### 15.8 Preview (`preview-corredor.html`)
+
+`pose.bones` (explicit pose, as `posed.mjs`), `debugBone`/`debugAll` (weights), `debugCover`, views `backTop`,
+`34bt` and `game` (behind and above, like the game camera). The fabric weave is anti-aliased: it fades out when its
+9 mm period drops below ~2 px (`fwidth`), otherwise it turns into diagonal moiré at a distance. **The same change is
+needed in `js/world/Materials.js` (`runnerShader`, the `rm > 0.5 && rm < 2.5` line), which belongs to another
+workstream.**
+
+### 15.9 Measured (full bake v6)
+
+| item | m | f |
+|---|---|---|
+| worst assembled LOD0 (limit 28k) | 25 609 (camiseta + short + cacheado) | 26 499 (corta-vento + saia-short + cacheado) |
+| worst LOD1, any combo (≈ 8k) | 7 382 | 7 791 |
+| street LOD2 (limit 2.5k) | 1 967–2 093 | 1 838–1 978 |
+| camiseta / regata / manga-longa / corta-vento LOD0 | 5022 / 3879 / 5063 / 5629 | 4745 / 3676 / 5176 / 5876 |
+| top / short / bermuda / legging / saia-short / meia LOD0 | – / 3538 / 3729 / 3450 / – / 427 | 1707 / 3744 / 3920 / 3509 / 4511 / 419 |
+| shoes (pair) LOD0 / LOD1 / LOD2 | 5326 / 1141 / 201 | 5259 / 1151 / 200 |
+| hair LOD0 (curto, cacheado, rabo, coque, longo, raspado) | 1883, 3711, 3544, 3000, 3000, 1320 | 2850, 3746, 3576, 3000, 3000, 1320 |
+| posed: worst holes, run poses (back views) | 30 (4) | 35 (3) |
+| posed: worst inner holes at celebrate22 | 114 (camiseta) | 142 (camiseta) |
+| posed: worst skin flips > 6 mm | 4 (8 mm) | 4 (9 mm) |
+| posed: worst tear (edges, max elongation) | 201, 38 mm (corta-vento + short sprint) | 190, 48 mm (corta-vento + saia-short sprint) |
+| garment vertices inside the body | ≤ 0.13 % | ≤ 2.04 % (top band, by design) |
+| skull-hole rays | 0 | 0 |
+
+Files: corredor-m.js 365 549 B, corredor-f.js 355 382 B, roupas.js 963 049 B, cabelos.js 491 974 B. **Total 2.18 MB.**
+The full bake takes about 300 s (most of it the posed checks). Renders: `scratchpad/shots/drape-*.png` (every top and
+bottom in 4 views + close-ups + the game camera at 18 m/s, all hair styles, shoes, run frames, extremes, LODs).
+
+### 15.10 Known gaps (v6)
+
+- At `celebrate22` (2.2 rad) the tee's sleeve rides up the arm and its inner wall pinches under the arm (LBS without a
+  clavicle/helper bone); the armpit skin shows there. Long sleeves pinch but stay closed.
+- In the run swing with the arm back, a narrow wedge (≈ 1–1.5 cm) of the inner arm can show at the inner-back corner
+  of the tee's sleeve hem, where the sleeve's inner wall (blended with the trunk) lags the arm.
+- A knee lift kicks the skirt's front panel up as a flap over the thigh; seen from the front it can look like a wedge.
+- The shoe heel counter is still faceted at close range.
+
+## 16. v7 changes — fitted weights, real sneakers, folds that read (review of v6)
+
+The v6 review judged 14 issues: the tee tearing at the armpit/shoulder blade in `armsFwd` and `celebrate22`, toy
+sneakers, folds too weak to read, hair (no visible scrunchie, flat ponytail, faceted crown, pale streak, jagged male
+crown), the skirt (uneven waistband, lampshade), loose shorts/bermuda tearing in the run, the saia-short, sleeved tops
+at `celebrate22`, the legging's knee-back sheen, the bra binding, the shoe budget, report numbers and the skirt LOD2.
+Only `ferramentas/bake-corredor/*`, this file and the data in `jogar/dados/modelos/` changed. `ModelData.js`, its API
+and the rig contract (bone list, order and rest pose; attributes position/normal/uv/skinIndex/skinWeight/mat/slot/ao;
+cover masks; `assemble`) are unchanged. New module: `fit.mjs`.
+
+### 16.1 Pose-fitted garment weights (`fit.mjs`, `garments.fitShell`)
+
+Starting field = the skin under the cloth (§15.2) plus design fields:
+
+- **Sleeved tops — rigid sleeve.** Arm-ness `a = smoothstep(−2 cm, 5 cm, s) · smoothstep(13 cm, 9.5 cm, r) · gate` on the
+  shoulder → elbow axis (s axial, r radial); `gate` = the junction membership (sign of `jn` diffused 6 passes) or above
+  the yoke (Sy − 7.5 cm: the sleeve cap). Within 8 cm of the armpit apex and on the ramp the field is free and solved
+  harmonically between the rigid sleeve and the trunk skin. The clavicle → torso collapse no longer drags the sleeve
+  cap (the sleeve lagged the arm and tore at `celebrate22`). The tee's armpit skin is hidden again (`PIT_R` tee = 0):
+  with the rigid sleeve there is no skin island under it.
+- **Shorts/bermuda.** Waistband (top 3 cm) = hips/torso only, fixed; each leg tube rigid with its thigh from 6 cm below
+  the crotch (the hem's last 3 cm always rigid); left/right by the leg tube's connected component (not by the sign of
+  x: the inner wall of the left leg crosses x = 0); harmonic in between (600 Jacobi passes). **Crotch gusset**
+  (|x| < 4.5 cm, crotch −3 … +5 cm): left and right thigh weights are made equal at the centre seam (2 cm ramp each side)
+  and kept out of the fit — the fit pulled each side of the seam to its own thigh and a 3 mm edge stretched 15–19× in
+  the 18 m/s stride. In the drape, below the crotch the two leg tubes are separated by a 4 mm wall (no web).
+- **Fit loop** (`fitWeights`): the bake poses (game run 10/14/18 m/s × 8 phases + extremes: tops `armsFwd`, `armsBack`,
+  `armsTight`, `sprint`, `celebrate22`; bottoms `sprint`, `kneeLift`, `legBack`), skinned on the CPU exactly as three.js.
+  A vertex is violated when skin of its own region group that this garment does **not** hide (LOD0 cover mask) comes
+  closer than 0.6 × its rest gap (1.5–4 mm loose, 1.2–2.5 mm tight, socks 1–2 mm), or hidden skin enters deeper than
+  8 mm. Step: towards the intruding skin's weights when the linear LBS model (d(sd)/dw_b = n·(M_b p)) says it moves the
+  vertex away, else along the gradient inside the vertex's own support; only the correction is spread to 2 rings;
+  smoothing only where the cloth over-stretches (> 1.5× and +8 mm beyond the skin) or folds; rigid regions fixed;
+  8 iterations. Tops: afterwards, weight seams (edges < 15 mm with |ΔW|₁ > 0.5) are smoothed in a 2-ring.
+- **Skirt** (`fitSkirt`): the hips/torso split is smoothed (40 passes) first; band + top 2 cm of the panel fixed; thigh
+  intrusion margin ≤ 8 mm; 10 iterations.
+- The report keeps `ajuste_<kind>` (violations before/after), `gancho_<kind>` and `costuraPesos_<kind>`.
+
+### 16.2 Tops
+
+- **Folds** (`drape.FOLDS`, in the field): hem columns with `hemN` crests around the trunk (tee/regata 11, long sleeve
+  12, windbreaker 8: ≈ 8–10 cm wavelength on the front), 8.8–9.5 mm (m) / 7.2–8.8 mm (f), rounder ridges than valleys,
+  phase warped by slow noise sampled on the circle; **drag folds** armpit → waist on the front (6 mm, 5.5 cm crest
+  spacing, 2–3 crests over 25 cm, curving slightly to the centre) and armpit → lower back on the back (4–5 mm); sleeve
+  hem waves 4.5 mm and helix 3.2 mm. The curvature AO (§15.5) darkens the valleys.
+- **Curved hem**: rises at the sides by |sin θ|⁴ × 12 mm (tee), 10 mm (regata), 8 mm (long sleeve).
+- **Shoulder**: union radius 26 mm and the sleeve's shoulder-end cap rounded to 14 mm (it was 2 mm: the cap rim showed as
+  a ridge around the armhole). The armhole seam stays a 2 mm colour line.
+- **Windbreaker collar**: its base takes the shell's neckline weights exactly and blends to its own (torso + 40 % head)
+  over 3–30 mm upwards; an extra hidden row 4 mm below the neckline (1.5 mm inside) closes the chord gaps. Neck skin
+  islands in the run: 152 → ≤ 4 rays.
+- **Sports top**: rolled binding on the straps, neckline and armholes (2.2 mm at the edge, round profile over the 9 mm
+  trim) and the under-band raised 1.6 mm with a 4 mm step.
+
+### 16.3 Bottoms
+
+- **Legging**: knee-back crease AO (−30 % in a ~6 cm patch behind the joint, back-facing only; applied after the
+  garment cache) — the fabric sheen no longer lights a pale patch on the bent knee.
+- **Skirt (saia-short) rebuilt**: waistband = one continuous ring over the smoothed hip hull, even 3.5 mm thickness,
+  half-round top edge, inner face; panel hung 4 mm inside the band, flared, 8 soft flutes growing towards the hem, 8 mm
+  over the under-short, 2.5 mm lining and rim. LOD0/1/2 = 48/24/12 columns (LOD2 is a coarse flared cone). The body
+  LOD2 is now baked for every top + saia-short (default hair, with and without socks).
+
+### 16.4 Sneakers (`shoes.mjs`)
+
+- Upper loft: the heel line is symmetric (sin π ≈ 1e-16 pushed one side's middle point 5.5 mm up and the heel counter
+  opened a slit) and coincident vertices are welded before the final simplification (cuts leave copies that the
+  seam-aware simplifier pulled apart).
+- Colour regions in relief, 1.1 mm with a vertical wall at the edge (crisp offset): toe cap (up to 2.8 cm at the tip),
+  heel counter, a curved swoosh (crescent from a fine point just ahead of the counter, s = 0.24, down to a rounded end
+  above the midsole, s = 0.70), eyestay panels on both sides of the throat, collar band. Normals come from the analytic
+  loft (no facets); the 4.5 mm accent band along the base only at the front.
+- Laces: 6 bars 6 × 2.6 mm with a rounded section, arched over the tongue, and a compact bow (slot `lace`).
+- Tongue: padded (8 mm, rounded front), standing 1.8 cm above the throat, accent top rows with a half-round rim; its
+  back is light above the collar (not a black hole from behind).
+- Collar: thick tapered roll (7.2 mm radius, +40 % at the back) all around the opening except the throat (front ±45°,
+  where the tongue closes it), plus the heel pull tab. Lining: full loop at the top, every other point at the footbed.
+- AO ignores the body's foot (deleted inside the shoe) and, for the upper, the sole parts (the midsole flap darkened the
+  upper's base into wedges).
+- 2.44–2.47k / 0.57k / 0.1k triangles per shoe (LOD0 limit 2.5k).
+
+### 16.5 Hair (`hair.mjs`)
+
+- Scrunchie: torus 20 × 10, 8.5 mm section with a soft ruffle, at the ponytail root; the bun gets a 9 mm torus at the
+  bun/cap junction (radius measured on the junction ring).
+- Ponytail: 8 fuller clumps (0.8–0.9 of the tail radius, spread 0.30–0.38), rounder root (19 mm), core 0.7.
+- Caps made of Quaternius cards (curto, rabo, coque, longo): stylized normals — smooth by position, mixed 55 % with the
+  radial direction from the head axis (sphere above the centre, cylinder below); the star facets on the crown are gone.
+- Card caps are simplified without the `Permissive` mode (it collapsed border vertices and opened a gap above the fringe:
+  the pale scalp streak); budgets rabo 4000, coque 3300.
+- Male curto: light Taubin smoothing on the crown (fringe and parting kept).
+
+### 16.6 Posed checks (`posed.mjs`, `checks.mjs`)
+
+- New metrics: **skin islands** (rays showing skin that is covered at rest, surrounded by cloth) and **localized tears**
+  (edge > 1.6× and +12 mm, > 1.35× the skin stretch under it **and** > 1.5× the median of its 2-ring).
+- Poses: run 10 and 18 m/s × 8 phases + 14 m/s × 4 (rapid bake: 6), extremes `sprint`, `armsTight`, `armsFwd`,
+  `kneeLift`, `legBack`, `footPF`, `celebrate22`. Outfits: every top with the default bottom, every bottom with the
+  default top, f saia-short with every top, f camiseta + short, m regata + bermuda.
+- `POSED_LIM`, calibrated on this bake ≈ 10 % above the worst value as a regression guard: backRun 15, holes 75,
+  innerCel 120, flip 8, skin 5 / 8 / 12 (run / extremes / celebrate), tears run 125 edges / 60 mm, extremes 190 / 55 mm,
+  celebrate 480 / 130 mm. The real slit at the crotch (3 mm edges stretching 15–19×) is gone. A few short edges still
+  stretch 8–13× where a transition stays narrow: the windbreaker's flank 3 cm below the armpit apex (f, 18 m/s with the
+  arm back: 3 mm → 4 cm, under the arm) and the edge of the gusset (4 mm, 8×). Everything else the tear metric counts is
+  uniform stretch of long simplified edges (39–65 mm at rest, 1.6–2.3×) on the back of the thigh/glute with the leg
+  forward and on the back of the armpit in the 18 m/s swing — checked in the renders, continuous cloth. The review's
+  example (≤ 40 edges, ≤ 25 mm) would flag these.
+
+### 16.7 Tooling
+
+`EP_GCACHE=<dir>` caches the built garments (before weights) and `EP_GREBUILD=kind,…` rebuilds only those — for
+iterating on weights/packing; a one-gender bake (`--so`) keeps the other gender's entries in `roupas.js`/`cabelos.js`.
+Knobs: `EP_NOFIT`, `EP_NOGANCHO`, `EP_NOSEAMFIX`, `EP_LEG_S0/S1`, `EP_SLV_SA/SB/RF`, `EP_SHOE_T0/E0/RF`; debug
+`DBG_SEAM` (loft seams), `DBG_SHOE`, `EP_FITLOG`, `EP_SLVLOG`.
+
+### 16.8 Measured (full bake v7)
+
+| item | m | f |
+|---|---|---|
+| worst assembled LOD0 (limit 28k) | 26 032 (corta-vento + short + rabo) | 26 351 (corta-vento + short + rabo) |
+| worst LOD1, any combo (≈ 8k) | 7 657 | 7 931 |
+| street LOD2 (limit 2.2k) | 1 971–2 095 | 1 854–1 979 |
+| camiseta / regata / manga-longa / corta-vento LOD0 | 5257 / 4144 / 5132 / 6351 | 4845 / 3808 / 5226 / 6097 |
+| top / short / bermuda / legging / saia-short / meia LOD0 | – / 3525 / 3793 / 3450 / – / 427 | 1707 / 3780 / 3988 / 3509 / 4319 / 419 |
+| shoe (each) LOD0 / LOD1 / LOD2 | 2460, 2443 / 565, 568 / 101 | 2473, 2456 / 574, 572 / 101, 100 |
+| hair LOD0 (curto, cacheado, rabo, coque, longo, raspado) | 1886, 3711, 4046, 3300, 3000, 1320 | 2850, 3746, 4000, 3300, 3000, 1320 |
+| posed: worst holes, run poses (all 8 views / back views) | 38 / 11 | 69 (bermuda leg opening) / 13 |
+| posed: worst inner holes at celebrate22 | 50 (camiseta) | 48 (camiseta) |
+| posed: worst skin islands | 4 (corta-vento + short, run 10 m/s) | 3 (top + short, run 10 m/s) |
+| posed: worst skin flips > 6 mm | 5 (10 mm) | 3 (12 mm) |
+| posed: worst tear, extremes (edges, max elongation) | 173, 34 mm (camiseta + bermuda sprint) | 154, 38 mm (camiseta + saia-short sprint) |
+| posed: worst tear elongation, run poses | 55 mm (camiseta + bermuda, 18 m/s) | 49 mm (corta-vento + legging, 18 m/s) |
+| skull-hole rays / check failures | 0 / 0 | 0 / 0 |
+
+Files: corredor-m.js 374 555 B, corredor-f.js 387 915 B, roupas.js 990 725 B, cabelos.js 507 438 B. **Total 2.26 MB**
+(2.16 MiB). The full bake takes about 660 s (most of it the posed checks). Renders: `scratchpad/shots/drape-*.png` (every
+top and bottom in 4 views, close-ups of shirts and shorts, hair, shoes and shoe close-ups, the run at 10/14/18 m/s ×
+8 phases, the game camera, extremes, LODs, the skirt with every top).
+
+### 16.9 Known gaps (v7)
+
+- Loose shorts/bermuda: the bridge between the two leg tubes ends in a flat ledge at the front of the crotch (a short
+  horizontal shadow line at close range).
+- Tee: a small knot where the sleeve's inner hem roll meets the trunk with the arm behind the body (18 m/s phases 5–7).
+- Windbreaker: the arm → trunk weight transition under the arm is steep (arm weight 0.37 → 0.62 over 3 mm, inside the
+  harmonic armpit region where the sleeve wall and the flank are close); with the arm back at 18 m/s one short edge
+  opens to ~4 cm under the arm (see §16.6).
+- `celebrate22`: the sleeves bunch at the shoulder and the back of the armpit is a stretched band (tear metric
+  105–123 mm). Recommendation for the `RunnerRig.js` workstream (not changed here): cap the arm raise for sleeved tops
+  at ≈ 1.6 rad (`RAISE_MAX`).
+- A knee lift opens the loose bermuda's leg like a hollow ring seen from the front; the skirt flips up over the thigh.
+- The runtime lace colour (shoe colour → white 0.75) has little contrast on white shoes; the accent eyestay under the
+  laces compensates.
+
+## 17. v8 changes — cloth that reads as sewn cloth (review of v7)
+
+The v7 review judged 10 issues: round dark patches on the loose tops and a dark-red knob under the tee sleeve in the
+run (phases 5–7); knife-cut folds; a black slit across the crotch of the female short/bermuda; a stray tube on the f
+regata; blotchy legging shading with notches at the hip and a thin side stripe; sneakers that did not read as modern
+running shoes; small islands of trim colour; the void inside the loose short/bermuda leg at a knee lift; windbreaker
+armpit tears at `celebrate22`; hem roll/facing tabs on the sleeves with the arms raised. Only
+`ferramentas/bake-corredor/*`, `ferramentas/preview-corredor.html` (debug views), this file and the data in
+`jogar/dados/modelos/` changed. `ModelData.js`, its API and the rig contract are unchanged.
+
+### 17.1 Mesh hygiene: discs, the tube, islands
+
+- Cause of the round patches and of the regata tube: the surface nets left zero-area slivers, and the cut dropped tiny
+  triangles inside the kept region. Every pin hole became a boundary loop, and `finishShell`/`hemFinish` gave it a hem
+  roll and a facing, which showed as a dark disc 2–4 cm wide (facing slot + AO), or as a rolled tube around a 2 cm loop
+  on the regata.
+- `geom.collapseShortEdges` runs at the end of `surfaceNets`. It merges edges shorter than 5 % of the grid step
+  (union-find, averaged positions) and drops the triangles that become degenerate.
+- `cutAndSubdivide` keeps every triangle that lies fully inside the region, whatever its area.
+- `garments.fillSmallHoles` closes boundary loops shorter than 5 cm with a centroid fan.
+- Only loops of 8 cm or more get a roll or a facing.
+- `cleanIslands` also removes trim-colour components whose bounding-box diagonal is under 6 cm, per LOD.
+- New check `checks.garmentIntegrity` runs on every garment's LOD0, without the roll, facing, skirt and sewn-on layers.
+  It reports boundary loops under 5 cm (`furos`) and non-main colour components under 6 cm (`ilhas`). Any hit fails the
+  bake.
+
+### 17.2 Folds
+
+- The v7 drag folds and the crisp ridge profile are gone: after LOD simplification and the curvature AO they read as
+  knife cuts. Hem folds are now one soft wave, `cos u − 0.2 cos 2u + 0.15`, with `u = N·θ` plus low-order warps and
+  slow noise; the phases are seeded per kind and gender.
+- The fold envelope rises from 1 cm above the drop line (5 cm higher at the back) to the hem with power 1.6. Around the
+  body it scales between 55 and 100 % (strongest at the sides), with ±40 % slow variation.
+- Amplitudes (m / f) and waves around the body:
+
+  | kind | hem amplitude | waves | other folds |
+  |---|---|---|---|
+  | camiseta | 7.4 / 6.2 mm | 9 | sleeve wave 3.2 mm (3 lobes), helix 1.2 mm over 8 cm |
+  | regata | 6.8 / 5.6 mm | 8 | |
+  | manga-longa | 6.0 / 5.2 mm | 10 | elbow 2.4 mm (4.5 cm wavelength) |
+  | corta-vento | 8.4 / 7.4 mm | 7 | elbow 2.6 mm, cuff gathers 1.4 mm |
+
+- Shorts and bermuda: 5-lobed leg folds of 3.0 / 3.2 mm, gathers 1.3 mm. Legging: creases 0.6 mm.
+
+### 17.3 Crotch of the loose shorts (f slit)
+
+The two leg tubes stopped short of the pelvis at the front of the crotch. The bridge between them ended in a ledge,
+which showed as a dark slit.
+
+- The pelvis outline is injected into each leg tube's support function, shrunk by the leg ease plus 2 mm. It uses the
+  pelvis rings up to 3 cm above the crotch, points at least 1.2 cm off the centre line, front and sides only. The back
+  stays out: with it, the back seam tore to 73 mm in the run.
+- The inside of the leg gets extra slack (+60 % · cos²).
+- The leg tube now runs into the pelvis without a step.
+
+### 17.4 Legging
+
+- New tight shell (`tightShellBase`; `EP_LEGTUBE=1` restores the old tube):
+  1. Take the body triangles of the legging region, with the region cut 3.5 cm early.
+  2. Taubin-smooth them, 40 passes, with the border fixed.
+  3. Offset 2.8 mm along the normal.
+  4. Push to at least 2.4 mm off the body: 3 rounds, smoothing the displacement in between. This moved 413 (m) / 246
+     (f) vertices.
+  5. Taubin, 24 passes, after the cut.
+
+  The implicit tube that produced the blotchy shading and the hip notches is gone.
+- Female side panel: a curved band along the side seam. Its centre drifts 2.8 cm backwards from hip to knee. It is
+  8 cm wide at the hip, about 6 cm at mid-thigh, 4.4 cm at the knee and 3.2 cm on the calf (the reference image).
+
+### 17.5 Leg openings of the loose shorts (void at a knee lift)
+
+- `bottomLining`: a lining layer inside each leg.
+  - Source: a copy of the leg-tube part of the shell, from 4.2 cm below the waistband down, without the gusset core.
+  - Simplified to 55 % with the border locked, inset 6 mm along the inward normal, faces flipped.
+  - Slot shorts, flag 2 (facing/lining); weights come from its source vertex.
+  - Size: short 693 (m) / 575 (f) triangles, bermuda 861 / 838.
+
+  With the knee up, the open leg now shows dark cloth instead of the background.
+- See-through test: lining seen behind culled thigh skin is code 7, not a hole. New metric `bocaPernaFrente` counts
+  holes seen from the front views of the bottoms (except the legging) in `kneeLift`, `sprint` and the run. Limit 12.
+
+### 17.6 Sleeves and armpit
+
+- `pitAOLift` (camiseta, manga-longa, corta-vento) sets an AO floor within 5 → 8 cm of the armpit apex: 0.72 on the
+  shell, 0.62 on the roll, 0.5 on the facing. The knot no longer turns dark red.
+- Tee sleeve hem band rigid: vertices within 1.8 cm (geodesic) of the sleeve hem, on the sleeve side of the junction,
+  take full arm weight and stay out of the fit.
+- Armpit gusset: on the inner side of the sleeve, within 6.5 cm of the apex, the arm weight is capped. The cap ramps
+  from 0.5 at 2 cm to 1 at 6.5 cm, the excess goes to the torso, and these vertices stay out of the fit. With the arm
+  raised, the passage from trunk to sleeve stretches over a wide band instead of a thin strip.
+  - Windbreaker `celebrate22`: inner holes 11 / 35 (m / f), limit 45 for every top (it was 120).
+- Hem bands: after the fit, weights within 2.5 cm of every boundary loop are smoothed (12 adaptive passes). Roll and
+  facing copy their source vertex, so a weight step along the border no longer becomes a tab with the arm raised.
+- Tee underarm (m): the inner corner of the sleeve hem sits about 1 cm below the armpit apex. There the sleeve wall
+  and the trunk wall are less than one grid cell (5 mm) apart, so the surface nets join them with small teeth that
+  carry the roll and the facing. With the arm behind the body the corner folds into a small wedge; the AO lift keeps it
+  light.
+  - Two experimental knobs, both off: `EP_SLV_TILT` makes the sleeve hem longer on the inner side (`label.slvTilt`,
+    weighted by the direction to the trunk, with the tube extended to match). `EP_WEB_LO` / `EP_WEB_HI` move the
+    armpit membrane further down.
+  - With 2.5 cm and the membrane down to 3 cm below the apex, the teeth and the exposed facing at 18 m/s phase 6 are
+    gone. But the extra sleeve cloth bunches into a pouch behind the armpit in phases 5–7, which reads worse at game
+    distance than the wedge. On the female tee it also stretched more and opened slits at rest.
+- New metric `avessoPorFora` counts rays that show the inner face of a top (facing or lining) surrounded by the top's
+  outer shell within 2.4 cm in all four directions, which is a tab or a flipped hem. Limits: 0 at rest, 5 in the run
+  (the worst measured: the tee wedge above), 8 on the extremes. `celebrate22` is not limited.
+
+### 17.7 Sneakers (`shoes.mjs`)
+
+- Midsole:
+  - 34 mm at the heel, tapering to 22 mm at the forefoot.
+  - 15 mm toe spring (rocker) and a 4 mm heel bevel.
+  - Flares 4.5–9 mm out from the upper, with a sculpted side profile.
+  - Rubber outsole at the heel and forefoot, exposed foam at the midfoot (slot per column).
+- Toe cap, heel counter and swoosh are raised 1.2 mm with a rounded 3 mm bevel; normals blend into the upper. The
+  heel counter cups 2.9 cm high at the back.
+- Laces are criss-cross ribbons, 5 × 1.6 mm with a trapezoid section, in 6 rows 16.5 mm apart that narrow towards the
+  ankle. Each crossing gets a 0.9 mm bump. Each ribbon is ray-seated 0.25 mm over the tongue/upper. A closing bar and
+  a compact bow finish the lacing.
+- Tongue: 5.2 cm wide (under the whole lacing), two padded top rows standing 2.7 cm above the throat.
+- 2.35–2.5k / 0.63k / 0.1k triangles per shoe.
+
+### 17.8 Other
+
+- Skirt (saia-short), experimental and off: `EP_SKIRT_GAP` / `EP_SKIRT_RAMP` add clearance between the panel and the
+  under-short at the sides and back, in the top quarter of the panel (see §17.10).
+- Windbreaker reflective band: limited to the central 18–20 cm of the back. It used to run into the side seams as a V.
+- `POSED_LIM` changes:
+  - `backRun` 15 → 20: slits 1–2 cm wide at the silhouette behind the tee's armpit in the 18 m/s swing. The game camera
+    does not see them.
+  - `innerCel` 120 → 45.
+  - New limits: `facingRest` 0, `facingRun` 5, `facingExt` 8, `legFront` 12.
+  - The rest pose is now part of the posed suite.
+- Drawcord, cord lock and windbreaker collar carry flag bit 4 (16, sewn-on detail). The integrity check and the facing
+  metric skip them.
+- Preview: `debugFlags` (magenta for a flag bit), `debugSlot` (yellow for a colour slot), `viewAE: [az, el]` (the
+  posed.mjs views).
+- Knobs:
+  - `EP_LEGTUBE`, `EP_LEG_TAUBIN`, `EP_NOLINING`
+  - `EP_NOHEMW`, `EP_NOHEMRIG`
+  - `EP_GUSSET`, `EP_GUS_R`, `EP_GUS_W`
+  - `EP_WEB`, `EP_WEB_LO`, `EP_WEB_HI`, `EP_SLV_TILT`
+  - `EP_SKIRT_GAP`, `EP_SKIRT_RAMP`
+  - `ILHA_D`
+  - debug: `DBG_LACE`, `DBG_PROBE_BOT`
+
+### 17.9 Measured (full bake v8)
+
+| item | m | f |
+|---|---|---|
+| worst assembled LOD0 (limit 28k) | 26 379 (regata + bermuda + rabo) | 26 528 (corta-vento + bermuda + rabo) |
+| worst LOD1, any combo (≈ 8k) | 7 620 (corta-vento + bermuda + longo) | 8 045 (top + saia-short + longo) |
+| street LOD2 (limit 2.2k) | 1 974–2 100 | 1 855–1 981 |
+| camiseta / regata / manga-longa / corta-vento LOD0 | 4795 / 4078 / 5163 / 5751 | 4814 / 3624 / 5200 / 5921 |
+| top / short / bermuda / legging / saia-short / meia LOD0 | – / 4173 / 4510 / 3443 / – / 432 | 1707 / 4218 / 4712 / 3373 / 4341 / 423 |
+| lining inside short / bermuda (included above) | 693 / 861 | 575 / 838 |
+| shoe (each) LOD0 / LOD1 / LOD2 | 2500, 2487 / 629, 633 / 100, 101 | 2348, 2441 / 642, 637 / 101 |
+| hair LOD0 (curto, cacheado, rabo, coque, longo, raspado) | 1886, 3711, 4046, 3300, 3000, 1320 | 2850, 3746, 4000, 3300, 3000, 1320 |
+| integrity: holes < 5 cm / trim islands < 6 cm | 0 / 0 | 0 / 0 |
+| posed: worst holes, run poses (all 8 views / back views; limits 75 / 20) | 32 (regata + bermuda, 18 m/s) / 17 | 24 / 16 |
+| posed: worst inner holes at `celebrate22` (limit 45) | 11 (corta-vento) | 35 (corta-vento) |
+| posed: worst skin islands, run / extremes | 3 / 2 | 4 / 2 |
+| posed: worst skin flips > 6 mm | 2 (9 mm) | 3 (10 mm) |
+| posed: worst tear, extremes (edges / max elongation) | 129 (manga-longa sprint) / 53 mm | 127 (camiseta + saia-short sprint) / 48 mm |
+| posed: worst tear, run (edges / max elongation) | 102 / 54 mm | 94 / 55 mm |
+| posed: inner face seen outside, rest / run / extremes | 0 / 5 / 2 | 0 / 2 / 1 |
+| posed: leg-opening holes from the front (limit 12) | 9 | 8 |
+| skull-hole rays / check failures | 0 / 0 | 0 / 0 |
+
+Files: corredor-m.js 373 599 B, corredor-f.js 385 587 B, roupas.js 988 306 B, cabelos.js 507 438 B. **Total 2.25 MB**
+(2.15 MiB). The full bake takes about 645 s. Renders: `scratchpad/shots/drape-*.png` (every top and bottom in 4 views,
+every top × bottom combination full-body, close-ups of tops and bottoms including run and knee lift, hair, shoes, the
+run at 10/14/18 m/s × 8 phases, the game camera, extremes, `celebrate22` per top, LODs, the skirt with every top).
+
+### 17.10 Known gaps (v8)
+
+- Tee underarm (m): with the arm behind the body (18 m/s phases 5–7) the sleeve's inner corner still folds into a
+  small wedge behind the armpit. After the AO lift it is light orange, not dark red, and the game camera does not see
+  it. The cause and the trials are in §17.6.
+- Skirt: with the leg behind the body (18 m/s phases 1, 4, 5) the under-short pokes through the panel at the hip in
+  small dark patches, as in v7.
+  - `EP_SKIRT_GAP=0.012`, applied down to the middle of the panel, removes them. But the relaxed fist at rest then
+    sits inside the wider panel and "crosses" the skirt in the swing (flip check: 9 vertices, 13 mm). Applied only to
+    the top quarter, it does not reach the patches.
+  - The right fix belongs in `fitSkirt`: test the real posed under-short instead of the skin + 2.6 mm.
+  - Where the skirt waistband passes under the hem of a loose top at the back in the run, the hem shows small notches
+    (1–3 cm).
+- At close range (1 m) a few isolated pixels at the inner front of the loose shorts' leg hems show the skin colour.
+  The geometry is closed (every camera ray hits the shell first; zoomed renders are clean), so this is rasterization
+  of the kept skin under the hem.
+- `celebrate22`: the sleeves still bunch at the shoulder. The v7 recommendation (`RAISE_MAX` ≈ 1.6 rad for sleeved
+  tops, `RunnerRig.js`) stands.
+- The long sleeve's and windbreaker's elbow folds read as a ring at mid distance.
+- The legging's LOD2 has no side-panel colour.
+- f LOD1 worst combination: 8 045 triangles, just above the 8k target.

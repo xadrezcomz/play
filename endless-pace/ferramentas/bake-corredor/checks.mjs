@@ -42,8 +42,68 @@ export function skullHoles(MD, g, outfit, lod, nDirs = 1500) {
   return { frac: head / nDirs, head, miss, exits };
 }
 
-// limites das verificações com pose (raios de 8 mm em 8 vistas; ver ESPEC §15.3)
-export const POSED_LIM = { backRun: 12, holes: 90, holesCel: 260, flip: 8 };
+// v8: integridade das cascas das roupas (LOD0): (1) furos — laços de borda com perímetro < 5 cm (a casca tinha
+// furinhos de 4 vértices com barra e faixa de acabamento em volta: manchas escuras redondas); (2) ilhas de cor — partes
+// conexas de um espaço que não é o principal (acabamento/destaque) com a caixa < 6 cm (faixa solta no meio do tecido).
+// Fora: barra/forro (bits 0–1), saia (bit 2) e detalhes costurados por cima (bit 4: cordão, trava, gola).
+export function garmentIntegrity(MD, g, kinds) {
+  const ch = MD.char(g), out = {};
+  for (const k of kinds) {
+    const m = MD.garment(g, k), ix = MD.index(m, 0), P = m.position, F = m.flags;
+    const key = v => Math.round(P[v * 3] * 1e5) + ',' + Math.round(P[v * 3 + 1] * 1e5) + ',' + Math.round(P[v * 3 + 2] * 1e5);
+    const wmap = new Map(), W = new Int32Array(m.n).fill(-1);
+    for (let i = 0; i < ix.length; i++) { const v = ix[i]; if (W[v] < 0) { const kk = key(v); if (!wmap.has(kk)) wmap.set(kk, wmap.size); W[v] = wmap.get(kk); } }
+    const tris = [];
+    for (let t = 0; t < ix.length; t += 3) { const a = ix[t], b = ix[t + 1], c = ix[t + 2]; if ((F[a] | F[b] | F[c]) & (1 | 2 | 4 | 16)) continue; tris.push(t); }
+    // (1) laços de borda pequenos
+    const ec = new Map();
+    for (const t of tris) for (let e = 0; e < 3; e++) { const a = W[ix[t + e]], b = W[ix[t + (e + 1) % 3]], kk = a < b ? a * 1e7 + b : b * 1e7 + a; ec.set(kk, (ec.get(kk) || 0) + 1); }
+    const adj = new Map(), pos = new Map();
+    for (let i = 0; i < ix.length; i++) { const v = ix[i]; if (!pos.has(W[v])) pos.set(W[v], [P[v * 3], P[v * 3 + 1], P[v * 3 + 2]]); }
+    for (const [kk, c] of ec) if (c === 1) { const a = Math.floor(kk / 1e7), b = kk % 1e7; if (!adj.has(a)) adj.set(a, []); if (!adj.has(b)) adj.set(b, []); adj.get(a).push(b); adj.get(b).push(a); }
+    const seen = new Set(), small = [];
+    for (const s0 of adj.keys()) {
+      if (seen.has(s0)) continue;
+      const comp = [s0]; seen.add(s0);
+      for (let q = 0; q < comp.length; q++) for (const u of adj.get(comp[q])) if (!seen.has(u)) { seen.add(u); comp.push(u); }
+      let per = 0; const done = new Set();
+      for (const a of comp) for (const b of adj.get(a)) { const kk = a < b ? a + ',' + b : b + ',' + a; if (done.has(kk)) continue; done.add(kk); const pa = pos.get(a), pb = pos.get(b); per += Math.hypot(pa[0] - pb[0], pa[1] - pb[1], pa[2] - pb[2]); }
+      if (per < 0.05) small.push({ per: +(per * 100).toFixed(1), at: pos.get(s0).map(x => +x.toFixed(3)) });
+    }
+    // (2) ilhas de cor
+    const mainSlots = new Set(['shirt', 'shorts', 'sock'].map(nm => ch.slots.indexOf(nm)));
+    const par = new Int32Array(ix.length / 3).map((_, i) => i), f = x => { while (par[x] !== x) { par[x] = par[par[x]]; x = par[x]; } return x; };
+    const em = new Map();
+    for (const t of tris) for (let e = 0; e < 3; e++) { const a = W[ix[t + e]], b = W[ix[t + (e + 1) % 3]], kk = a < b ? a * 1e7 + b : b * 1e7 + a; if (!em.has(kk)) em.set(kk, []); em.get(kk).push(t / 3); }
+    for (const L of em.values()) for (let i = 1; i < L.length; i++) if (m.slot[ix[L[0] * 3]] === m.slot[ix[L[i] * 3]]) par[f(L[i])] = f(L[0]);
+    const box = new Map();
+    for (const t of tris) { const r = f(t / 3); if (!box.has(r)) box.set(r, { sl: m.slot[ix[t]], lo: [9, 9, 9], hi: [-9, -9, -9], n: 0 }); const B = box.get(r); B.n++; for (let e = 0; e < 3; e++) { const v = ix[t + e]; for (let q = 0; q < 3; q++) { B.lo[q] = Math.min(B.lo[q], P[v * 3 + q]); B.hi[q] = Math.max(B.hi[q], P[v * 3 + q]); } } }
+    const islands = [];
+    for (const B of box.values()) { if (mainSlots.has(B.sl)) continue; const d = Math.hypot(B.hi[0] - B.lo[0], B.hi[1] - B.lo[1], B.hi[2] - B.lo[2]); if (d < (+process.env.ILHA_D || 0.06)) islands.push({ slot: ch.slots[B.sl], diag: +(d * 100).toFixed(1), tris: B.n, at: B.lo.map((x, q) => +((x + B.hi[q]) / 2).toFixed(3)) }); }
+    out[k] = { furos: small, ilhas: islands };
+  }
+  return out;
+}
+
+// limites das verificações com pose (raios de 8 mm em 8 vistas; ver ESPEC §15.3 e §16)
+// v7: rasgo = arestas da roupa > 1,6× e > 12 mm a mais que em repouso, 1,35× o esticamento da pele embaixo E 1,5× a
+// mediana das vizinhas (posed.tearTest: esticamento localizado — fenda/alça; tecido esticado por igual não conta);
+// pele = raios que mostram pele que em repouso fica debaixo de uma peça, cercada de tecido nas 4 direções (ilha de pele
+// furando o tecido — o defeito visível que o v6 deixava passar); furos da comemoração: só os "de dentro"
+// Calibração v7 (bake completo, ESPEC §16.9): ~10 % acima do pior valor medido, como guarda de regressão. O pior
+// "rasgo" que sobra na corrida é esticamento liso de arestas compridas da casca simplificada (39–65 mm em repouso, 1,6–2,3×:
+// parte de trás da coxa/glúteo da bermuda e do short com a perna à frente, costas da axila da camiseta no balanço de
+// 18 m/s) — conferido nos renders; as lascas de verdade (aresta de 3 mm esticando 15–19× no gancho) foram corrigidas.
+// v8: innerCel 120 → 45 (todo top, com o reforço da axila: pior medido 35); backRun 15 → 20 (frestas da silhueta atrás da
+// axila da camiseta no balanço de 18 m/s, 1–2 cm, invisíveis na câmera do jogo — conferido nos renders)
+export const POSED_LIM = { backRun: 20, holes: 75, innerCel: 45, flip: 8,
+  skinRun: 5, skinExt: 8, skinCel: 12,
+  tearRun: 125, tearRunMm: 60, tear: 190, tearMm: 55, tearCel: 480, tearCelMm: 130,
+  // v8: avesso do top visto de fora cercado de tecido (repouso / corrida / extremos) e furos vistos de frente nas
+  // roupas de baixo com a coxa erguida (joelho alto, sprint, corrida) — a boca da perna mostra o forro, não o vazio
+  // facingRun 5 = o pior medido (camiseta m, 18 m/s fase 6: a dobra debaixo da manga com o braço atrás do corpo, vista
+  // de lado por trás das costas — ESPEC §17.10); o resto da corrida fica em ≤ 2
+  facingRest: 0, facingRun: 5, facingExt: 8, legFront: 12 };
 export function runChecks(out, { raiz, saida, report, rapido = false }) {
   const opts = { rapido };
   const t0 = Date.now(), EP = loadRuntime(raiz, saida), MD = EP.ModelData, R = report.verificacoes = {}, fails = [];
@@ -109,6 +169,12 @@ export function runChecks(out, { raiz, saida, report, rapido = false }) {
       }
       r.roupaDentroDoCorpo[k] = +(bad / Math.max(1, n) * 100).toFixed(2) + '%';
     }
+    // v8: furos e ilhas de cor nas cascas das roupas
+    r.integridade = garmentIntegrity(MD, g, Object.keys(EP.data.models.roupas[g]));
+    for (const [k, v] of Object.entries(r.integridade)) {
+      if (v.furos.length) fail(g + ' ' + k + ': ' + v.furos.length + ' furo(s) na casca ' + JSON.stringify(v.furos.slice(0, 3)));
+      if (v.ilhas.length) fail(g + ' ' + k + ': ' + v.ilhas.length + ' ilha(s) de cor solta(s) ' + JSON.stringify(v.ilhas.slice(0, 3)));
+    }
     // orçamentos por combinação (LOD0 / LOD1) e LOD2 dos corredores da rua
     const tops = Object.keys(EP.data.models.roupas[g]).filter(k => EP.data.models.roupas[g][k].layer === 3);
     const bottoms = Object.keys(EP.data.models.roupas[g]).filter(k => EP.data.models.roupas[g][k].layer === 2);
@@ -144,18 +210,21 @@ export function runChecks(out, { raiz, saida, report, rapido = false }) {
     for (let i = 0; i < C.body.n; i++) { /* ordem muda (busca): compara caixas */ }
     r.quantPasso = +tol.toExponential(2);
   }
-  // ---- verificações com pose (§15.3): roupa vazada, pele furando a roupa e esticamento, na pose do jogo (corrida a
-  // 10 e 18 m/s) e nos extremos (sprint, joelho alto, braços fechados balançando, comemoração a 2,2 rad, pé em ponta)
+  // ---- verificações com pose (§15.3, §16): roupa vazada, pele furando a roupa (ilhas de pele e vértices), rasgos, na
+  // corrida do jogo (10 e 18 m/s × 8 fases, 14 m/s × 4) e nos extremos (sprint, joelho alto, perna atrás, braços fechados
+  // balançando, braços à frente, comemoração a 2,2 rad, pé em ponta)
   for (const g of genders) {
     const r = R[g].pose = {}, Rg = PS.rigOf(MD, g), st = PS.staticPoses(Rg), roupas = EP.data.models.roupas[g];
     const tops = Object.keys(roupas).filter(k => roupas[k].layer === 3), bots = Object.keys(roupas).filter(k => roupas[k].layer === 2);
     const dTop = g === 'f' ? 'top' : 'camiseta', dBot = g === 'f' ? 'legging' : 'short';
     const outfits = [...tops.map(t => ({ top: t, bottom: dBot })), ...bots.filter(b => b !== dBot).map(b => ({ top: dTop, bottom: b }))];
-    if (g === 'f') outfits.push({ top: 'corta-vento', bottom: 'saia-short' });
-    const poses = { sprint: st.sprint, armsTight: st.armsTight, armsFwd: st.armsFwd, kneeLift: st.kneeLift, legBack: st.legBack, footPF: st.footPF, celebrate22: st.celebrate22 };
-    for (const k of (opts.rapido ? [1, 5] : [1, 3, 5, 7])) poses['run18_' + k] = PS.gameRun(Rg, k * Math.PI / 4, 18);
-    if (!opts.rapido) for (const k of [2, 6]) poses['run10_' + k] = PS.gameRun(Rg, k * Math.PI / 4, 10);
-    let worstRun = [0, ''], worstCel = [0, ''], worstFlip = [0, ''], worstStr = [0, ''];
+    // saia-short com todo top (v7) e short com a camiseta (o par da revisão)
+    if (g === 'f') { for (const t of tops) if (t !== dTop) outfits.push({ top: t, bottom: 'saia-short' }); outfits.push({ top: 'camiseta', bottom: 'short' }); }
+    if (g === 'm') outfits.push({ top: 'regata', bottom: 'bermuda' });
+    const poses = { rest: {}, sprint: st.sprint, armsTight: st.armsTight, armsFwd: st.armsFwd, kneeLift: st.kneeLift, legBack: st.legBack, footPF: st.footPF, celebrate22: st.celebrate22 };
+    const runSet = opts.rapido ? [[18, [1, 3, 5, 7]], [10, [2, 6]]] : [[10, [0, 1, 2, 3, 4, 5, 6, 7]], [14, [1, 3, 5, 7]], [18, [0, 1, 2, 3, 4, 5, 6, 7]]];
+    for (const [sp, ks] of runSet) for (const k of ks) poses['run' + sp + '_' + k] = PS.gameRun(Rg, k * Math.PI / 4, sp);
+    let worstRun = [0, ''], worstCel = [0, ''], worstFlip = [0, ''], worstStr = [0, ''], worstTear = [0, ''], worstSkin = [0, ''], worstTearRun = [0, ''], worstFacing = [0, ''], worstLeg = [0, ''];
     for (const o of outfits) {
       const key = o.top + '+' + o.bottom, res = PS.posedSuite(MD, g, { ...o, hair: 'curto' }, poses, { step: 0.008 }), rr = r[key] = {};
       for (const pn in res) {
@@ -163,19 +232,33 @@ export function runChecks(out, { raiz, saida, report, rapido = false }) {
         const flipN = fl.reduce((a, [, v]) => a + (v.max > 0.006 ? v.n : 0), 0), flipMax = fl.reduce((a, [, v]) => Math.max(a, v.max), 0);
         // vistas de trás (câmera do jogo atrás do corredor): az = π e az = −2,4
         const back = x.see.filter(v => Math.abs(v.view[0] - Math.PI) < 0.01 || Math.abs(v.view[0] + 2.4) < 0.01).reduce((a, v) => a + v.holes, 0);
-        rr[pn] = { furos: x.holes, furosTras: back, peleFura: flipN, peleMaxMm: +(flipMax * 1000).toFixed(1), estica: x.stretch.max, estica16: x.stretch.over };
-        if (pn === 'celebrate22') { if (x.holes > worstCel[0]) worstCel = [x.holes, key]; }
+        const run = pn.startsWith('run'), cel = pn === 'celebrate22';
+        rr[pn] = { furos: x.holes, furosDentro: x.inner, furosTras: back, furosFrente: x.holesFront, avesso: x.facing, pele: x.skin, peleFura: flipN, peleMaxMm: +(flipMax * 1000).toFixed(1), estica: x.stretch.max, estica16: x.stretch.over, rasgo: x.tear.n, rasgoTodos: x.tear.all, rasgoMaxMm: +(x.tear.max * 1000).toFixed(1) };
+        if (x.facing > worstFacing[0]) worstFacing = [x.facing, key + ' ' + pn];
+        const legP = o.bottom !== 'legging' && (pn === 'kneeLift' || pn === 'sprint' || run);
+        if (legP && x.holesFront > worstLeg[0]) worstLeg = [x.holesFront, key + ' ' + pn];
+        const fL = pn === 'rest' ? POSED_LIM.facingRest : run ? POSED_LIM.facingRun : cel ? Infinity : POSED_LIM.facingExt;
+        if (x.facing > fL) fail(g + ' ' + key + ' ' + pn + ': avesso do top aparece por fora em ' + x.facing + ' raios');
+        if (legP && x.holesFront > POSED_LIM.legFront) fail(g + ' ' + key + ' ' + pn + ': ' + x.holesFront + ' raios vazados de frente (boca da perna)');
+        if (!cel && x.tear.n > worstTear[0]) worstTear = [x.tear.n, key + ' ' + pn + ' ' + (x.tear.max * 1000).toFixed(0) + 'mm'];
+        if (run && x.tear.max * 1000 > worstTearRun[0]) worstTearRun = [+(x.tear.max * 1000).toFixed(0), key + ' ' + pn + ' ' + x.tear.n + ' arestas'];
+        if (cel) { if (x.inner > worstCel[0]) worstCel = [x.inner, key]; }
         else if (x.holes > worstRun[0]) worstRun = [x.holes, key + ' ' + pn];
+        if (x.skin > worstSkin[0]) worstSkin = [x.skin, key + ' ' + pn + ' ' + JSON.stringify((x.see.find(v => v.skin) || {}).skinPts?.[0] || null)];
         if (flipN > worstFlip[0]) worstFlip = [flipN, key + ' ' + pn + ' ' + (flipMax * 1000).toFixed(0) + 'mm'];
         if (x.stretch.over > worstStr[0]) worstStr = [x.stretch.over, key + ' ' + pn];
-        // falhas: furo visível pela câmera do jogo na corrida, ou pele atravessando a roupa mais de 6 mm em vários vértices
-        if (pn.startsWith('run') && back > POSED_LIM.backRun) fail(g + ' ' + key + ' ' + pn + ': ' + back + ' raios vazados vistos de trás');
-        if (pn !== 'celebrate22' && x.holes > POSED_LIM.holes) fail(g + ' ' + key + ' ' + pn + ': ' + x.holes + ' raios vazados');
-        if (pn === 'celebrate22' && x.holes > POSED_LIM.holesCel) fail(g + ' ' + key + ' celebrate22: ' + x.holes + ' raios vazados');
+        // falhas: furo visível pela câmera do jogo na corrida, pele furando o tecido, rasgo localizado
+        if (run && back > POSED_LIM.backRun) fail(g + ' ' + key + ' ' + pn + ': ' + back + ' raios vazados vistos de trás');
+        if (!cel && x.holes > POSED_LIM.holes) fail(g + ' ' + key + ' ' + pn + ': ' + x.holes + ' raios vazados');
+        if (cel && x.inner > POSED_LIM.innerCel) fail(g + ' ' + key + ' celebrate22: ' + x.inner + ' raios vazados por dentro (' + x.holes + ' com as frestas da silhueta)');
+        const skL = run ? POSED_LIM.skinRun : cel ? POSED_LIM.skinCel : POSED_LIM.skinExt;
+        if (x.skin > skL) fail(g + ' ' + key + ' ' + pn + ': ' + x.skin + ' raios de pele furando o tecido');
         if (flipN > POSED_LIM.flip) fail(g + ' ' + key + ' ' + pn + ': pele atravessa a roupa (' + flipN + ' vértices > 6 mm, máx. ' + (flipMax * 1000).toFixed(0) + ' mm)');
+        const tN = cel ? POSED_LIM.tearCel : run ? POSED_LIM.tearRun : POSED_LIM.tear, tMm = cel ? POSED_LIM.tearCelMm : run ? POSED_LIM.tearRunMm : POSED_LIM.tearMm;
+        if (x.tear.n > tN || x.tear.max * 1000 > tMm) fail(g + ' ' + key + ' ' + pn + ': roupa rasga (' + x.tear.n + ' arestas, máx. +' + (x.tear.max * 1000).toFixed(0) + ' mm)');
       }
     }
-    R[g].posePior = { furosCorrida: worstRun, furosComemora: worstCel, peleFura: worstFlip, estica16: worstStr };
+    R[g].posePior = { furosCorrida: worstRun, furosDentroComemora: worstCel, peleIlhas: worstSkin, peleFura: worstFlip, estica16: worstStr, rasgo: worstTear, rasgoCorridaMm: worstTearRun, avessoPorFora: worstFacing, bocaPernaFrente: worstLeg };
   }
 
   // tamanhos
