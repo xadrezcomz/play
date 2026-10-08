@@ -168,6 +168,7 @@
     background:rgba(10,6,32,.75);font:600 .74rem var(--corpo);color:#e4e9ff;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
   .partidas svg{width:.7rem;height:.7rem;fill:var(--ciano)}
   .partidas b{font:700 .8rem var(--titulo);color:#fff}
+  .partidas i{font-style:normal}
   .jogo .info{flex:1;display:flex;flex-direction:column;gap:.35rem;padding:.75rem .85rem .85rem;min-width:0}
   .jogo h3{margin:0;font:700 1.12rem/1.1 var(--titulo);text-transform:uppercase;letter-spacing:.03em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .tipos{margin:0;font:700 .66rem var(--titulo);letter-spacing:.16em;text-transform:uppercase;color:var(--ciano);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -465,7 +466,7 @@
     var corpo =
       '<a class="capa" href="' + esc(j.jogar) + '"' + fundo + ' aria-label="Jogar ' + esc(j.nome) + '">' + imagem(j, dest) +
         '<div class="selos-capa">' + (j === novo ? '<span class="selo novo">Novo</span>' : '') + '</div>' +
-        (j.contagem ? '<span class="partidas" data-contagem="' + esc(j.contagem) + '" hidden>' + PLAY + '<b></b>partidas</span>' : '') +
+        (j.contagem ? '<span class="partidas" data-contagem="' + esc(j.contagem) + '" hidden>' + PLAY + 'Jogado <b></b> <i>vezes</i></span>' : '') +
       '</a>' +
       '<div class="info">' + tipos +
         '<h3>' + esc(j.nome) + '</h3>' +
@@ -543,13 +544,14 @@
     })();
   });
 
-  // ---- partidas e "Mais jogado", com os números do contador ----
+  // ---- "Jogado X vezes" e "Mais jogado", com os números do contador ----
   var compacto = window.Intl && Intl.NumberFormat ? new Intl.NumberFormat('pt-BR', { notation: 'compact', maximumFractionDigits: 1 }) : null;
   window.marcaPartidas = function(numeros){
     Array.prototype.forEach.call(document.querySelectorAll('.partidas[data-contagem]'), function(el){
       var n = numeros[el.getAttribute('data-contagem')]; if (!n) return;
       el.querySelector('b').textContent = compacto ? compacto.format(n) : n;
-      el.setAttribute('title', n.toLocaleString('pt-BR') + ' partidas');
+      el.querySelector('i').textContent = n === 1 ? 'vez' : 'vezes';
+      el.setAttribute('title', 'Jogado ' + n.toLocaleString('pt-BR') + (n === 1 ? ' vez' : ' vezes'));
     });
     var caminhos = Object.keys(numeros);
     if (caminhos.length < 2) return;

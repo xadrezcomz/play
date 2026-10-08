@@ -95,8 +95,8 @@ computador, e cresce junto em monitores grandes:
 - **"Próximo jogo":** quando sobra espaço na última linha da grade, entra um
   cartão convidando a seguir o Instagram. Some sozinho quando a grade fecha.
 - **Filtros:** saem dos `tipos` de cada jogo (aparecem quando há mais de um tipo).
-- **Partidas e "Mais jogado":** o número do GoatCounter aparece na capa como
-  "1,2 mil partidas", e o jogo com mais partidas ganha o selo "Mais jogado".
+- **"Jogado X vezes" e "Mais jogado":** o número do GoatCounter aparece na capa como
+  "Jogado 1,2 mil vezes", e o jogo mais jogado ganha o selo "Mais jogado".
 - **Compartilhar:** cada cartão tem o botão; no celular abre o menu de
   compartilhar do aparelho, no computador copia o link (da página `saiba`, se
   houver, ou do jogo).
