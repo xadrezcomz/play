@@ -4,7 +4,7 @@
    Páginas e scripts: "rede primeiro" (com internet vem sempre a versão nova).
    Imagens e fontes: "cópia primeiro" (mais rápido; mudou a imagem, mude o nome
    ou a versão abaixo). */
-const COPIA = 'xz-site-v1';
+const COPIA = 'xz-site-v2';
 const ARQUIVOS = [
   './', 'jogos.js', 'contador.js', 'manifest.webmanifest', 'privacidade.html',
   'fontes/fontes.css', 'fontes/chakrapetch-700-latin.woff2', 'fontes/exo2-400-latin.woff2',
