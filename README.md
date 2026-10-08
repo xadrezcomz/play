@@ -41,6 +41,22 @@ prefixo do jogo; no GoatCounter, eventos ficam separados das páginas):
 
 O RULES manda os mesmos tipos de evento com o prefixo `ru/…` (lista em `rules/README.md`).
 
+O **Imobiliário 3D** manda eventos com o prefixo `im/…` (vêm do próprio jogo, em `imobiliario/src/game/Metrics.js` no repositório Rock-Orbit):
+
+| Evento | Caminho |
+|---|---|
+| Começou a jogar (1 por abertura) | `im/comecou` |
+| Partida nova / continuada | `im/partida/nova`, `im/partida/continuou` |
+| Quem joga | `im/jogadores/2` a `6`; `im/modo/contra-computador`, `so-pessoas`, `pessoas-e-computador`, `so-computador`; `im/nivel/facil`, `normal`, `dificil` |
+| Opções da partida | `im/opcoes/dinheiro-<valor>`, `im/opcoes/<n>-voltas` ou `sem-limite-de-voltas` |
+| Fim de partida | `im/terminou/falencia` ou `limite-de-voltas`; `im/terminou/venceu-pessoa` ou `venceu-computador`; `im/terminou/duracao-…` |
+| Negócios | `im/negocio/com-computador`, `entre-pessoas`, `entre-computadores`; `im/negocio/proposta-do-computador-aceita`, `-recusada`, `-pechinchou` |
+| Aparelho | `im/qualidade/high`, `medium` ou `low` (detectada); `im/aberto-como-app`; `im/falha-da-gpu` |
+| Instalar e tela cheia | `im/instalar/clicou`, `im/instalar/aceitou`, `im/instalou`; `im/tela-cheia/botao` |
+| Hora do dia escolhida | `im/luz/manha`, `tarde`, `noite` |
+| Tempo de jogo na mesma visita | `im/tempo/5-min`, `15-min`, `30-min`, `60-min` |
+| Voltou em outro dia / 7+ dias depois | `im/voltou`, `im/voltou-depois-de-7-dias` |
+
 Comparar `tentou` com `venceu` mostra as fases difíceis demais. A data da última
 visita fica só no aparelho (localStorage); nada que identifique a pessoa é enviado.
 Fora do site (apps, arquivo baixado) os eventos não fazem nada.
