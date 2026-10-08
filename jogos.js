@@ -14,6 +14,14 @@
 // Quando o jogo sair, apague o emBreve e preencha os outros campos.
 window.JOGOS = [
   {
+    nome: 'Imobiliário 3D',
+    desc: 'Compre, construa e negocie numa cidade em miniatura. O clássico jogo de tabuleiro em 3D, com amigos no mesmo aparelho ou contra o computador.',
+    capa: 'img/capa-imobiliario.jpg',
+    jogar: 'imobiliario/jogar/',
+    contagem: '/jogo/imobiliario',
+    selos: ['Tabuleiro', 'Negociação', '2 a 6 jogadores', 'Celular e computador']
+  },
+  {
     nome: 'Rock Orbit',
     desc: 'Pilote um foguete, colete cristais e deixe o seu rastro por 6 planetas. 50 fases, mais de 80 itens no Hangar e um mundo secreto.',
     capa: 'img/capa-rock-orbit.jpg',

@@ -5,6 +5,7 @@
 #   python3 ferramentas/prepara-jogo.py rock-orbit  caminho/rock-orbit.html
 #   python3 ferramentas/prepara-jogo.py slide-chess caminho/slide-chess.html
 #   python3 ferramentas/prepara-jogo.py rules        (RULES: refaz no próprio arquivo)
+#   python3 ferramentas/prepara-jogo.py imobiliario  (depois de copiar o jogo com publicar.mjs)
 #   python3 ferramentas/eventos-slide-chess.py      (só no Slide Chess, depois)
 #
 # Sem o segundo argumento, refaz no próprio arquivo que já está no site.
@@ -25,6 +26,13 @@ JOGOS = {
         'imagem': 'img/capa-slide-chess.jpg',
         'alt': 'Slide Chess: abra caminho, coroe o peão, leve a dama para casa',
         'contagem': '/jogo/slide-chess',
+    },
+    'imobiliario': {
+        'titulo': 'Imobiliário 3D — jogue grátis no navegador',
+        'desc': 'Compre, construa e negocie numa cidade em miniatura. Jogo de tabuleiro em 3D, contra amigos ou o computador. Grátis, no celular ou no computador.',
+        'imagem': 'img/capa-imobiliario.jpg',
+        'alt': 'Imobiliário 3D: compre, construa e negocie numa cidade em miniatura',
+        'contagem': '/jogo/imobiliario',
     },
     'rules': {
         'titulo': 'RULES — jogue grátis no navegador',
