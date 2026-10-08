@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Imobiliário 3D — Compre, construa e negocie</title>
+<meta name="description" content="O clássico jogo de tabuleiro de negociação imobiliária, agora em 3D. Compre, construa e negocie numa cidade em miniatura, com amigos ou contra o computador. Grátis no navegador.">
+<meta name="theme-color" content="#05070f">
+<link rel="icon" href="img/favicon-64.png">
+<link rel="apple-touch-icon" href="img/icone-192.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Imobiliário 3D — Compre, construa e negocie">
+<meta property="og:description" content="O clássico jogo de tabuleiro em 3D. Grátis, no celular ou no computador.">
+<meta property="og:site_name" content="Jogos do @xadrezcomz">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:url" content="https://xadrezcomz.github.io/play/imobiliario/">
+<meta property="og:image" content="https://xadrezcomz.github.io/play/img/capa-imobiliario.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Imobiliário 3D: compre, construa e negocie numa cidade em miniatura">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://xadrezcomz.github.io/play/img/capa-imobiliario.jpg">
+<style>
+  @font-face{font-family:Fraunces;font-weight:700;font-display:swap;src:url(fontes/fraunces-latin-700-normal.woff2) format("woff2")}
+  @font-face{font-family:Manrope;font-weight:600;font-display:swap;src:url(fontes/manrope-latin-600-normal.woff2) format("woff2")}
+  @font-face{font-family:Manrope;font-weight:800;font-display:swap;src:url(fontes/manrope-latin-800-normal.woff2) format("woff2")}
+  :root{
+    --fundo:#05070f;--fundo2:#0b1236;--painel:#101a46;--linha:rgba(226,189,98,.22);
+    --texto:#eef0f8;--suave:#aab2d4;--ouro:#e2bd62;--ouro2:#f6e2a4;
+    --serif:Fraunces,Georgia,serif;--ui:Manrope,system-ui,sans-serif;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--fundo);color:var(--texto);font:600 17px/1.6 var(--ui);overflow-x:hidden}
+  a{color:var(--ouro2)}
+  img,video{max-width:100%;display:block}
+  .larg{width:min(1180px,100% - 32px);margin:0 auto}
+
+  .topo{position:fixed;inset:0 0 auto;z-index:10;display:flex;align-items:center;gap:14px;padding:12px max(16px,calc((100% - 1180px)/2));
+    background:linear-gradient(180deg,rgba(5,7,15,.85),rgba(5,7,15,0))}
+  .topo .marca{display:flex;align-items:center;gap:10px;font:800 15px var(--ui);letter-spacing:.14em;text-transform:uppercase;color:#fff;text-decoration:none}
+  .topo .marca img{width:36px;height:36px;border-radius:9px}
+  .topo .marca .volta{font-size:30px;line-height:1;color:var(--ouro);margin-right:-2px}
+
+  .capa{position:relative;min-height:100svh;display:grid;align-items:end;isolation:isolate;overflow:hidden}
+  .capa > img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}
+  .capa::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(5,7,15,.25) 0%,rgba(5,7,15,0) 40%,rgba(5,7,15,.85) 82%,var(--fundo) 100%)}
+  .capa .conteudo{padding:0 0 56px;text-align:center}
+  .logo{font:700 clamp(54px,10vw,128px)/.95 var(--serif);letter-spacing:.02em;margin:0;
+    background:linear-gradient(180deg,#fff8e0 10%,#f0d791 45%,#b8892f 92%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 8px 30px rgba(0,0,0,.6))}
+  .edicao{margin:14px 0 30px;font:800 clamp(13px,1.8vw,19px) var(--ui);letter-spacing:.55em;color:var(--ouro2);padding-left:.55em;text-shadow:0 2px 12px rgba(0,0,0,.8)}
+  .botoes{display:flex;flex-wrap:wrap;justify-content:center;gap:14px}
+  .btn{display:inline-flex;align-items:center;gap:14px;padding:14px 28px 14px 22px;border-radius:16px;text-decoration:none;color:#fff;
+    background:linear-gradient(180deg,#14215a,#0a1030);border:2px solid var(--ouro);box-shadow:0 0 32px rgba(226,189,98,.3),inset 0 1px 0 rgba(255,255,255,.15);
+    transition:transform .15s,box-shadow .15s}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 0 44px rgba(226,189,98,.5)}
+  .btn svg{width:40px;height:40px;flex:none}
+  .btn small{display:block;font:600 12px/1.1 var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--suave)}
+  .btn b{display:block;font:700 24px/1.1 var(--serif)}
+  .btn.cinza{border-color:rgba(170,178,212,.45);box-shadow:none}
+  .nota{margin:14px 0 0;color:var(--suave);font-size:15px}
+
+  section{padding:72px 0}
+  h2{margin:0 0 10px;font:700 clamp(30px,4vw,46px)/1.1 var(--serif);text-align:center;
+    background:linear-gradient(180deg,#fff8e0,#f0d791 50%,#c9973a);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{margin:0 auto 36px;max-width:660px;text-align:center;color:var(--suave);font-weight:600}
+
+  .video{position:relative;border-radius:20px;overflow:hidden;border:1px solid var(--linha);box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 60px rgba(226,189,98,.12);background:#000;aspect-ratio:16/9}
+  .video video{width:100%;height:100%;object-fit:cover}
+
+  .grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px}
+  .card{padding:24px 22px;border-radius:18px;background:linear-gradient(180deg,var(--painel),var(--fundo2));border:1px solid var(--linha)}
+  .card .ic{font-size:34px;line-height:1}
+  .card h3{margin:12px 0 6px;font:700 22px/1.2 var(--serif);color:#fff}
+  .card p{margin:0;color:var(--suave);font-size:16px;font-weight:600}
+
+  .galeria{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:14px}
+  .galeria img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:14px;border:1px solid var(--linha)}
+
+  .baixar{text-align:center;background:radial-gradient(ellipse at 50% 0%,rgba(37,83,196,.28),transparent 60%),radial-gradient(ellipse at 50% 100%,rgba(226,189,98,.1),transparent 60%)}
+  .contagem{margin:22px 0 0;color:var(--ouro2);font-weight:600}
+  .contagem b{font:700 26px var(--serif);color:#fff;font-variant-numeric:tabular-nums}
+  .selos{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:28px 0 0;padding:0;list-style:none}
+  .selos li{padding:8px 14px;border-radius:999px;border:1px solid var(--linha);background:rgba(16,26,70,.6);font-weight:600;font-size:15px}
+
+  footer{padding:36px 0 48px;border-top:1px solid var(--linha);color:var(--suave);font-size:15px}
+  footer .larg{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;justify-content:space-between}
+  footer nav{display:flex;flex-wrap:wrap;gap:18px}
+  footer b{color:var(--ouro2)}
+
+  @media (max-width:700px){
+    body{font-size:16px}
+    section{padding:52px 0}
+    .capa .conteudo{padding-bottom:36px}
+    .btn{width:100%;justify-content:center}
+  }
+  @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} .btn{transition:none} }
+</style>
+<script>window.CONTAGEM = '/imobiliario';</script>
+<script src="../contador.js"></script>
+</head>
+<body>
+
+<header class="topo">
+  <a class="marca" href="../"><span class="volta" aria-hidden="true">‹</span><img src="img/icone-192.png" alt=""><span>Todos os jogos</span></a>
+</header>
+
+<main>
+  <div class="capa">
+    <img src="img/capa-larga.jpg" alt="O tabuleiro do Imobiliário 3D sobre uma mesa, com a cidade em miniatura ao redor">
+    <div class="conteudo larg">
+      <h1 class="logo">IMOBILIÁRIO</h1>
+      <div class="edicao">EDIÇÃO LUXO · 3D</div>
+      <div class="botoes">
+        <a class="btn" href="jogar/">
+          <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="29" fill="#e2bd62"/><path d="M25 18l22 14-22 14z" fill="#1a1405"/></svg>
+          <span><small>Grátis no navegador</small><b>Jogar agora</b></span>
+        </a>
+        <a class="btn cinza" href="#trailer">
+          <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="28" fill="none" stroke="#eef0f8" stroke-width="4"/><path d="M26 20l18 12-18 12z" fill="#eef0f8"/></svg>
+          <span><small>Veja o</small><b>Trailer</b></span>
+        </a>
+      </div>
+      <p class="nota">No celular ou no tablet, toque em <b>Instalar no aparelho</b> no menu do jogo para ter o ícone na tela inicial.</p>
+    </div>
+  </div>
+
+  <section id="trailer">
+    <div class="larg">
+      <h2>Trailer</h2>
+      <p class="sub">Role os dados, compre as melhores avenidas e veja a cidade crescer.</p>
+      <div class="video"><video controls preload="none" playsinline poster="img/poster.jpg"><source src="video/trailer.mp4" type="video/mp4"></video></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="larg">
+      <h2>O jogo</h2>
+      <p class="sub">O clássico de tabuleiro com as 40 casas de sempre, agora numa mesa de verdade, com uma cidade em miniatura que ganha vida a cada compra.</p>
+      <div class="grade">
+        <div class="card"><div class="ic">🏙️</div><h3>28 cenários em miniatura</h3><p>Copacabana, Av. Paulista, Interlagos, Morumbi e todos os outros endereços, com carros, pessoas, barcos e aviões em movimento.</p></div>
+        <div class="card"><div class="ic">🎲</div><h3>Dados com física</h3><p>Os dados rolam de verdade sobre a mesa, os peões pulam casa a casa e as casas e hotéis sobem diante dos seus olhos.</p></div>
+        <div class="card"><div class="ic">🤝</div><h3>Negocie</h3><p>De 2 a 6 jogadores no mesmo aparelho, misturando pessoas e computadores em três níveis. O computador também propõe e pechincha.</p></div>
+        <div class="card"><div class="ic">🌙</div><h3>Dia e noite</h3><p>Manhã, tarde ou noite com as janelas da cidade acesas. 30 cartas de Sorte ou Revés e estatísticas no fim da partida.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="larg">
+      <h2>Imagens</h2>
+      <p class="sub">Cada endereço do tabuleiro tem a sua própria cena.</p>
+      <div class="galeria">
+        <img loading="lazy" decoding="async" alt="Praia de Copacabana em miniatura" src="img/captura-1.jpg">
+        <img loading="lazy" decoding="async" alt="Prédios da Av. Paulista" src="img/captura-2.jpg">
+        <img loading="lazy" decoding="async" alt="Dados rolando sobre o tabuleiro" src="img/captura-3.jpg">
+        <img loading="lazy" decoding="async" alt="Casas e hotéis sendo construídos" src="img/captura-4.jpg">
+        <img loading="lazy" decoding="async" alt="Carta de Sorte ou Revés" src="img/captura-5.jpg">
+        <img loading="lazy" decoding="async" alt="A cidade à noite" src="img/captura-6.jpg">
+      </div>
+    </div>
+  </section>
+
+  <section class="baixar">
+    <div class="larg">
+      <h2>Monte o seu império</h2>
+      <p class="sub">Jogue grátis no navegador, no celular, no tablet ou no computador. Depois de aberto uma vez, funciona até sem internet.</p>
+      <div class="botoes">
+        <a class="btn" href="jogar/">
+          <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="29" fill="#e2bd62"/><path d="M25 18l22 14-22 14z" fill="#1a1405"/></svg>
+          <span><small>Grátis no navegador</small><b>Jogar agora</b></span>
+        </a>
+      </div>
+      <p class="contagem" data-contagem="/jogo/imobiliario" hidden>▶ <b></b> jogadas</p>
+      <ul class="selos">
+        <li>2 a 6 jogadores</li>
+        <li>Contra o computador</li>
+        <li>Celular, tablet e computador</li>
+        <li>Instala como app</li>
+        <li>Sem anúncios</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="larg">
+    <span>Criado por <b>@xadrezcomz</b> | Fhellipe Augusto</span>
+    <nav>
+      <a href="../privacidade.html">Política de privacidade</a>
+      <a href="https://www.instagram.com/xadrezcomz/">Instagram</a>
+    </nav>
+  </div>
+</footer>
+<script>window.mostraContagens && window.mostraContagens();</script>
+</body>
+</html>
