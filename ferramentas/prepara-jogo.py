@@ -54,7 +54,7 @@ a = lambda t: html.escape(t, quote=True)
 OG = '\n'.join([
     '<!-- compartilhar: imagem e texto do link (colocado por ferramentas/prepara-jogo.py) -->',
     '<meta property="og:type" content="website">',
-    '<meta property="og:site_name" content="Jogos do @xadrezcomz">',
+    '<meta property="og:site_name" content="Xadrez com Z Games">',
     '<meta property="og:locale" content="pt_BR">',
     '<meta property="og:url" content="' + SITE + nome + '/jogar/">',
     '<meta property="og:title" content="' + a(j['titulo']) + '">',

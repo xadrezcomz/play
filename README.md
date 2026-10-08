@@ -1,11 +1,13 @@
-# Jogos do @xadrezcomz
+# Xadrez com Z Games
 
 Site com os jogos criados por @xadrezcomz para jogar direto no navegador, no
 celular ou no computador: **https://xadrezcomz.github.io/play/**
 
 | Caminho | O que é |
 |---|---|
-| `index.html` | Página inicial com os jogos (a lista fica em `jogos.js`) |
+| `index.html` | Página inicial: destaque, "Continue jogando", filtros, "Me surpreenda" e "Sobre" (a lista de jogos fica em `jogos.js`) |
+| `manifest.webmanifest`, `sw.js` | Deixam a página inicial instalar como app e abrir sem internet |
+| `img/logo.svg` | O logo (o "Z" de casas de tabuleiro); `favicon-64.png` e `icone-*.png` são ele em PNG |
 | `rock-orbit/` | Página do Rock Orbit: trailer, imagens e recursos (pt, en, es) |
 | `rock-orbit/jogar/` | O Rock Orbit em si, jogável no navegador |
 | `slide-chess/jogar/` | O Slide Chess, jogável no navegador (com ícone e manifesto para instalar como app, e `sw.js` para abrir sem internet) |
@@ -64,8 +66,15 @@ python3 ferramentas/eventos-slide-chess.py
 
 ## Colocar um jogo novo
 
-A página inicial monta os cartões a partir de `jogos.js` (2 por linha no
-computador, 1 no celular), então não é preciso mexer no `index.html`.
+A página inicial monta tudo a partir de `jogos.js`, então não é preciso mexer
+no `index.html`:
+
+- **Destaque no topo:** o jogo com o `lancado` mais recente (ou o que tiver
+  `destaque: true`). Ele ganha o selo "Novo" por 30 dias.
+- **Filtros:** saem dos `tipos` de cada jogo (aparecem quando há mais de um tipo).
+- **"Mais jogado":** vai sozinho para o jogo com mais jogadas no GoatCounter.
+- **"Continue jogando":** o `contador.js` de cada jogo guarda no aparelho qual
+  foi aberto por último (só funciona com o passo 2 abaixo).
 
 - **Anunciar antes de sair:** acrescente em `jogos.js`
   `{ nome: 'Nome', desc: 'Uma frase', emBreve: true }`. Ele aparece na seção
@@ -77,8 +86,16 @@ computador, 1 no celular), então não é preciso mexer no `index.html`.
      <script>window.CONTAGEM = '/jogo/<pasta>';</script>
      <script src="../../contador.js"></script>
      ```
-  3. Coloque a capa em `img/` (1200×630) e, em `jogos.js`, tire o `emBreve` e
-     preencha `capa`, `jogar`, `contagem` e `selos`.
+  3. Coloque a capa em `img/` em WebP, em dois tamanhos: `capa-<pasta>.webp`
+     (1200×630) e `capa-<pasta>-640.webp` (640×336). Dá para converter em
+     https://squoosh.app (WebP, qualidade 75) ou com
+     `cwebp -q 75 capa.jpg -o img/capa-<pasta>.webp` e
+     `cwebp -q 75 -resize 640 0 capa.jpg -o img/capa-<pasta>-640.webp`.
+     Guarde também a `.jpg`, que é a usada nas prévias de link.
+     Em `jogos.js`, tire o `emBreve` e preencha `capa`, `jogar`, `contagem`,
+     `tipos`, `lancado` e `selos`.
+     Para a capa abrir sem internet, acrescente a `-640.webp` em `ARQUIVOS` no
+     `sw.js` e troque a versão (`xz-site-v1` → `xz-site-v2`).
   4. Acrescente o jogo em `ferramentas/prepara-jogo.py` para ganhar as tags de
      compartilhamento.
   5. Se quiser, refaça `img/compartilhar-site.jpg` (a imagem do link do site)
