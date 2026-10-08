@@ -24,6 +24,7 @@ window.JOGOS = [
     capa: 'img/capa-imobiliario.webp',
     tipos: ['Tabuleiro'], lancado: '2026-10-08',
     jogar: 'imobiliario/jogar/',
+    saiba: 'imobiliario/',
     contagem: '/jogo/imobiliario',
     selos: ['Negociação', '2 a 6 jogadores', 'Celular e computador']
   },
