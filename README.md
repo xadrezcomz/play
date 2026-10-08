@@ -57,6 +57,9 @@ O **Imobiliário 3D** manda eventos com o prefixo `im/…` (vêm do próprio jog
 | Tempo de jogo na mesma visita | `im/tempo/5-min`, `15-min`, `30-min`, `60-min` |
 | Voltou em outro dia / 7+ dias depois | `im/voltou`, `im/voltou-depois-de-7-dias` |
 
+A página inicial manda `site/compartilhou/<jogo>` (ou `site/compartilhou/site`)
+e `site/surpresa` quando alguém usa esses botões.
+
 Comparar `tentou` com `venceu` mostra as fases difíceis demais. A data da última
 visita fica só no aparelho (localStorage); nada que identifique a pessoa é enviado.
 Fora do site (apps, arquivo baixado) os eventos não fazem nada.
@@ -83,14 +86,24 @@ python3 ferramentas/eventos-slide-chess.py
 ## Colocar um jogo novo
 
 A página inicial monta tudo a partir de `jogos.js`, então não é preciso mexer
-no `index.html`:
+no `index.html`. A grade tem 2 colunas no celular, 3 no tablet e 4 no
+computador, e cresce junto em monitores grandes:
 
-- **Destaque no topo:** o jogo com o `lancado` mais recente (ou o que tiver
-  `destaque: true`). Ele ganha o selo "Novo" por 30 dias.
+- **Destaque:** o jogo com o `lancado` mais recente (ou o que tiver
+  `destaque: true`) vira o primeiro cartão, maior (2×2), com borda neon e a
+  descrição. Ele ganha o selo "Novo" por 30 dias. Não aparece repetido.
+- **"Próximo jogo":** quando sobra espaço na última linha da grade, entra um
+  cartão convidando a seguir o Instagram. Some sozinho quando a grade fecha.
 - **Filtros:** saem dos `tipos` de cada jogo (aparecem quando há mais de um tipo).
-- **"Mais jogado":** vai sozinho para o jogo com mais jogadas no GoatCounter.
+- **"Jogado X vezes" e "Mais jogado":** o número do GoatCounter aparece na capa como
+  "Jogado 1,2 mil vezes", e o jogo mais jogado ganha o selo "Mais jogado".
+- **Compartilhar:** cada cartão tem o botão; no celular abre o menu de
+  compartilhar do aparelho, no computador copia o link (da página `saiba`, se
+  houver, ou do jogo).
 - **"Continue jogando":** o `contador.js` de cada jogo guarda no aparelho qual
   foi aberto por último (só funciona com o passo 2 abaixo).
+- **App instalado:** aparece na tela inicial como "Z Games" (`short_name` em
+  `manifest.webmanifest`).
 
 - **Anunciar antes de sair:** acrescente em `jogos.js`
   `{ nome: 'Nome', desc: 'Uma frase', emBreve: true }`. Ele aparece na seção

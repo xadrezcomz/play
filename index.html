@@ -4,8 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Xadrez com Z Games — jogos grátis no navegador</title>
-<meta name="description" content="Xadrez com Z Games: jogos criados por @xadrezcomz para jogar direto no navegador, no celular ou no computador. Grátis e sem instalar nada.">
-<meta name="theme-color" content="#06081a">
+<meta name="description" content="Xadrez com Z Games: jogos criados por @xadrezcomz para jogar direto no navegador, no celular, no tablet ou no computador. Grátis e sem instalar nada.">
+<meta name="theme-color" content="#0a0620">
+<meta name="application-name" content="Z Games">
+<meta name="apple-mobile-web-app-title" content="Z Games">
 <link rel="icon" href="img/favicon-64.png">
 <link rel="icon" href="img/logo.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="img/icone-192.png">
@@ -28,206 +30,274 @@
 <link rel="stylesheet" href="fontes/fontes.css">
 <script>document.documentElement.className = 'js';</script>
 <style>
-  /* Xadrez com Z Games: fliperama neon. Tudo em CSS, com um pouco de JavaScript
-     para os efeitos (que desligam sozinhos em "reduzir movimento"). */
+  /* Xadrez com Z Games: fliperama synthwave.
+     - Medidas em rem: em monitores grandes a página inteira cresce junto (ver "telas grandes").
+     - Grade: 2 colunas no celular, 3 no tablet, 4 no computador; o jogo em destaque ocupa
+       2×2 dentro da própria grade (não se repete).
+     - Efeitos só com CSS (transform/opacity) e desligam em "reduzir movimento". */
+  @property --giro{syntax:"<angle>";inherits:false;initial-value:0deg}
   :root{
-    --fundo:#06081a; --fundo2:#0c1130; --painel:#111a42; --linha:rgba(140,160,255,.18); --linha2:rgba(140,160,255,.32);
-    --texto:#eef0fb; --suave:#a6aed6; --ouro:#ffd36b; --laranja:#ff9a3d; --ciano:#2ee6ff; --roxo:#a06bff; --rosa:#ff4fd8;
+    --fundo:#0a0620; --fundo2:#120b33; --painel:#171042; --linha:rgba(170,150,255,.2); --linha2:rgba(170,150,255,.36);
+    --texto:#f1eefe; --suave:#b3abd9; --ouro:#ffd36b; --laranja:#ff9a3d; --ciano:#2ee6ff; --roxo:#a06bff; --rosa:#ff4fd8;
     --titulo:"Chakra Petch","Exo 2",system-ui,sans-serif; --corpo:"Exo 2",system-ui,sans-serif;
-    --larg:1160px;
+    --larg:min(80rem,100% - 2*clamp(16px,3.5vw,56px));
     color-scheme:dark;
   }
   *{box-sizing:border-box}
   [hidden]{display:none !important}
-  html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:84px}
-  body{margin:0;min-height:100vh;background:var(--fundo);color:var(--texto);font:17px/1.55 var(--corpo);overflow-x:hidden}
+  html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:5rem}
+  body{margin:0;min-height:100vh;background:var(--fundo);color:var(--texto);font:1rem/1.5 var(--corpo);overflow-x:hidden;
+    background-image:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(160,107,255,.2),transparent 70%),radial-gradient(ellipse 60% 40% at 100% 100%,rgba(46,230,255,.08),transparent 70%)}
   a{color:var(--ciano)}
   img{display:block;max-width:100%;height:auto}
-  .larg{width:min(var(--larg),100% - 32px);margin-inline:auto}
-  .so-leitor{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-
-  /* ---- céu: brilhos de cor, estrelas que piscam e um chão quadriculado ---- */
-  .ceu{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;
-    background:radial-gradient(ellipse 70% 45% at 15% -5%,rgba(160,107,255,.32),transparent 70%),
-               radial-gradient(ellipse 55% 40% at 95% 10%,rgba(255,79,216,.14),transparent 70%),
-               radial-gradient(ellipse 60% 40% at 80% 105%,rgba(46,230,255,.14),transparent 70%)}
-  .ceu::before,.ceu::after{content:"";position:absolute;inset:0;background-size:620px 620px}
-  .ceu::before{opacity:.75;background-image:radial-gradient(1.5px 1.5px at 12% 18%,#fff,transparent),radial-gradient(1px 1px at 72% 12%,#fff,transparent),radial-gradient(1.5px 1.5px at 38% 62%,#cfe,transparent),radial-gradient(1px 1px at 86% 48%,#fff,transparent),radial-gradient(1px 1px at 22% 84%,#fff,transparent)}
-  .ceu::after{background-size:480px 480px;background-image:radial-gradient(1.5px 1.5px at 58% 34%,#fde,transparent),radial-gradient(1px 1px at 92% 82%,#fff,transparent),radial-gradient(1px 1px at 6% 52%,#fff,transparent),radial-gradient(1.5px 1.5px at 44% 92%,#bff,transparent);
-    animation:pisca 5s ease-in-out infinite alternate}
-  @keyframes pisca{from{opacity:.15}to{opacity:.9}}
-  .chao{position:absolute;left:-50%;right:-50%;bottom:-2px;height:42vh;transform:perspective(420px) rotateX(62deg);transform-origin:50% 100%;
-    background-image:linear-gradient(rgba(160,107,255,.22) 1px,transparent 1px),linear-gradient(90deg,rgba(160,107,255,.22) 1px,transparent 1px);
-    background-size:56px 56px;-webkit-mask-image:linear-gradient(transparent,#000 70%);mask-image:linear-gradient(transparent,#000 70%);opacity:.55}
+  button{font:inherit;color:inherit}
+  .larg{width:var(--larg);margin-inline:auto}
 
   /* ---- barra do topo ---- */
-  .topo{position:sticky;top:0;z-index:20;padding-top:env(safe-area-inset-top,0px);
-    background:rgba(6,8,26,.72);-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);border-bottom:1px solid var(--linha)}
-  .topo .larg{display:flex;align-items:center;gap:16px;min-height:64px}
-  .marca{display:flex;align-items:center;gap:12px;margin:0;color:inherit;text-decoration:none;font:700 19px/1 var(--titulo);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
-  .marca svg{width:38px;height:38px;flex:none;filter:drop-shadow(0 0 10px rgba(255,190,80,.35))}
-  .marca b{color:var(--ouro);text-shadow:0 0 14px rgba(255,200,90,.6)}
-  .marca small{margin-left:2px;padding:4px 7px 3px;border-radius:6px;border:1px solid rgba(46,230,255,.55);color:var(--ciano);font:700 11px/1 var(--titulo);letter-spacing:.22em;
-    text-shadow:0 0 8px rgba(46,230,255,.7);box-shadow:0 0 12px rgba(46,230,255,.25),inset 0 0 8px rgba(46,230,255,.15)}
-  .topo nav{display:flex;align-items:center;gap:6px;margin-left:auto}
-  .topo nav a{padding:8px 12px;border-radius:10px;color:var(--suave);text-decoration:none;font:600 15px var(--corpo)}
-  .topo nav a:hover{color:var(--texto);background:rgba(140,160,255,.1)}
-  .instalar{display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:6px 14px;border-radius:10px;border:1px solid rgba(255,211,107,.5);background:rgba(255,211,107,.1);
-    color:var(--ouro);font:700 13px var(--titulo);letter-spacing:.12em;text-transform:uppercase;cursor:pointer}
-  .instalar:hover{background:rgba(255,211,107,.2)}
-  .instalar svg{width:16px;height:16px;fill:currentColor}
+  .topo{position:sticky;top:0;z-index:30;padding-top:env(safe-area-inset-top,0px);
+    background:rgba(10,6,32,.78);-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);border-bottom:1px solid var(--linha)}
+  .topo .larg{display:flex;align-items:center;gap:1rem;min-height:3.75rem}
+  .marca{display:flex;align-items:center;gap:.7rem;margin:0;color:inherit;text-decoration:none;font:700 1.15rem/1 var(--titulo);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+  .marca svg{width:2.3rem;height:2.3rem;flex:none;filter:drop-shadow(0 0 .6rem rgba(255,190,80,.35))}
+  .marca b{color:var(--ouro);text-shadow:0 0 .9rem rgba(255,200,90,.6)}
+  .marca small{padding:.25rem .45rem .2rem;border-radius:.4rem;border:1px solid rgba(46,230,255,.55);color:var(--ciano);font:700 .68rem/1 var(--titulo);letter-spacing:.22em;text-shadow:0 0 .5rem rgba(46,230,255,.7)}
+  .topo nav{display:flex;align-items:center;gap:.25rem;margin-left:auto}
+  .topo nav a{padding:.5rem .75rem;border-radius:.6rem;color:var(--suave);text-decoration:none;font:600 .95rem var(--corpo)}
+  .topo nav a:hover{color:var(--texto);background:rgba(170,150,255,.12)}
+  .instalar{display:inline-flex;align-items:center;gap:.5rem;min-height:2.4rem;padding:.4rem .9rem;border-radius:.6rem;border:1px solid rgba(255,211,107,.5);background:rgba(255,211,107,.1);
+    color:var(--ouro);font:700 .8rem var(--titulo);letter-spacing:.12em;text-transform:uppercase;cursor:pointer}
+  .instalar svg{width:1rem;height:1rem;fill:currentColor}
 
-  /* ---- continue jogando ---- */
-  .continuar{display:flex;align-items:center;gap:14px;margin-top:20px;padding:10px 10px 10px 12px;border-radius:16px;text-decoration:none;color:inherit;
-    background:linear-gradient(90deg,rgba(46,230,255,.14),rgba(160,107,255,.1));border:1px solid rgba(46,230,255,.35);transition:border-color .2s,transform .2s}
-  .continuar:hover{border-color:var(--ciano);transform:translateY(-1px)}
-  .continuar img{width:78px;aspect-ratio:1200/630;object-fit:cover;border-radius:9px;flex:none}
-  .continuar span{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.2}
-  .continuar small{font:700 12px var(--titulo);letter-spacing:.18em;text-transform:uppercase;color:var(--ciano)}
-  .continuar b{font:700 20px var(--titulo);text-transform:uppercase;letter-spacing:.03em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .continuar em{flex:none;display:grid;place-items:center;width:44px;height:44px;border-radius:12px;background:var(--ciano);color:#03222a;font-style:normal}
-  .continuar em svg{width:18px;height:18px;fill:currentColor}
-
-  /* ---- destaque ---- */
-  .destaque{position:relative;margin-top:20px;border-radius:28px;overflow:hidden;isolation:isolate;min-height:380px;
-    border:1px solid var(--linha2);background:linear-gradient(135deg,rgba(17,26,66,.92),rgba(8,10,34,.92));box-shadow:0 30px 80px rgba(0,0,0,.5)}
-  .destaque .borrao{position:absolute;inset:-60px;z-index:-1;width:calc(100% + 120px);max-width:none;height:calc(100% + 120px);object-fit:cover;filter:blur(48px) saturate(1.5);opacity:.4}
-  .destaque .grade{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);align-items:center;gap:36px;padding:44px}
-  .destaque .chamada{display:inline-flex;align-items:center;gap:8px;margin:0 0 14px;padding:6px 12px;border-radius:999px;background:rgba(255,79,216,.14);border:1px solid rgba(255,79,216,.5);
-    color:#ffc2f2;font:700 12px var(--titulo);letter-spacing:.2em;text-transform:uppercase}
-  .destaque .chamada i{width:8px;height:8px;border-radius:50%;background:var(--rosa);box-shadow:0 0 10px var(--rosa);animation:pulsa 1.6s ease-in-out infinite}
-  @keyframes pulsa{50%{opacity:.35}}
-  .destaque h2{margin:0 0 12px;font:700 clamp(36px,5.4vw,62px)/1 var(--titulo);text-transform:uppercase;letter-spacing:.01em;text-wrap:balance;
-    background:linear-gradient(180deg,#fff 0%,#dff1ff 50%,#86d8ff 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
-    filter:drop-shadow(0 0 22px rgba(46,230,255,.25))}
-  .destaque p{margin:0 0 22px;max-width:46ch;color:#c4cbef;font-size:18px}
-  .destaque .tela{position:relative;border-radius:18px;transform:perspective(900px) rotateY(-7deg) rotateX(3deg);transition:transform .5s cubic-bezier(.2,.8,.2,1);will-change:transform}
-  .destaque .tela::before{content:"";position:absolute;inset:-2px;z-index:-1;border-radius:20px;background:linear-gradient(135deg,var(--ciano),var(--roxo),var(--rosa));filter:blur(14px);opacity:.55}
-  .destaque .tela img{width:100%;aspect-ratio:1200/630;object-fit:cover;border-radius:18px;border:1px solid rgba(255,255,255,.18)}
-  .destaque:hover .tela{transform:perspective(900px) rotateY(-2deg) rotateX(1deg) scale(1.015)}
+  /* ---- palco synthwave (topo da página) ---- */
+  .palco{position:relative;isolation:isolate;overflow:hidden;margin-top:clamp(.75rem,2vw,1.5rem);border-radius:1.6rem;border:1px solid var(--linha2);
+    min-height:clamp(8.5rem,18vh,12.5rem);display:flex;align-items:center;
+    background:linear-gradient(180deg,#140a3a 0%,#2a0f55 55%,#3b0f5c 70%,#140a3a 100%)}
+  .palco .estrelas{position:absolute;inset:0 0 40%;z-index:-3;opacity:.8;
+    background-image:radial-gradient(1.5px 1.5px at 8% 20%,#fff,transparent),radial-gradient(1px 1px at 22% 60%,#fff,transparent),radial-gradient(1.5px 1.5px at 41% 15%,#cfe,transparent),radial-gradient(1px 1px at 63% 42%,#fff,transparent),radial-gradient(1px 1px at 78% 12%,#fff,transparent),radial-gradient(1.5px 1.5px at 92% 55%,#fde,transparent),radial-gradient(1px 1px at 55% 70%,#fff,transparent);
+    animation:pisca 3.2s ease-in-out infinite alternate}
+  @keyframes pisca{from{opacity:.35}to{opacity:1}}
+  .palco .sol{position:absolute;z-index:-2;right:clamp(-4rem,6vw,8rem);bottom:28%;width:clamp(8rem,15vw,14rem);aspect-ratio:1;border-radius:50%;
+    background:linear-gradient(180deg,#ffe46b 0%,#ff9a3d 45%,#ff4fd8 85%);
+    -webkit-mask:linear-gradient(#000 0 52%,transparent 52% 56%,#000 56% 64%,transparent 64% 69%,#000 69% 76%,transparent 76% 82%,#000 82% 88%,transparent 88% 95%,#000 95%);
+    mask:linear-gradient(#000 0 52%,transparent 52% 56%,#000 56% 64%,transparent 64% 69%,#000 69% 76%,transparent 76% 82%,#000 82% 88%,transparent 88% 95%,#000 95%);
+    filter:drop-shadow(0 0 2.2rem rgba(255,79,216,.55));animation:sol 6s ease-in-out infinite alternate}
+  @keyframes sol{to{transform:translateY(-.4rem) scale(1.03)}}
+  .palco .chao{position:absolute;z-index:-1;left:-40%;right:-40%;bottom:0;height:38%;overflow:hidden;perspective:14rem;
+    -webkit-mask-image:linear-gradient(transparent,#000 45%);mask-image:linear-gradient(transparent,#000 45%)}
+  .palco .chao i{position:absolute;inset:-100% 0 0;transform:rotateX(64deg);transform-origin:50% 100%;
+    background-image:linear-gradient(rgba(255,79,216,.75) 2px,transparent 2px),linear-gradient(90deg,rgba(255,79,216,.75) 2px,transparent 2px);background-size:3rem 3rem;
+    animation:corre 1.1s linear infinite}
+  @keyframes corre{to{background-position:0 3rem}}
+  .palco::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.35;
+    background:repeating-linear-gradient(180deg,rgba(0,0,0,.35) 0 1px,transparent 1px 4px)}
+  .palco .texto{position:relative;padding:clamp(1rem,2.4vw,1.8rem) clamp(1.1rem,3.5vw,2.75rem);max-width:60rem}
+  .start{display:inline-block;margin:0 0 .5rem;font:700 .78rem var(--titulo);letter-spacing:.3em;text-transform:uppercase;color:var(--ciano);text-shadow:0 0 .6rem rgba(46,230,255,.9);
+    animation:start 1.2s steps(2,jump-none) infinite}
+  @keyframes start{50%{opacity:0}}
+  .palco h1{margin:0;font:700 clamp(2rem,4.6vw,3.6rem)/.95 var(--titulo);text-transform:uppercase;letter-spacing:.02em;color:#fff;
+    text-shadow:0 0 .15em #fff,0 0 .45em var(--rosa),0 0 .9em var(--rosa),0 0 1.6em rgba(160,107,255,.8);animation:neon 7s infinite}
+  .palco h1 b{color:var(--ouro);text-shadow:0 0 .15em #fff8d0,0 0 .45em var(--laranja),0 0 1em var(--laranja)}
+  .palco h1 small{display:inline-block;margin-left:.35em;vertical-align:.45em;padding:.18em .4em .12em;border:2px solid var(--ciano);border-radius:.3em;font-size:.3em;letter-spacing:.24em;color:var(--ciano);
+    text-shadow:0 0 .5em var(--ciano);background:rgba(10,6,32,.7);box-shadow:0 0 .8em rgba(46,230,255,.5),inset 0 0 .6em rgba(46,230,255,.3)}
+  @keyframes neon{0%,18%,22%,25%,53%,57%,100%{opacity:1}20%,24%,55%{opacity:.55}}
+  .palco p.sub{margin:.55rem 0 .9rem;color:#ddd6ff;font-size:clamp(.95rem,1.6vw,1.1rem)}
+  .palco .acoes{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem}
 
   /* ---- botões ---- */
-  .acoes{display:flex;flex-wrap:wrap;gap:12px}
-  .btn{position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:12px 26px;border-radius:14px;text-decoration:none;cursor:pointer;
-    font:700 17px var(--titulo);letter-spacing:.12em;text-transform:uppercase;border:0;transition:transform .15s,box-shadow .15s,filter .15s,border-color .15s}
-  .btn svg{width:18px;height:18px;fill:currentColor;flex:none}
+  .btn{position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;gap:.5rem;min-height:2.9rem;padding:.6rem 1.3rem;border-radius:.8rem;text-decoration:none;cursor:pointer;border:0;
+    font:700 .95rem var(--titulo);letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;transition:transform .15s,box-shadow .15s,filter .15s,background .15s,border-color .15s}
+  .btn svg{width:1.05rem;height:1.05rem;fill:currentColor;flex:none}
+  .btn:active{transform:scale(.96)}
   .btn.jogar{color:#2a1500;background:linear-gradient(180deg,#fff2c4 0%,#ffd45e 40%,#ff9f2e 100%);
-    box-shadow:inset 0 2px 0 rgba(255,255,255,.7),inset 0 -3px 0 rgba(150,60,0,.4),0 4px 0 #8a4a0e,0 0 26px rgba(255,170,60,.4)}
-  .btn.jogar::after{content:"";position:absolute;top:0;bottom:0;left:-60%;width:40%;transform:skewX(-20deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.65),transparent);transition:left .5s}
-  .btn.jogar:hover{transform:translateY(-2px);filter:brightness(1.06)}
-  .btn.jogar:hover::after{left:130%}
-  .btn.jogar:active{transform:translateY(2px);box-shadow:inset 0 2px 0 rgba(255,255,255,.7),0 2px 0 #8a4a0e}
-  .btn.mais{color:var(--texto);border:2px solid rgba(46,230,255,.45);background:rgba(10,14,40,.5)}
-  .btn.mais:hover{border-color:var(--ciano);box-shadow:0 0 18px rgba(46,230,255,.25)}
-  .btn:focus-visible,.filtros button:focus-visible,.continuar:focus-visible,.surpresa:focus-visible,.instalar:focus-visible,.topo a:focus-visible{outline:3px solid var(--ciano);outline-offset:3px}
-
-  /* ---- lista de jogos ---- */
-  main{padding-block:12px 40px}
-  .secao{margin-top:56px}
-  .titulo-secao{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;margin:0 0 16px}
-  .titulo-secao h2{margin:0;font:700 15px var(--titulo);letter-spacing:.24em;text-transform:uppercase;color:var(--ouro);text-shadow:0 0 14px rgba(255,200,90,.45)}
-  .titulo-secao h2::before{content:"▸ ";color:var(--laranja)}
-  .titulo-secao .quantos{font:600 14px var(--corpo);color:var(--suave)}
-  .surpresa{margin-left:auto;display:inline-flex;align-items:center;gap:10px;min-height:42px;padding:8px 16px;border-radius:12px;cursor:pointer;
-    border:1px solid rgba(160,107,255,.55);background:rgba(160,107,255,.14);color:#e3d4ff;font:700 13px var(--titulo);letter-spacing:.14em;text-transform:uppercase;transition:background .2s,box-shadow .2s}
-  .surpresa:hover{background:rgba(160,107,255,.26);box-shadow:0 0 18px rgba(160,107,255,.35)}
-  .surpresa .dado{display:inline-block;font-size:20px;line-height:1;letter-spacing:0}
-  .surpresa.rolando .dado{animation:rola .6s linear infinite}
+    box-shadow:inset 0 2px 0 rgba(255,255,255,.7),inset 0 -3px 0 rgba(150,60,0,.4),0 3px 0 #8a4a0e,0 0 1.2rem rgba(255,170,60,.35)}
+  .btn.jogar::after{content:"";position:absolute;top:0;bottom:0;left:-60%;width:40%;transform:skewX(-20deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.7),transparent);animation:brilho 4.5s ease-in-out infinite}
+  @keyframes brilho{0%,70%{left:-60%}100%{left:140%}}
+  .btn.jogar:hover{filter:brightness(1.07);transform:translateY(-1px)}
+  .btn.roxo{color:#fff;background:linear-gradient(180deg,#c69bff,#8a4dff);box-shadow:inset 0 2px 0 rgba(255,255,255,.45),0 3px 0 #4a1fa0,0 0 1.2rem rgba(160,107,255,.5)}
+  .btn.roxo:hover{filter:brightness(1.1)}
+  .btn.vidro{color:var(--texto);background:rgba(10,6,32,.55);border:1px solid var(--linha2)}
+  .btn.vidro:hover{border-color:var(--ciano);box-shadow:0 0 1rem rgba(46,230,255,.25)}
+  .btn.icone{width:2.9rem;padding:0;flex:none}
+  .dado{display:inline-block;font-size:1.2rem;line-height:1;letter-spacing:0}
+  .rolando .dado{animation:rola .5s linear infinite}
   @keyframes rola{to{transform:rotate(360deg)}}
-  .filtros{display:flex;gap:8px;margin:0 0 20px;padding:2px 0 6px;overflow-x:auto;scrollbar-width:none}
-  .filtros::-webkit-scrollbar{display:none}
-  .filtros button{flex:none;min-height:40px;padding:7px 16px;border-radius:999px;cursor:pointer;border:1px solid var(--linha2);background:rgba(10,14,40,.6);color:var(--suave);
-    font:600 15px var(--corpo);transition:color .2s,background .2s,border-color .2s,box-shadow .2s}
-  .filtros button:hover{color:var(--texto);border-color:rgba(46,230,255,.5)}
-  .filtros button[aria-pressed="true"]{color:#03222a;background:var(--ciano);border-color:var(--ciano);box-shadow:0 0 16px rgba(46,230,255,.45)}
-  .filtros button small{margin-left:6px;opacity:.7;font-size:13px}
+  .continuar{display:inline-flex;align-items:center;gap:.6rem;min-height:2.9rem;padding:.3rem .9rem .3rem .3rem;border-radius:.8rem;text-decoration:none;color:inherit;
+    background:rgba(10,6,32,.6);border:1px solid rgba(46,230,255,.5);transition:border-color .2s,box-shadow .2s}
+  .continuar:hover{border-color:var(--ciano);box-shadow:0 0 1rem rgba(46,230,255,.3)}
+  .continuar img{width:3.9rem;aspect-ratio:1200/630;object-fit:cover;border-radius:.5rem}
+  .continuar span{display:flex;flex-direction:column;line-height:1.15}
+  .continuar small{font:700 .62rem var(--titulo);letter-spacing:.18em;text-transform:uppercase;color:var(--ciano)}
+  .continuar b{font:700 .95rem var(--titulo);text-transform:uppercase;letter-spacing:.03em}
 
-  .jogos{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr));gap:22px}
-  .jogo{--mx:50%;--my:0%;position:relative;display:flex;flex-direction:column;border-radius:22px;overflow:hidden;isolation:isolate;
-    background:linear-gradient(160deg,var(--painel),var(--fundo2));border:1px solid var(--linha);box-shadow:0 20px 50px rgba(0,0,0,.42);
-    transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s,border-color .35s}
-  .jogo::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:inherit;padding:1px;opacity:0;transition:opacity .3s;
-    background:radial-gradient(260px circle at var(--mx) var(--my),rgba(46,230,255,.9),rgba(160,107,255,.5) 40%,transparent 70%);
+  /* ---- barra de filtros ---- */
+  main{padding-block:0 2.5rem}
+  .barra{display:flex;align-items:center;gap:.75rem 1rem;margin:clamp(1.25rem,3vw,2rem) 0 1rem}
+  .barra h2{margin:0;flex:none;font:700 .9rem var(--titulo);letter-spacing:.24em;text-transform:uppercase;color:var(--ouro);text-shadow:0 0 .8rem rgba(255,200,90,.45)}
+  .barra h2 span{margin-left:.5rem;font:600 .85rem var(--corpo);letter-spacing:0;text-transform:none;color:var(--suave);text-shadow:none}
+  .filtros{display:flex;gap:.4rem;min-width:0;overflow-x:auto;scrollbar-width:none;padding:.2rem}
+  .filtros::-webkit-scrollbar{display:none}
+  .filtros button{flex:none;min-height:2.3rem;padding:.3rem .9rem;border-radius:999px;cursor:pointer;border:1px solid var(--linha2);background:rgba(10,6,32,.6);color:var(--suave);
+    font:600 .9rem var(--corpo);transition:color .2s,background .2s,border-color .2s,box-shadow .2s}
+  .filtros button:hover{color:var(--texto);border-color:rgba(46,230,255,.5)}
+  .filtros button[aria-pressed="true"]{color:#03222a;background:var(--ciano);border-color:var(--ciano);box-shadow:0 0 .9rem rgba(46,230,255,.45)}
+
+  /* ---- grade de jogos ---- */
+  .grade{--cols:2;display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));grid-auto-flow:dense;gap:clamp(.7rem,1.4vw,1.25rem)}
+  .jogo{--mx:50%;--my:0%;position:relative;display:flex;flex-direction:column;min-width:0;border-radius:1.1rem;overflow:hidden;isolation:isolate;
+    background:linear-gradient(165deg,var(--painel),var(--fundo2));border:1px solid var(--linha);box-shadow:0 .9rem 2.2rem rgba(0,0,0,.4);
+    transition:transform .3s cubic-bezier(.2,.8,.2,1),box-shadow .3s,border-color .3s}
+  .jogo::after{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;border-radius:inherit;padding:1px;opacity:0;transition:opacity .3s;
+    background:radial-gradient(16rem circle at var(--mx) var(--my),rgba(46,230,255,.95),rgba(255,79,216,.55) 45%,transparent 70%);
     -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
-  .jogo:hover{border-color:transparent;box-shadow:0 26px 60px rgba(0,0,0,.5),0 0 30px rgba(46,230,255,.12)}
+  .jogo:hover{border-color:transparent;box-shadow:0 1.2rem 2.8rem rgba(0,0,0,.5),0 0 1.8rem rgba(255,79,216,.15)}
   .jogo:hover::after{opacity:1}
-  .jogo .capa{position:relative;display:block;aspect-ratio:1200/630;background:#000;overflow:hidden}
+  .jogo .capa{position:relative;display:block;aspect-ratio:1200/630;background:#000;overflow:hidden;flex:none}
   .jogo .capa img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .5s cubic-bezier(.2,.8,.2,1)}
-  .jogo:hover .capa img{transform:scale(1.05)}
-  .jogo .capa::after{content:"";position:absolute;inset:auto 0 0;height:40%;background:linear-gradient(transparent,rgba(12,17,48,.7))}
-  .selos-capa{position:absolute;left:12px;top:12px;z-index:1;display:flex;flex-wrap:wrap;gap:6px}
-  .selo{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:8px;font:700 12px var(--titulo);letter-spacing:.14em;text-transform:uppercase;
-    background:rgba(7,10,32,.85);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
-  .selo.novo{color:#ffc2f2;border:1px solid rgba(255,79,216,.7);box-shadow:0 0 12px rgba(255,79,216,.4)}
-  .selo.top{color:var(--ouro);border:1px solid rgba(255,211,107,.7);box-shadow:0 0 12px rgba(255,190,80,.35)}
+  .jogo:hover .capa img{transform:scale(1.06)}
+  .jogo .capa img.borrado{filter:blur(22px) saturate(1.4) brightness(.7);transform:scale(1.15)}
+  .jogo:hover .capa img.borrado{transform:scale(1.15)}
+  .jogo .capa::after{content:"";position:absolute;inset:auto 0 0;height:45%;background:linear-gradient(transparent,rgba(10,6,32,.75));pointer-events:none}
+  .selos-capa{position:absolute;left:.55rem;top:.55rem;right:.55rem;z-index:1;display:flex;flex-wrap:wrap;gap:.35rem}
+  .selo{display:inline-flex;align-items:center;gap:.3rem;padding:.25rem .5rem;border-radius:.4rem;font:700 .66rem var(--titulo);letter-spacing:.14em;text-transform:uppercase;
+    background:rgba(10,6,32,.85);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+  .selo.novo{color:#ffd0f5;border:1px solid rgba(255,79,216,.8);box-shadow:0 0 .8rem rgba(255,79,216,.55);animation:pulsa 1.8s ease-in-out infinite}
+  @keyframes pulsa{50%{box-shadow:0 0 .2rem rgba(255,79,216,.2)}}
+  .selo.top{color:var(--ouro);border:1px solid rgba(255,211,107,.7);box-shadow:0 0 .7rem rgba(255,190,80,.35)}
   .selo.breve{color:var(--roxo);border:1px solid rgba(160,107,255,.6)}
-  .jogo .info{flex:1;display:flex;flex-direction:column;gap:12px;padding:20px 22px 22px;min-width:0}
-  .tipos{display:flex;flex-wrap:wrap;gap:6px 12px;margin:0;padding:0;list-style:none;font:700 12px var(--titulo);letter-spacing:.18em;text-transform:uppercase;color:var(--ciano)}
-  .jogo h3{margin:-4px 0 0;font:700 28px/1.05 var(--titulo);text-transform:uppercase;letter-spacing:.03em}
-  .jogo p{margin:0;color:var(--suave)}
-  .selos{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none}
-  .selos li{padding:3px 10px;border-radius:999px;border:1px solid var(--linha);background:rgba(10,14,40,.6);font-size:13px;font-weight:600;color:#c9cff0}
-  .contagem{display:inline-flex;align-items:center;gap:8px;font:600 14px var(--corpo);color:var(--ciano)}
-  .contagem b{font:700 20px var(--titulo);color:#fff;font-variant-numeric:tabular-nums}
-  .jogo .acoes{margin-top:auto;padding-top:6px}
-  .jogo .btn{min-height:48px;padding:10px 22px;font-size:16px}
-  .jogo.escolhido{animation:escolhido .9s ease-in-out}
-  @keyframes escolhido{0%,100%{box-shadow:0 20px 50px rgba(0,0,0,.42)}50%{box-shadow:0 0 0 3px var(--roxo),0 0 50px rgba(160,107,255,.7)}}
-  .jogo.breve{border-style:dashed;border-color:rgba(160,107,255,.45);box-shadow:none;background:linear-gradient(160deg,rgba(17,26,66,.6),rgba(12,17,48,.6))}
-  .jogo.breve .capa{background:radial-gradient(ellipse at 50% 40%,rgba(160,107,255,.25),transparent 70%),#070a20}
+  .partidas{position:absolute;left:.55rem;bottom:.5rem;z-index:1;display:inline-flex;align-items:center;gap:.35rem;padding:.2rem .5rem;border-radius:.4rem;
+    background:rgba(10,6,32,.75);font:600 .74rem var(--corpo);color:#e4e9ff;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+  .partidas svg{width:.7rem;height:.7rem;fill:var(--ciano)}
+  .partidas b{font:700 .8rem var(--titulo);color:#fff}
+  .partidas i{font-style:normal}
+  .jogo .info{flex:1;display:flex;flex-direction:column;gap:.35rem;padding:.75rem .85rem .85rem;min-width:0}
+  .jogo h3{margin:0;font:700 1.12rem/1.1 var(--titulo);text-transform:uppercase;letter-spacing:.03em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tipos{margin:0;font:700 .66rem var(--titulo);letter-spacing:.16em;text-transform:uppercase;color:var(--ciano);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .desc{margin:.1rem 0 0;color:var(--suave);font-size:.9rem;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .jogo .acoes{display:flex;gap:.45rem;margin-top:auto;padding-top:.5rem}
+  .jogo .acoes .btn{min-height:2.5rem;font-size:.82rem;padding:.4rem .8rem}
+  .jogo .acoes .btn.jogar{flex:1}
+  .jogo .acoes .btn.icone{width:2.5rem}
+  .jogo.escolhido{outline:3px solid var(--rosa);outline-offset:2px;box-shadow:0 0 2.5rem rgba(255,79,216,.7);transform:scale(1.03)}
+  .jogo.breve{border-style:dashed;border-color:rgba(160,107,255,.45);box-shadow:none;background:rgba(23,16,66,.5)}
   .jogo.breve .capa img{filter:saturate(.4) brightness(.55)}
-  .jogo.breve .capa .ic{position:absolute;inset:0;display:grid;place-items:center;font:700 72px var(--titulo);color:rgba(160,107,255,.75)}
-  .vazio{margin:0;padding:28px;border-radius:18px;border:1px dashed var(--linha2);text-align:center;color:var(--suave)}
+  .jogo.breve .capa .ic{position:absolute;inset:0;display:grid;place-items:center;font:700 3.5rem var(--titulo);color:rgba(160,107,255,.75)}
+
+  /* destaque: maior, dentro da grade, com borda neon girando */
+  .jogo.dest{grid-column:span 2;border:0;padding:2px;background:conic-gradient(from var(--giro),var(--rosa),var(--roxo),var(--ciano),var(--ouro),var(--rosa));
+    animation:gira 6s linear infinite;box-shadow:0 1rem 3rem rgba(0,0,0,.5),0 0 2.2rem rgba(255,79,216,.25)}
+  @keyframes gira{to{--giro:360deg}}
+  .jogo.dest > .dentro{position:relative;flex:1;display:flex;flex-direction:column;min-height:0;border-radius:calc(1.1rem - 2px);overflow:hidden;background:linear-gradient(165deg,#1d1450,var(--fundo2))}
+  .jogo.dest .info{flex:none;gap:.45rem;padding:1rem 1.15rem 1.15rem}
+  .jogo.dest h3{font-size:clamp(1.5rem,2.6vw,2.2rem);white-space:normal}
+  .jogo.dest .desc{font-size:.98rem;-webkit-line-clamp:3;color:#cfc8f2}
+  .jogo.dest .acoes .btn{min-height:2.9rem;font-size:.92rem;padding:.55rem 1.2rem}
+  .jogo.dest .acoes .btn.jogar{flex:0 1 auto}
+  .jogo.dest .acoes .btn.icone{width:2.9rem}
+  .jogo:not(.dest) .desc{display:none}
+  .selos{display:flex;flex-wrap:wrap;gap:.35rem;margin:0;padding:0;list-style:none}
+  .selos li{padding:.15rem .6rem;border-radius:999px;border:1px solid var(--linha);background:rgba(10,6,32,.6);font-size:.78rem;font-weight:600;color:#d6d0f5}
+  .proximo{grid-column:span var(--span,1);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.6rem;min-height:10rem;padding:1.2rem;border-radius:1.1rem;text-align:center;
+    border:2px dashed rgba(160,107,255,.5);background:radial-gradient(ellipse at 50% 30%,rgba(160,107,255,.18),transparent 70%),rgba(23,16,66,.45)}
+  .proximo .q{font:700 3.2rem/1 var(--titulo);color:var(--roxo);text-shadow:0 0 1rem rgba(160,107,255,.8);animation:pulsa-q 2.4s ease-in-out infinite}
+  @keyframes pulsa-q{50%{transform:scale(1.12);text-shadow:0 0 1.8rem rgba(255,79,216,.9)}}
+  .proximo b{font:700 1rem var(--titulo);letter-spacing:.14em;text-transform:uppercase}
+  .proximo p{margin:0;max-width:24rem;color:var(--suave);font-size:.88rem}
+  .proximo .btn{min-height:2.4rem;font-size:.78rem;padding:.4rem .9rem}
+  .vazio{grid-column:1/-1;margin:0;padding:1.5rem;border-radius:1rem;border:1px dashed var(--linha2);text-align:center;color:var(--suave)}
+
+  /* entrada dos cartões ao abrir a página */
+  .js .grade .jogo{animation:entra .55s cubic-bezier(.2,.8,.2,1) backwards;animation-delay:calc(var(--i,0) * 70ms)}
+  .js .grade .jogo.dest{animation:entra .55s cubic-bezier(.2,.8,.2,1) backwards,gira 6s linear infinite}
+  @keyframes entra{from{opacity:0;transform:translateY(1.2rem) scale(.96)}}
 
   /* ---- sobre ---- */
-  .sobre{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:32px;padding:36px;border-radius:26px;border:1px solid var(--linha2);
-    background:linear-gradient(135deg,rgba(255,211,107,.07),rgba(160,107,255,.08) 50%,rgba(46,230,255,.06))}
-  .sobre > svg{width:120px;height:120px;filter:drop-shadow(0 0 24px rgba(255,190,80,.35))}
-  .sobre h2{margin:0 0 10px;text-wrap:balance;font:700 clamp(26px,3.6vw,36px)/1.1 var(--titulo);text-transform:uppercase;letter-spacing:.03em}
-  .sobre p{margin:0 0 12px;color:#c4cbef;max-width:62ch}
-  .redes{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
-  .redes a{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:8px 16px;border-radius:12px;border:1px solid var(--linha2);background:rgba(10,14,40,.6);
-    color:var(--texto);text-decoration:none;font:600 15px var(--corpo);transition:border-color .2s,box-shadow .2s}
-  .redes a:hover{border-color:var(--rosa);box-shadow:0 0 16px rgba(255,79,216,.3)}
-  .redes svg{width:18px;height:18px;fill:currentColor}
+  .sobre{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:1.5rem;margin-top:clamp(2rem,5vw,3.5rem);padding:clamp(1.25rem,3vw,2rem);border-radius:1.4rem;border:1px solid var(--linha2);
+    background:linear-gradient(135deg,rgba(255,211,107,.07),rgba(160,107,255,.09) 50%,rgba(46,230,255,.06))}
+  .sobre > svg{width:5.5rem;height:5.5rem;filter:drop-shadow(0 0 1.4rem rgba(255,190,80,.35))}
+  .sobre h2{margin:0 0 .5rem;font:700 clamp(1.4rem,2.6vw,1.9rem)/1.1 var(--titulo);text-transform:uppercase;letter-spacing:.03em;text-wrap:balance}
+  .sobre p{margin:0 0 .6rem;color:#cfc8f2;max-width:62ch}
+  .sobre .acoes{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:.9rem}
 
-  footer{margin-top:64px;padding-block:26px calc(30px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--linha);color:var(--suave);font-size:15px;background:rgba(6,8,26,.6)}
-  footer .larg{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;justify-content:space-between}
-  footer nav{display:flex;flex-wrap:wrap;gap:18px}
+  footer{margin-top:3rem;padding-block:1.4rem calc(1.8rem + env(safe-area-inset-bottom,0px));border-top:1px solid var(--linha);color:var(--suave);font-size:.92rem;background:rgba(10,6,32,.6)}
+  footer .larg{display:flex;flex-wrap:wrap;gap:.75rem 1.5rem;align-items:center;justify-content:space-between}
+  footer nav{display:flex;flex-wrap:wrap;gap:1.1rem}
 
-  /* ---- entrada suave ao rolar (só com JavaScript) ---- */
-  .js .revela{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s cubic-bezier(.2,.8,.2,1)}
-  .js .revela.visivel{opacity:1;transform:none}
+  .aviso{position:fixed;left:50%;bottom:calc(1.2rem + env(safe-area-inset-bottom,0px));z-index:50;transform:translate(-50%,1rem);opacity:0;pointer-events:none;
+    padding:.7rem 1.1rem;border-radius:.8rem;background:#1d1450;border:1px solid var(--ciano);box-shadow:0 0 1.2rem rgba(46,230,255,.35);font-weight:600;transition:opacity .25s,transform .25s}
+  .aviso.mostra{opacity:1;transform:translate(-50%,0)}
 
-  @media (max-width:860px){
-    .destaque{min-height:0}
-    .destaque .grade{grid-template-columns:1fr;gap:22px;padding:22px}
-    .destaque .tela{order:-1;transform:none}
-    .destaque:hover .tela{transform:none}
-    .destaque p{font-size:17px}
+  .btn:focus-visible,.filtros button:focus-visible,.continuar:focus-visible,.instalar:focus-visible,.topo a:focus-visible,.jogo .capa:focus-visible{outline:3px solid var(--ciano);outline-offset:3px}
+
+  /* ---- tamanhos de tela ---- */
+  @media (min-width:640px){
+    .grade{--cols:3}
+    .jogo.dest{grid-row:span 2}
+    .jogo.dest .capa{flex:1 1 auto}
+    .jogo.dest .capa img.principal{object-fit:contain}
+    .jogo.dest .capa:hover img.principal{transform:scale(1.03)}
+    .jogo.dest .capa::after{height:35%;background:linear-gradient(transparent,#1a1249)}
+    .jogo.dest .info{flex:1;justify-content:flex-end;position:relative;z-index:2;margin-top:-2.2rem;padding:0 clamp(1rem,2vw,1.6rem) clamp(1rem,2vw,1.4rem)}
+    .jogo.dest .acoes{margin-top:.4rem}
+    .jogo.dest .partidas{left:auto;right:.7rem;bottom:auto;top:.6rem}
   }
-  @media (max-width:640px){
+  @media (min-width:1024px){ .grade{--cols:4} }
+  /* telas não muito altas: o destaque fica só com o essencial */
+  @media (max-height:1100px) and (min-width:640px){
+    .jogo.dest .selos{display:none}
+    .palco{min-height:0}
+    .palco p.sub{display:none}
+    .palco .acoes{margin-top:1rem}
+    .barra{margin:1.1rem 0 .8rem}
+  }
+  /* telas baixas (notebook): palco ainda menor */
+  @media (max-height:820px) and (min-width:640px){
+    .start{display:none}
+    .palco .acoes{margin-top:.7rem}
+  }
+  /* telas grandes (27", 32", 4K): tudo cresce junto */
+  @media (min-width:1600px){ html{font-size:17px} }
+  @media (min-width:1920px){ html{font-size:18px} }
+  @media (min-width:2400px){ html{font-size:21px} }
+  @media (min-width:3200px){ html{font-size:26px} }
+  /* celular */
+  @media (max-width:639px){
     .topo nav a{display:none}
-    .marca{font-size:16px;gap:10px}
-    .marca svg{width:34px;height:34px}
-    .marca small{padding:3px 5px 2px;font-size:9px;letter-spacing:.18em}
-    .jogo .info{padding:18px 18px 20px}
-    .jogo h3{font-size:25px}
-    .acoes .btn{flex:1 1 auto}
-    .surpresa{margin-left:0}
-    .sobre{grid-template-columns:1fr;padding:24px;gap:18px;text-align:left}
-    .sobre > svg{width:72px;height:72px}
+    .marca{font-size:1rem;gap:.55rem}
+    .marca svg{width:2rem;height:2rem}
+    .marca small{font-size:.56rem;padding:.2rem .35rem .15rem}
+    .palco{border-radius:1.2rem}
+    .palco .sol{right:-3rem;top:-1.5rem;bottom:auto;width:8rem;opacity:.6}
+    .palco p.sub{font-size:.88rem}
+    .start{font-size:.66rem}
+    .palco .acoes .btn{min-height:2.6rem;padding:.45rem .9rem;font-size:.82rem}
+    .barra{margin-top:1.1rem}
+    .barra h2 span{display:none}
+    .jogo .info{padding:.6rem .65rem .7rem}
+    .jogo h3{font-size:.98rem}
+    .jogo .acoes .btn{min-height:2.35rem;padding:.35rem .5rem;font-size:.74rem;letter-spacing:.08em}
+    .jogo .acoes .btn.icone{width:2.35rem}
+    .jogo.dest .info{padding:.8rem .9rem .9rem}
+    .jogo.dest .desc{font-size:.88rem;-webkit-line-clamp:2}
+    .jogo.dest .selos{display:none}
+    .jogo.dest .acoes .btn.jogar{flex:1}
+    .proximo{min-height:0;padding:.8rem;gap:.4rem}
+    .proximo .longo{display:none}
+    .jogo:not(.dest) .btn.saiba{display:none}
+    .proximo .q{font-size:2.2rem}
+    .proximo b{font-size:.8rem}
+    .proximo p{font-size:.76rem}
+    .partidas{font-size:.66rem}
+    .sobre{grid-template-columns:1fr;gap:1rem}
+    .sobre > svg{width:4rem;height:4rem}
   }
+  @media (hover:none){ .jogo:active{transform:scale(.98)} }
   @media (prefers-reduced-motion:reduce){
     *,*::before,*::after{animation:none !important;transition:none !important}
     html{scroll-behavior:auto}
-    .js .revela{opacity:1;transform:none}
   }
 </style>
 </head>
 <body>
-<div class="ceu" aria-hidden="true"><div class="chao"></div></div>
-
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="logo" viewBox="0 0 64 64">
     <defs><linearGradient id="lf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2a1660"/><stop offset="1" stop-color="#0a0d2c"/></linearGradient>
@@ -242,7 +312,7 @@
 
 <header class="topo">
   <div class="larg">
-    <h1 style="margin:0"><a class="marca" href="./"><svg aria-hidden="true"><use href="#logo"/></svg><span>Xadrez com <b>Z</b></span><small>Games</small></a></h1>
+    <a class="marca" href="./" aria-label="Xadrez com Z Games, início"><svg aria-hidden="true"><use href="#logo"/></svg><span>Xadrez com <b>Z</b></span><small>Games</small></a>
     <nav aria-label="Seções">
       <a href="#jogos">Jogos</a>
       <a href="#sobre">Sobre</a>
@@ -252,34 +322,44 @@
 </header>
 
 <main class="larg">
-  <a class="continuar" id="continuar" hidden></a>
-  <section class="destaque" id="destaque" aria-labelledby="destaqueNome" hidden></section>
-
-  <section class="secao" id="jogos" aria-labelledby="tituloJogos">
-    <div class="titulo-secao">
-      <h2 id="tituloJogos">Jogos</h2><span class="quantos" id="quantos"></span>
-      <button type="button" class="surpresa" id="surpresa"><span class="dado" aria-hidden="true">🎲</span>Me surpreenda</button>
+  <section class="palco" aria-labelledby="titulo">
+    <div class="estrelas" aria-hidden="true"></div>
+    <div class="sol" aria-hidden="true"></div>
+    <div class="chao" aria-hidden="true"><i></i></div>
+    <div class="texto">
+      <p class="start" aria-hidden="true">Press start</p>
+      <h1 id="titulo">Xadrez com <b>Z</b> <small>Games</small></h1>
+      <p class="sub">Jogos grátis direto no navegador, no celular, no tablet ou no computador.</p>
+      <div class="acoes">
+        <button type="button" class="btn roxo" id="surpresa"><span class="dado" aria-hidden="true">🎲</span>Me surpreenda</button>
+        <a class="continuar" id="continuar" hidden></a>
+      </div>
     </div>
-    <div class="filtros" id="filtros" role="group" aria-label="Filtrar por tipo de jogo"></div>
-    <div class="jogos" id="lista" aria-live="polite"></div>
+  </section>
+
+  <section id="jogos" aria-labelledby="tituloJogos">
+    <div class="barra">
+      <h2 id="tituloJogos">Jogos<span id="quantos"></span></h2>
+      <div class="filtros" id="filtros" role="group" aria-label="Filtrar por tipo de jogo"></div>
+    </div>
+    <div class="grade" id="lista"></div>
     <noscript><p class="vazio">Ative o JavaScript para ver os jogos.</p></noscript>
   </section>
 
-  <section class="secao" id="secaoBreve" aria-labelledby="tituloBreve" hidden>
-    <div class="titulo-secao"><h2 id="tituloBreve">Em breve</h2></div>
-    <div class="jogos" id="breve"></div>
+  <section id="secaoBreve" aria-labelledby="tituloBreve" hidden>
+    <div class="barra"><h2 id="tituloBreve">Em breve</h2></div>
+    <div class="grade" id="breve"></div>
   </section>
 
-  <section class="secao revela" id="sobre" aria-labelledby="tituloSobre">
-    <div class="sobre">
-      <svg aria-hidden="true"><use href="#logo"/></svg>
-      <div>
-        <h2 id="tituloSobre">Sobre o Xadrez com Z</h2>
-        <p>Por trás do Xadrez com Z está o Prof. Fhellipe Augusto, professor de xadrez que também cria jogos. Cada jogo nasce aqui primeiro: dá para jogar de graça, direto no navegador, no celular ou no computador.</p>
-        <p>Tem ideia, achou um erro ou quer mandar um recado? Fale comigo no Instagram.</p>
-        <div class="redes">
-          <a href="https://www.instagram.com/xadrezcomz/" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 8.2a3.2 3.2 0 1 1 0-6.4 3.2 3.2 0 0 1 0 6.4zM17.3 5.5a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zM12 2c-2.7 0-3 0-4.1.1C4.5 2.2 2.2 4.5 2.1 7.9 2 9 2 9.3 2 12s0 3 .1 4.1c.1 3.4 2.4 5.7 5.8 5.8 1.1.1 1.4.1 4.1.1s3 0 4.1-.1c3.4-.1 5.7-2.4 5.8-5.8.1-1.1.1-1.4.1-4.1s0-3-.1-4.1c-.1-3.4-2.4-5.7-5.8-5.8C15 2 14.7 2 12 2zm0 1.8c2.7 0 3 0 4 .1 2.5.1 3.9 1.5 4 4 .1 1 .1 1.3.1 4s0 3-.1 4c-.1 2.5-1.5 3.9-4 4-1 .1-1.3.1-4 .1s-3 0-4-.1c-2.5-.1-3.9-1.5-4-4-.1-1-.1-1.3-.1-4s0-3 .1-4c.1-2.5 1.5-3.9 4-4 1-.1 1.3-.1 4-.1z"/></svg>@xadrezcomz</a>
-        </div>
+  <section class="sobre" id="sobre" aria-labelledby="tituloSobre">
+    <svg aria-hidden="true"><use href="#logo"/></svg>
+    <div>
+      <h2 id="tituloSobre">Sobre o Xadrez com Z</h2>
+      <p>Por trás do Xadrez com Z está o Prof. Fhellipe Augusto, professor de xadrez que também cria jogos. Cada jogo nasce aqui primeiro: dá para jogar de graça, direto no navegador, no celular ou no computador.</p>
+      <p>Tem ideia, achou um erro ou quer mandar um recado? Fale comigo no Instagram.</p>
+      <div class="acoes">
+        <a class="btn vidro" href="https://www.instagram.com/xadrezcomz/" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 8.2a3.2 3.2 0 1 1 0-6.4 3.2 3.2 0 0 1 0 6.4zM17.3 5.5a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zM12 2c-2.7 0-3 0-4.1.1C4.5 2.2 2.2 4.5 2.1 7.9 2 9 2 9.3 2 12s0 3 .1 4.1c.1 3.4 2.4 5.7 5.8 5.8 1.1.1 1.4.1 4.1.1s3 0 4.1-.1c3.4-.1 5.7-2.4 5.8-5.8.1-1.1.1-1.4.1-4.1s0-3-.1-4.1c-.1-3.4-2.4-5.7-5.8-5.8C15 2 14.7 2 12 2zm0 1.8c2.7 0 3 0 4 .1 2.5.1 3.9 1.5 4 4 .1 1 .1 1.3.1 4s0 3-.1 4c-.1 2.5-1.5 3.9-4 4-1 .1-1.3.1-4 .1s-3 0-4-.1c-2.5-.1-3.9-1.5-4-4-.1-1-.1-1.3-.1-4s0-3 .1-4c.1-2.5 1.5-3.9 4-4 1-.1 1.3-.1 4-.1z"/></svg>@xadrezcomz</a>
+        <button type="button" class="btn vidro" id="compartilhaSite"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 16a3 3 0 0 0-2.4 1.2l-6.7-3.4a3 3 0 0 0 0-1.6l6.7-3.4A3 3 0 1 0 15 7c0 .3 0 .5.1.8L8.4 11.2a3 3 0 1 0 0 3.6l6.7 3.4A3 3 0 1 0 18 16z"/></svg>Compartilhar o site</button>
       </div>
     </div>
   </section>
@@ -294,93 +374,136 @@
     </nav>
   </div>
 </footer>
+<div class="aviso" id="aviso" role="status" aria-live="polite"></div>
 
 <script src="jogos.js"></script>
 <script>
 (function(){
   var $ = function(id){ return document.getElementById(id); };
   var PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg>';
+  var SHARE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 16a3 3 0 0 0-2.4 1.2l-6.7-3.4a3 3 0 0 0 0-1.6l6.7-3.4A3 3 0 1 0 15 7c0 .3 0 .5.1.8L8.4 11.2a3 3 0 1 0 0 3.6l6.7 3.4A3 3 0 1 0 18 16z"/></svg>';
+  var INFO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 10h2v7h-2zm0-3h2v2h-2zm1-5a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16z"/></svg>';
   var DIA = 864e5;
   var calmo = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var mouse = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   function esc(t){ return String(t).replace(/[&<>"]/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]; }); }
-  function menor(capa){ return capa.replace(/\.webp$/, '-640.webp'); }
-  function imagem(j, attrs){
-    var src = /\.webp$/.test(j.capa) ? ' srcset="' + esc(menor(j.capa)) + ' 640w, ' + esc(j.capa) + ' 1200w"' : '';
-    return '<img src="' + esc(j.capa) + '"' + src + ' alt="' + esc(j.nome) + '" width="1200" height="630"' + (attrs || '') +
-      (j.encaixe ? ' style="object-fit:' + j.encaixe + '"' : '') + '>';
-  }
+  function menor(capa){ return /\.webp$/.test(capa) ? capa.replace(/\.webp$/, '-640.webp') : capa; }
+  function evento(nome){ var gc = window.goatcounter; if (gc && gc.count) try { gc.count({ path: 'site/' + nome, title: 'Site', event: true }); } catch (e) {} }
   function data(j){ return j.lancado ? new Date(j.lancado + 'T12:00:00').getTime() : 0; }
+  function idDe(j){ return (j.contagem || j.jogar).replace(/^\/jogo\//, '').replace(/\/.*$/, ''); }
 
   var prontos = window.JOGOS.filter(function(j){ return !j.emBreve; });
   var breve = window.JOGOS.filter(function(j){ return j.emBreve; });
   var porData = prontos.slice().sort(function(a, b){ return data(b) - data(a); });
-  var novo = porData[0] && data(porData[0]) && Date.now() - data(porData[0]) < 30 * DIA ? porData[0] : null;
   var destaque = prontos.filter(function(j){ return j.destaque; })[0] || porData[0];
+  var novo = porData[0] && data(porData[0]) && Date.now() - data(porData[0]) < 30 * DIA ? porData[0] : null;
+  // o destaque vem primeiro na grade; os outros seguem a ordem de jogos.js
+  var ordem = destaque ? [destaque].concat(prontos.filter(function(j){ return j !== destaque; })) : prontos;
+
+  // ---- aviso rápido ("Link copiado!") ----
+  var tempoAviso;
+  function avisa(t){ var a = $('aviso'); a.textContent = t; a.classList.add('mostra'); clearTimeout(tempoAviso); tempoAviso = setTimeout(function(){ a.classList.remove('mostra'); }, 2200); }
+
+  // ---- compartilhar ----
+  function copia(texto){
+    if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(texto);
+    return new Promise(function(ok, falha){
+      var ta = document.createElement('textarea'); ta.value = texto; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select(); try { document.execCommand('copy') ? ok() : falha(); } catch (e){ falha(e); } ta.remove();
+    });
+  }
+  function compartilha(titulo, texto, url, nome){
+    evento('compartilhou/' + nome);
+    if (navigator.share) return navigator.share({ title: titulo, text: texto, url: url }).catch(function(){});
+    copia(url).then(function(){ avisa('Link copiado! É só colar onde quiser.'); }, function(){ avisa(url); });
+  }
+  function compartilhaJogo(j){
+    compartilha(j.nome + ' · Xadrez com Z Games', 'Joga ' + j.nome + ' comigo! É grátis, direto no navegador:',
+      new URL(j.saiba || j.jogar, location.href).href, idDe(j));
+  }
+  $('compartilhaSite').addEventListener('click', function(){
+    compartilha('Xadrez com Z Games', 'Jogos grátis direto no navegador, no celular ou no computador:', new URL('./', location.href).href, 'site');
+  });
 
   // ---- continue jogando ----
+  var ult = null;
   try {
-    var ult = JSON.parse(localStorage.getItem('xz.ultimoJogo') || 'null');
+    ult = JSON.parse(localStorage.getItem('xz.ultimoJogo') || 'null');
     var jogoUlt = ult && prontos.filter(function(j){ return j.contagem === ult.jogo; })[0];
     if (jogoUlt){
       var c = $('continuar');
       c.href = jogoUlt.jogar;
-      c.innerHTML = '<img src="' + esc(/\.webp$/.test(jogoUlt.capa) ? menor(jogoUlt.capa) : jogoUlt.capa) + '" alt="" width="640" height="336"' + (jogoUlt.encaixe ? ' style="object-fit:' + jogoUlt.encaixe + ';background:' + (jogoUlt.fundoCapa || '#000') + '"' : '') + '>' +
-        '<span><small>Continue jogando</small><b>' + esc(jogoUlt.nome) + '</b></span><em>' + PLAY + '</em>';
+      c.innerHTML = '<img src="' + esc(menor(jogoUlt.capa)) + '" alt="" width="640" height="336"' + (jogoUlt.encaixe ? ' style="object-fit:' + jogoUlt.encaixe + ';background:' + (jogoUlt.fundoCapa || '#000') + '"' : '') + '>' +
+        '<span><small>Continue jogando</small><b>' + esc(jogoUlt.nome) + '</b></span>';
       c.setAttribute('aria-label', 'Continue jogando ' + jogoUlt.nome);
       c.hidden = false;
     }
   } catch (e) {}
 
-  // ---- destaque ----
-  if (destaque){
-    var d = $('destaque');
-    d.innerHTML =
-      '<img class="borrao" src="' + esc(/\.webp$/.test(destaque.capa) ? menor(destaque.capa) : destaque.capa) + '" alt="" aria-hidden="true">' +
-      '<div class="grade"><div>' +
-        '<p class="chamada"><i></i>' + (destaque === novo ? 'Novo no site' : 'Em destaque') + '</p>' +
-        '<h2 id="destaqueNome">' + esc(destaque.nome) + '</h2>' +
-        '<p>' + esc(destaque.desc) + '</p>' +
-        '<div class="acoes"><a class="btn jogar" href="' + esc(destaque.jogar) + '">' + PLAY + 'Jogar agora</a>' +
-        (destaque.saiba ? '<a class="btn mais" href="' + esc(destaque.saiba) + '">Saiba mais</a>' : '') + '</div>' +
-      '</div><a class="tela" href="' + esc(destaque.saiba || destaque.jogar) + '" tabindex="-1" aria-hidden="true"' +
-        (destaque.fundoCapa ? ' style="background:' + destaque.fundoCapa + '"' : '') + '>' +
-        imagem(destaque, ' sizes="(max-width:860px) 100vw, 620px" fetchpriority="high"') + '</a></div>';
-    d.hidden = false;
-  }
-
   // ---- cartões ----
-  function cartao(j){
+  function imagem(j, grande){
+    var srcset = /\.webp$/.test(j.capa) ? ' srcset="' + esc(menor(j.capa)) + ' 640w, ' + esc(j.capa) + ' 1200w"' : '';
+    var sizes = grande ? '(max-width:639px) 100vw, 50vw' : '(max-width:639px) 50vw, (max-width:1023px) 33vw, 25vw';
+    return (grande ? '<img class="borrado" src="' + esc(menor(j.capa)) + '" alt="" aria-hidden="true">' : '') +
+      '<img' + (grande ? ' class="principal"' : '') + ' src="' + esc(menor(j.capa)) + '"' + srcset + ' sizes="' + sizes + '" alt="" width="1200" height="630"' +
+      (grande ? ' fetchpriority="high"' : ' loading="lazy" decoding="async"') + (j.encaixe ? ' style="object-fit:' + j.encaixe + '"' : '') + '>';
+  }
+  function cartao(j, i){
     var el = document.createElement('article');
-    el.className = 'jogo revela' + (j.emBreve ? ' breve' : '');
+    var dest = j === destaque;
+    el.className = 'jogo' + (dest ? ' dest' : '') + (j.emBreve ? ' breve' : '');
+    el.style.setProperty('--i', i);
     var fundo = j.fundoCapa ? ' style="background:' + j.fundoCapa + '"' : '';
-    var img = j.capa ? imagem(j, ' sizes="(max-width:900px) 100vw, 570px" loading="lazy" decoding="async"') : '<span class="ic" aria-hidden="true">?</span>';
+    var tipos = j.tipos && j.tipos.length ? '<p class="tipos">' + j.tipos.map(esc).join(' · ') + '</p>' : '';
     if (j.emBreve){
-      el.innerHTML = '<div class="capa"' + fundo + '>' + img + '<div class="selos-capa"><span class="selo breve">Em breve</span></div></div>' +
-        '<div class="info"><h3>' + esc(j.nome) + '</h3>' + (j.desc ? '<p>' + esc(j.desc) + '</p>' : '') + '</div>';
+      el.innerHTML = '<div class="capa"' + fundo + '>' + (j.capa ? imagem(j) : '<span class="ic" aria-hidden="true">?</span>') +
+        '<div class="selos-capa"><span class="selo breve">Em breve</span></div></div>' +
+        '<div class="info">' + tipos + '<h3>' + esc(j.nome) + '</h3>' + (j.desc ? '<p class="desc">' + esc(j.desc) + '</p>' : '') + '</div>';
       return el;
     }
     el.setAttribute('data-tipos', (j.tipos || []).join('|'));
     el.setAttribute('data-jogo', j.contagem || j.jogar);
-    el.innerHTML =
-      '<a class="capa" href="' + esc(j.saiba || j.jogar) + '"' + fundo + ' tabindex="-1" aria-hidden="true">' + img +
-        '<div class="selos-capa">' + (j === novo ? '<span class="selo novo">Novo</span>' : '') + '</div></a>' +
-      '<div class="info">' +
-        (j.tipos ? '<ul class="tipos">' + j.tipos.map(function(t){ return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>' : '') +
+    var corpo =
+      '<a class="capa" href="' + esc(j.jogar) + '"' + fundo + ' aria-label="Jogar ' + esc(j.nome) + '">' + imagem(j, dest) +
+        '<div class="selos-capa">' + (j === novo ? '<span class="selo novo">Novo</span>' : '') + '</div>' +
+        (j.contagem ? '<span class="partidas" data-contagem="' + esc(j.contagem) + '" hidden>' + PLAY + 'Jogado <b></b> <i>vezes</i></span>' : '') +
+      '</a>' +
+      '<div class="info">' + tipos +
         '<h3>' + esc(j.nome) + '</h3>' +
-        '<p>' + esc(j.desc) + '</p>' +
-        (j.selos ? '<ul class="selos">' + j.selos.map(function(s){ return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>' : '') +
-        (j.contagem ? '<span class="contagem" data-contagem="' + esc(j.contagem) + '" hidden>▶ <b></b> jogadas</span>' : '') +
-        '<div class="acoes"><a class="btn jogar" href="' + esc(j.jogar) + '">' + PLAY + 'Jogar</a>' +
-        (j.saiba ? '<a class="btn mais" href="' + esc(j.saiba) + '">Saiba mais</a>' : '') + '</div>' +
+        (j.desc ? '<p class="desc">' + esc(j.desc) + '</p>' : '') +
+        (dest && j.selos ? '<ul class="selos">' + j.selos.map(function(s){ return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>' : '') +
+        '<div class="acoes"><a class="btn jogar" href="' + esc(j.jogar) + '">' + PLAY + (dest ? 'Jogar agora' : 'Jogar') + '</a>' +
+          '<button type="button" class="btn vidro icone compartilhar" aria-label="Compartilhar ' + esc(j.nome) + '" title="Compartilhar">' + SHARE + '</button>' +
+          (j.saiba ? '<a class="btn vidro icone saiba" href="' + esc(j.saiba) + '" aria-label="Saiba mais sobre ' + esc(j.nome) + '" title="Saiba mais">' + INFO + '</a>' : '') +
+        '</div>' +
       '</div>';
+    el.innerHTML = dest ? '<div class="dentro">' + corpo + '</div>' : corpo;
+    el.querySelector('.compartilhar').addEventListener('click', function(){ compartilhaJogo(j); });
     return el;
   }
-  var cartoes = prontos.map(function(j){ var el = cartao(j); $('lista').appendChild(el); return el; });
-  breve.forEach(function(j){ $('breve').appendChild(cartao(j)); });
+  var cartoes = ordem.map(function(j, i){ var el = cartao(j, i); $('lista').appendChild(el); return el; });
+  breve.forEach(function(j, i){ $('breve').appendChild(cartao(j, i)); });
   $('secaoBreve').hidden = !breve.length;
   function conta(n){ $('quantos').textContent = n + (n === 1 ? ' jogo' : ' jogos'); }
   conta(prontos.length);
+
+  // ---- "Próximo jogo": completa a última linha da grade quando sobra espaço ----
+  var proximo = document.createElement('aside');
+  proximo.className = 'proximo';
+  proximo.innerHTML = '<span class="q" aria-hidden="true">?</span><b>Próximo jogo</b><p>Já tem jogo novo em produção. Siga para jogar primeiro.</p>' +
+    '<a class="btn vidro" href="https://www.instagram.com/xadrezcomz/" rel="noopener" aria-label="Seguir @xadrezcomz no Instagram">Seguir<span class="longo">&nbsp;@xadrezcomz</span></a>';
+  $('lista').appendChild(proximo);
+  var filtrando = false;
+  function completaGrade(){
+    var cols = getComputedStyle($('lista')).gridTemplateColumns.split(' ').length;
+    var vis = cartoes.filter(function(el){ return !el.hidden; });
+    var usados = vis.reduce(function(t, el){ return t + (el.classList.contains('dest') ? (cols >= 3 ? 4 : 2) : 1); }, 0);
+    var sobra = (cols - usados % cols) % cols;
+    proximo.hidden = filtrando || !sobra;
+    proximo.style.setProperty('--span', sobra || 1);
+  }
+  completaGrade();
+  window.addEventListener('resize', function(){ clearTimeout(completaGrade.t); completaGrade.t = setTimeout(completaGrade, 120); });
 
   // ---- filtros por tipo ----
   var tipos = {};
@@ -388,37 +511,48 @@
   var nomes = Object.keys(tipos).sort(function(a, b){ return tipos[b] - tipos[a] || a.localeCompare(b, 'pt-BR'); });
   if (nomes.length > 1){
     $('filtros').innerHTML = '<button type="button" aria-pressed="true" data-tipo="">Todos</button>' +
-      nomes.map(function(t){ return '<button type="button" aria-pressed="false" data-tipo="' + esc(t) + '">' + esc(t) + '<small>' + tipos[t] + '</small></button>'; }).join('');
+      nomes.map(function(t){ return '<button type="button" aria-pressed="false" data-tipo="' + esc(t) + '">' + esc(t) + '</button>'; }).join('');
     $('filtros').addEventListener('click', function(e){
       var b = e.target.closest('button'); if (!b) return;
       var tipo = b.getAttribute('data-tipo'), n = 0;
       Array.prototype.forEach.call(this.children, function(x){ x.setAttribute('aria-pressed', String(x === b)); });
       cartoes.forEach(function(el){
         var mostra = !tipo || el.getAttribute('data-tipos').split('|').indexOf(tipo) >= 0;
-        el.hidden = !mostra; if (mostra){ n++; el.classList.add('visivel'); }
+        el.hidden = !mostra; if (mostra) n++;
       });
-      conta(n);
+      conta(n); filtrando = !!tipo; completaGrade();
     });
   } else $('filtros').hidden = true;
 
-  // ---- me surpreenda ----
+  // ---- me surpreenda: roleta de fliperama pelos cartões ----
   $('surpresa').addEventListener('click', function(){
     var visiveis = cartoes.filter(function(el){ return !el.hidden; });
-    var ultimo = ult && ult.jogo;
-    var opcoes = visiveis.filter(function(el){ return el.getAttribute('data-jogo') !== ultimo; });
+    var opcoes = visiveis.filter(function(el){ return !ult || el.getAttribute('data-jogo') !== ult.jogo; });
     if (!opcoes.length) opcoes = visiveis;
-    var el = opcoes[Math.floor(Math.random() * opcoes.length)]; if (!el) return;
-    var destino = el.querySelector('.btn.jogar').href;
-    if (calmo){ location.href = destino; return; }
+    var alvo = opcoes[Math.floor(Math.random() * opcoes.length)]; if (!alvo) return;
+    var destino = alvo.querySelector('.btn.jogar').href;
+    evento('surpresa');
+    if (calmo || visiveis.length < 2){ location.href = destino; return; }
     var b = this; b.classList.add('rolando'); b.disabled = true;
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    el.classList.remove('escolhido'); void el.offsetWidth; el.classList.add('escolhido');
-    setTimeout(function(){ location.href = destino; }, 1100);
-    setTimeout(function(){ b.classList.remove('rolando'); b.disabled = false; }, 2500);
+    $('jogos').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    var passos = visiveis.length + visiveis.indexOf(alvo) + 1, k = 0, espera = 80, atual = null;
+    (function passo(){
+      if (atual) atual.classList.remove('escolhido');
+      atual = visiveis[k % visiveis.length]; atual.classList.add('escolhido'); k++;
+      if (k < passos){ espera *= 1.18; setTimeout(passo, espera); }
+      else setTimeout(function(){ location.href = destino; setTimeout(function(){ atual.classList.remove('escolhido'); b.classList.remove('rolando'); b.disabled = false; }, 1500); }, 450);
+    })();
   });
 
-  // ---- "Mais jogado", com os números do contador ----
-  window.marcaMaisJogado = function(numeros){
+  // ---- "Jogado X vezes" e "Mais jogado", com os números do contador ----
+  var compacto = window.Intl && Intl.NumberFormat ? new Intl.NumberFormat('pt-BR', { notation: 'compact', maximumFractionDigits: 1 }) : null;
+  window.marcaPartidas = function(numeros){
+    Array.prototype.forEach.call(document.querySelectorAll('.partidas[data-contagem]'), function(el){
+      var n = numeros[el.getAttribute('data-contagem')]; if (!n) return;
+      el.querySelector('b').textContent = compacto ? compacto.format(n) : n;
+      el.querySelector('i').textContent = n === 1 ? 'vez' : 'vezes';
+      el.setAttribute('title', 'Jogado ' + n.toLocaleString('pt-BR') + (n === 1 ? ' vez' : ' vezes'));
+    });
     var caminhos = Object.keys(numeros);
     if (caminhos.length < 2) return;
     var top = caminhos.sort(function(a, b){ return numeros[b] - numeros[a]; })[0];
@@ -427,15 +561,7 @@
     });
   };
 
-  // ---- efeitos: entrada ao rolar, brilho que segue o mouse, inclinação ----
-  var revela = document.querySelectorAll('.revela');
-  if ('IntersectionObserver' in window && !calmo){
-    var io = new IntersectionObserver(function(itens){
-      itens.forEach(function(it){ if (it.isIntersecting){ it.target.classList.add('visivel'); io.unobserve(it.target); } });
-    }, { rootMargin: '0px 0px -8% 0px' });
-    Array.prototype.forEach.call(revela, function(el, i){ el.style.transitionDelay = (i % 3) * 70 + 'ms'; io.observe(el); });
-  } else Array.prototype.forEach.call(revela, function(el){ el.classList.add('visivel'); });
-
+  // ---- brilho que segue o mouse e leve inclinação (só com mouse) ----
   if (mouse && !calmo){
     cartoes.forEach(function(el){
       var pedido = 0, ev;
@@ -445,7 +571,7 @@
           pedido = 0;
           var r = el.getBoundingClientRect(), x = (ev.clientX - r.left) / r.width, y = (ev.clientY - r.top) / r.height;
           el.style.setProperty('--mx', x * 100 + '%'); el.style.setProperty('--my', y * 100 + '%');
-          el.style.transform = 'perspective(900px) rotateX(' + ((0.5 - y) * 5).toFixed(2) + 'deg) rotateY(' + ((x - 0.5) * 6).toFixed(2) + 'deg) translateY(-4px)';
+          if (!el.classList.contains('escolhido')) el.style.transform = 'perspective(900px) rotateX(' + ((0.5 - y) * 4).toFixed(2) + 'deg) rotateY(' + ((x - 0.5) * 5).toFixed(2) + 'deg) translateY(-3px)';
         });
       });
       el.addEventListener('pointerleave', function(){ cancelAnimationFrame(pedido); pedido = 0; el.style.transform = ''; });
@@ -466,6 +592,6 @@
 </script>
 <script>window.CONTAGEM = '/inicio';</script>
 <script src="contador.js"></script>
-<script>window.mostraContagens(window.marcaMaisJogado);</script>
+<script>window.mostraContagens(window.marcaPartidas);</script>
 </body>
 </html>
