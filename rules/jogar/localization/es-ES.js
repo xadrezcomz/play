@@ -1295,6 +1295,71 @@ RULES.L10N['es-ES'] = {
     LEVEL_210_TITLE: 'HAZ UN PASTEL DE CUMPLEAÑOS',
     LEVEL_210_HINT_1: 'La masa tiene que hornearse.',
     LEVEL_210_HINT_2: 'El horno está apagado.',
-    LEVEL_210_HINT_3: 'Toca el horno para encenderlo, mete el bol, espera el pastel y pon la vela encima.'
+    LEVEL_210_HINT_3: 'Toca el horno para encenderlo, mete el bol, espera el pastel y pon la vela encima.',
+    CHAPTER_22: 'LLAVES Y PUERTAS',
+    LEVEL_213_CODE: '472',
+    LEVEL_219_A1: 'LA SALIDA',
+    LEVEL_219_A2: 'ES AQUÍ',
+    LEVEL_219_B1: 'LA SALIDA',
+    LEVEL_219_B2: 'NO ES AQUÍ',
+    LEVEL_219_C1: 'LA SALIDA',
+    LEVEL_219_C2: 'NO ES LA 1',
+    FB_WELCOME: '¡BIENVENIDO!',
+    FB_WRONG_KEY: 'ESA LLAVE NO SIRVE',
+    FB_TURN_IT: 'GÍRALO...',
+    FB_COME_IN: '¡ADELANTE!',
+    FB_TOO_SHORT: 'LA PUERTA NO TE VIO',
+    FB_FROZEN: '¡CONGELADA!',
+    FB_THINK_SIGNS: 'PIENSA EN LOS CARTELES...',
+
+    LEVEL_211_TITLE: 'ABRE LA PUERTA',
+    LEVEL_211_HINT_1: 'Toda puerta cerrada tiene una llave.',
+    LEVEL_211_HINT_2: '¿Dónde se esconde una llave?',
+    LEVEL_211_HINT_3: 'Quita el felpudo y lleva la llave hasta la puerta.',
+
+    LEVEL_212_TITLE: 'ABRE LA PUERTA',
+    LEVEL_212_HINT_1: 'Solo una llave sirve.',
+    LEVEL_212_HINT_2: 'Mira la sombra en la puerta.',
+    LEVEL_212_HINT_3: 'La sombra es de la llave azul, la más grande: llévala hasta la puerta.',
+
+    LEVEL_213_TITLE: 'ABRE LA PUERTA',
+    LEVEL_213_HINT_1: 'La puerta pide una clave.',
+    LEVEL_213_HINT_2: 'La clave está escondida en la pared.',
+    LEVEL_213_HINT_3: 'Quita el cuadro: la clave es 4, 7, 2.',
+
+    LEVEL_214_TITLE: 'ENTRA EN EL CÍRCULO',
+    LEVEL_214_HINT_1: 'El anillo tiene una abertura.',
+    LEVEL_214_HINT_2: 'El anillo gira.',
+    LEVEL_214_HINT_3: 'Gira el anillo hasta que la abertura mire hacia Ruli, a la izquierda.',
+
+    LEVEL_215_TITLE: 'ABRE LA PUERTA',
+    LEVEL_215_HINT_1: 'Hay dos candados.',
+    LEVEL_215_HINT_2: 'Busca dentro y debajo de las cosas.',
+    LEVEL_215_HINT_3: 'Abre el regalo y quita el cojín: lleva las dos llaves a los candados.',
+
+    LEVEL_216_TITLE: 'ENTRA',
+    LEVEL_216_HINT_1: 'La puerta no se abre sola.',
+    LEVEL_216_HINT_2: '¿Qué se hace antes de entrar?',
+    LEVEL_216_HINT_3: 'Llama a la puerta: tres toques rápidos.',
+
+    LEVEL_217_TITLE: 'ENTRA EN LA TIENDA',
+    LEVEL_217_HINT_1: 'La puerta es automática.',
+    LEVEL_217_HINT_2: 'El sensor está arriba.',
+    LEVEL_217_HINT_3: 'Agranda a Ruli con dos dedos (o la rueda del ratón) y llévalo hasta la puerta.',
+
+    LEVEL_218_TITLE: 'COGE LA LLAVE',
+    LEVEL_218_HINT_1: 'La llave está en el hielo.',
+    LEVEL_218_HINT_2: 'El hielo se derrite con el calor.',
+    LEVEL_218_HINT_3: 'Lleva el bloque de hielo al sol y espera a que se derrita.',
+
+    LEVEL_219_TITLE: 'ENCUENTRA LA SALIDA: SOLO UN CARTEL ES VERDAD',
+    LEVEL_219_HINT_1: 'Si la salida fuera la 1, ¿cuántos carteles serían verdad?',
+    LEVEL_219_HINT_2: 'Prueba cada puerta.',
+    LEVEL_219_HINT_3: 'La salida es la puerta 2: solo el cartel de la puerta 3 es verdad.',
+
+    LEVEL_220_TITLE: 'SAL DE LA SALA',
+    LEVEL_220_HINT_1: 'El candado tiene 3 números.',
+    LEVEL_220_HINT_2: 'Los dibujos bajo los números muestran el orden.',
+    LEVEL_220_HINT_3: 'Reloj: las 7. Detrás del cuadro: 5. Dentro de la caja: 2 pelotas. Clave 7, 5, 2.'
   }
 };

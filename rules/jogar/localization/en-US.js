@@ -1295,6 +1295,71 @@ RULES.L10N['en-US'] = {
     LEVEL_210_TITLE: 'MAKE A BIRTHDAY CAKE',
     LEVEL_210_HINT_1: 'The batter needs baking.',
     LEVEL_210_HINT_2: 'The oven is off.',
-    LEVEL_210_HINT_3: 'Tap the oven to turn it on, put the bowl inside, wait for the cake and put the candle on top.'
+    LEVEL_210_HINT_3: 'Tap the oven to turn it on, put the bowl inside, wait for the cake and put the candle on top.',
+    CHAPTER_22: 'KEYS AND DOORS',
+    LEVEL_213_CODE: '472',
+    LEVEL_219_A1: 'THE EXIT',
+    LEVEL_219_A2: 'IS HERE',
+    LEVEL_219_B1: 'THE EXIT',
+    LEVEL_219_B2: 'IS NOT HERE',
+    LEVEL_219_C1: 'THE EXIT IS',
+    LEVEL_219_C2: 'NOT DOOR 1',
+    FB_WELCOME: 'WELCOME!',
+    FB_WRONG_KEY: 'THAT KEY DOESN\'T FIT',
+    FB_TURN_IT: 'TURN IT...',
+    FB_COME_IN: 'COME IN!',
+    FB_TOO_SHORT: 'THE DOOR DIDN\'T SEE YOU',
+    FB_FROZEN: 'FROZEN!',
+    FB_THINK_SIGNS: 'THINK ABOUT THE SIGNS...',
+
+    LEVEL_211_TITLE: 'OPEN THE DOOR',
+    LEVEL_211_HINT_1: 'Every locked door has a key.',
+    LEVEL_211_HINT_2: 'Where do people hide keys?',
+    LEVEL_211_HINT_3: 'Move the doormat and take the key to the door.',
+
+    LEVEL_212_TITLE: 'OPEN THE DOOR',
+    LEVEL_212_HINT_1: 'Only one key fits.',
+    LEVEL_212_HINT_2: 'Look at the shadow on the door.',
+    LEVEL_212_HINT_3: 'The shadow is the blue key, the biggest one: take it to the door.',
+
+    LEVEL_213_TITLE: 'OPEN THE DOOR',
+    LEVEL_213_HINT_1: 'The door needs a code.',
+    LEVEL_213_HINT_2: 'The code is hidden on the wall.',
+    LEVEL_213_HINT_3: 'Move the painting: the code is 4, 7, 2.',
+
+    LEVEL_214_TITLE: 'GET INTO THE CIRCLE',
+    LEVEL_214_HINT_1: 'The ring has an opening.',
+    LEVEL_214_HINT_2: 'The ring turns.',
+    LEVEL_214_HINT_3: 'Turn the ring until the opening faces Ruli, on the left.',
+
+    LEVEL_215_TITLE: 'OPEN THE DOOR',
+    LEVEL_215_HINT_1: 'There are two padlocks.',
+    LEVEL_215_HINT_2: 'Look inside and under things.',
+    LEVEL_215_HINT_3: 'Open the present and move the cushion: take both keys to the padlocks.',
+
+    LEVEL_216_TITLE: 'COME IN',
+    LEVEL_216_HINT_1: 'The door won\'t open by itself.',
+    LEVEL_216_HINT_2: 'What do you do before going in?',
+    LEVEL_216_HINT_3: 'Knock on the door: three quick taps.',
+
+    LEVEL_217_TITLE: 'GO INTO THE SHOP',
+    LEVEL_217_HINT_1: 'The door is automatic.',
+    LEVEL_217_HINT_2: 'The sensor is up high.',
+    LEVEL_217_HINT_3: 'Make Ruli bigger with two fingers (or the mouse wheel) and take him to the door.',
+
+    LEVEL_218_TITLE: 'GET THE KEY',
+    LEVEL_218_HINT_1: 'The key is in the ice.',
+    LEVEL_218_HINT_2: 'Ice melts in the heat.',
+    LEVEL_218_HINT_3: 'Take the ice block into the sun and wait for it to melt.',
+
+    LEVEL_219_TITLE: 'FIND THE EXIT: ONLY ONE SIGN IS TRUE',
+    LEVEL_219_HINT_1: 'If the exit were door 1, how many signs would be true?',
+    LEVEL_219_HINT_2: 'Test each door.',
+    LEVEL_219_HINT_3: 'The exit is door 2: only the sign on door 3 is true.',
+
+    LEVEL_220_TITLE: 'GET OUT OF THE ROOM',
+    LEVEL_220_HINT_1: 'The padlock has 3 numbers.',
+    LEVEL_220_HINT_2: 'The pictures under the numbers show the order.',
+    LEVEL_220_HINT_3: 'Clock: 7 o\'clock. Behind the painting: 5. Inside the box: 2 balls. Code 7, 5, 2.'
   }
 };

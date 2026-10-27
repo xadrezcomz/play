@@ -49,6 +49,32 @@ module.exports = ({ unit, touch, sleep, center, board, tapXY, tap, dragXY, drag,
     210: ['BOLO', async () => {
       await dragTo('candle', 'top'); await sleep(400); await notWon(210, 'vela sem bolo');
       await dragTo('bowl', 'oven'); await sleep(1500); const o = await board(66, 64); await tapXY(o[0], o[1]); await sleep(3200); await dragTo('candle', 'top');
-    }, 4000]
+    }, 4000],
+    211: ['TAPETE', async () => { await tap('mat'); await notWon(211, 'tocar no tapete'); await dragBy('mat', 0, -150); await sleep(200); await dragTo('key', 'lock'); }],
+    212: ['CHAVE CERTA', async () => { await dragTo('k1', 'lock'); await sleep(400); await notWon(212, 'chave vermelha'); await dragTo('k3', 'lock'); }],
+    213: ['SENHA', async () => {
+      await tap('d1'); await notWon(213, 'chutar a senha'); await tap('d1');
+      await dragBy('pic', 150, -20); await sleep(200);
+      for (let i = 2; i < 4; i++) await tap('d1');
+      for (let i = 0; i < 7; i++) await tap('d2');
+      for (let i = 0; i < 2; i++) await tap('d3');
+    }],
+    214: ['ANEL', async () => { await tap('ring'); await notWon(214, 'tocar no anel'); await spin('ring', 0.8); }],
+    215: ['DOIS CADEADOS', async () => {
+      await dragBy('pillow', 0, -170); await sleep(200); await dragTo('kb', 'l1'); await sleep(300); await notWon(215, 'um cadeado');
+      await tap('gift'); await sleep(500); await dragTo('ka', 'l2');
+    }],
+    216: ['BATA NA PORTA', async () => { await tap('knock'); await sleep(800); await notWon(216, 'um toque');
+      const c = await center('knock'); for (let i = 0; i < 3; i++) await tapXY(c[0], c[1]); await sleep(300); }],
+    217: ['LOJA', async () => { await walk('ruli', [[58, 96]]); await notWon(217, 'Ruli pequeno'); await walk('ruli', [[40, 96]]); await pinch('ruli', 3.2); await sleep(200); await walk('ruli', [[56, 80]]); }],
+    218: ['GELO', async () => { await tap('ice'); await notWon(218, 'tocar no gelo'); await dragTo('ice', 'sunny'); await sleep(3800); }, 4000],
+    219: ['PLACAS', async () => { await tap('d1'); await notWon(219, 'porta 1'); await tap('d2'); }],
+    220: ['FUGA', async () => {
+      await dragBy('pic', 0, 140); await sleep(200); await tap('box'); await sleep(300);
+      for (let i = 0; i < 7; i++) await tap('d1');
+      for (let i = 0; i < 5; i++) await tap('d2');
+      await notWon(220, 'faltando um número');
+      for (let i = 0; i < 2; i++) await tap('d3');
+    }]
   };
 };

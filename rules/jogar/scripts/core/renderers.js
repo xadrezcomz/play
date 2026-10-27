@@ -661,6 +661,27 @@
     return '<path d="M6 4 L54 4 L46 96 L14 96Z" fill="#F7FBFF" stroke="#BFD4EA" stroke-width="3"/><path d="M10 34 L50 34 L46 92 L14 92Z" fill="' + c + '" opacity=".8"/>';
   } };
 
+
+  // ---- chaves e portas (fases 211+) ----
+  T.frame = { view: '0 0 100 80', svg: function (p) {
+    return '<rect x="2" y="2" width="96" height="76" rx="4" fill="' + C.wood + '"/><rect x="10" y="10" width="80" height="60" fill="#BDE3FF"/>' +
+      '<path d="M10 70 L36 40 L54 58 L68 46 L90 70Z" fill="' + C.green + '"/><circle cx="72" cy="26" r="7" fill="' + C.yellow + '"/>';
+  } };
+  // anel com uma abertura (gire com rot): a abertura começa em cima
+  T.ring = { view: '0 0 100 100', svg: function (p) {
+    var c = col(p, '#8C7B9E');
+    return '<path d="M56 6 A44 44 0 1 1 44 6" fill="none" stroke="' + c + '" stroke-width="10" stroke-linecap="round"/>';
+  } };
+  // bloco de gelo: state.melt de 0 a 1
+  T.ice = { view: '0 0 100 100', svg: function (p, o) {
+    var m = o.state.melt || (o.state.baking || 0) * 0.7, k = 1 - m * 0.75;
+    return '<rect x="' + (50 - 46 * k) + '" y="' + (98 - 92 * k) + '" width="' + (92 * k) + '" height="' + (92 * k) + '" rx="' + (10 + m * 20) + '" fill="#DFF3FF" fill-opacity=".75" stroke="#9FC9E8" stroke-width="4"/>' +
+      '<path d="M' + (50 - 30 * k) + ' ' + (98 - 80 * k) + ' L' + (50 - 14 * k) + ' ' + (98 - 80 * k) + '" stroke="#fff" stroke-width="5" stroke-linecap="round"/>';
+  } };
+  T.sensor = { view: '0 0 60 30', svg: function (p, o) {
+    return '<rect x="2" y="2" width="56" height="26" rx="8" fill="' + C.ink + '"/><circle cx="30" cy="15" r="7" fill="' + (o.state.on ? C.green : C.coral) + '"/>';
+  } };
+
   // Ponto invisível (lugares de encaixe, controladores).
   T.marker = { view: '0 0 10 10', svg: function () { return ''; } };
 

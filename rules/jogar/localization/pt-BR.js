@@ -1295,6 +1295,71 @@ RULES.L10N['pt-BR'] = {
     LEVEL_210_TITLE: 'FAÇA UM BOLO DE ANIVERSÁRIO',
     LEVEL_210_HINT_1: 'A massa precisa assar.',
     LEVEL_210_HINT_2: 'O forno está desligado.',
-    LEVEL_210_HINT_3: 'Toque no forno para ligar, coloque a tigela dentro, espere o bolo e coloque a vela em cima.'
+    LEVEL_210_HINT_3: 'Toque no forno para ligar, coloque a tigela dentro, espere o bolo e coloque a vela em cima.',
+    CHAPTER_22: 'CHAVES E PORTAS',
+    LEVEL_213_CODE: '472',
+    LEVEL_219_A1: 'A SAÍDA',
+    LEVEL_219_A2: 'É AQUI',
+    LEVEL_219_B1: 'A SAÍDA',
+    LEVEL_219_B2: 'NÃO É AQUI',
+    LEVEL_219_C1: 'A SAÍDA',
+    LEVEL_219_C2: 'NÃO É NA 1',
+    FB_WELCOME: 'BEM-VINDO!',
+    FB_WRONG_KEY: 'ESSA CHAVE NÃO SERVE',
+    FB_TURN_IT: 'GIRE...',
+    FB_COME_IN: 'ENTRE!',
+    FB_TOO_SHORT: 'A PORTA NÃO TE VIU',
+    FB_FROZEN: 'CONGELADA!',
+    FB_THINK_SIGNS: 'PENSE NAS PLACAS...',
+
+    LEVEL_211_TITLE: 'ABRA A PORTA',
+    LEVEL_211_HINT_1: 'Toda porta trancada tem uma chave.',
+    LEVEL_211_HINT_2: 'Onde se esconde uma chave?',
+    LEVEL_211_HINT_3: 'Tire o tapete do lugar e leve a chave até a porta.',
+
+    LEVEL_212_TITLE: 'ABRA A PORTA',
+    LEVEL_212_HINT_1: 'Só uma chave serve.',
+    LEVEL_212_HINT_2: 'Olhe a sombra na porta.',
+    LEVEL_212_HINT_3: 'A sombra é da chave azul, a maior: leve ela até a porta.',
+
+    LEVEL_213_TITLE: 'ABRA A PORTA',
+    LEVEL_213_HINT_1: 'A porta pede uma senha.',
+    LEVEL_213_HINT_2: 'A senha está escondida na parede.',
+    LEVEL_213_HINT_3: 'Tire o quadro do lugar: a senha é 4, 7, 2.',
+
+    LEVEL_214_TITLE: 'ENTRE NO CÍRCULO',
+    LEVEL_214_HINT_1: 'O anel tem uma abertura.',
+    LEVEL_214_HINT_2: 'O anel gira.',
+    LEVEL_214_HINT_3: 'Gire o anel até a abertura ficar virada para o Ruli, à esquerda.',
+
+    LEVEL_215_TITLE: 'ABRA A PORTA',
+    LEVEL_215_HINT_1: 'São dois cadeados.',
+    LEVEL_215_HINT_2: 'Procure nos objetos: abra e levante.',
+    LEVEL_215_HINT_3: 'Abra o presente e tire a almofada: leve as duas chaves até os cadeados.',
+
+    LEVEL_216_TITLE: 'ENTRE',
+    LEVEL_216_HINT_1: 'A porta não abre sozinha.',
+    LEVEL_216_HINT_2: 'O que se faz antes de entrar?',
+    LEVEL_216_HINT_3: 'Bata na porta: três toques rápidos.',
+
+    LEVEL_217_TITLE: 'ENTRE NA LOJA',
+    LEVEL_217_HINT_1: 'A porta é automática.',
+    LEVEL_217_HINT_2: 'O sensor fica lá em cima.',
+    LEVEL_217_HINT_3: 'Aumente o Ruli com dois dedos (ou a rodinha do mouse) e leve ele até a porta.',
+
+    LEVEL_218_TITLE: 'PEGUE A CHAVE',
+    LEVEL_218_HINT_1: 'A chave está no gelo.',
+    LEVEL_218_HINT_2: 'Gelo derrete no calor.',
+    LEVEL_218_HINT_3: 'Leve o bloco de gelo para o sol e espere derreter.',
+
+    LEVEL_219_TITLE: 'ACHE A SAÍDA: SÓ UMA PLACA É VERDADE',
+    LEVEL_219_HINT_1: 'Se a saída fosse a 1, quantas placas seriam verdade?',
+    LEVEL_219_HINT_2: 'Teste cada porta.',
+    LEVEL_219_HINT_3: 'A saída é a porta 2: só a placa da porta 3 é verdade.',
+
+    LEVEL_220_TITLE: 'SAIA DA SALA',
+    LEVEL_220_HINT_1: 'O cadeado tem 3 números.',
+    LEVEL_220_HINT_2: 'Os desenhos embaixo dos números mostram a ordem.',
+    LEVEL_220_HINT_3: 'Relógio: 7 horas. Atrás do quadro: 5. Dentro da caixa: 2 bolas. Senha 7, 5, 2.'
   }
 };
