@@ -21,6 +21,7 @@
 //   { type:'sum', container, ids:[...], equals } → soma dos números dentro do container
 //   { type:'countState', ids:[...], key, equals|min|max } → quantos têm o estado ligado
 //   { type:'stacked', ids:[...] }          → empilhados, de cima para baixo, um apoiado no outro
+//   { type:'wordsIn', ids:[...], equals|min|max } → quantas dessas palavras continuam na instrução
 //   state também aceita min/max (números)
 //   { type:'all'|'any', of:[...] }, { type:'not', of: cond }
 (function () {
@@ -133,6 +134,13 @@
         if (Math.abs((a.y + a.sh / 2) - (b.y - b.sh / 2)) > 3) return false;
       }
       return true;
+    },
+
+    wordsIn: function (c, E) {
+      var n = 0;
+      c.ids.forEach(function (id) { var o = E.get(id); if (o && o.inText) n++; });
+      if (c.equals != null) return n === c.equals;
+      return n >= (c.min != null ? c.min : 0) && n <= (c.max != null ? c.max : Infinity);
     },
 
     count: function (c, E) {

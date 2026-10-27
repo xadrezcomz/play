@@ -403,7 +403,8 @@
     var c = col(p, C.coral);
     return '<path d="M12 4 L68 4 L78 86 L2 86Z" fill="' + c + '"/><rect x="0" y="80" width="80" height="10" rx="4" fill="' + shade(c, -30) + '"/><path d="M20 14 L16 70" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".4"/>';
   } };
-  T.paper = { view: '0 0 100 60', stretch: true, svg: function () {
+  T.paper = { view: '0 0 100 60', stretch: true, svg: function (p) {
+    if (p.blank) return '<rect x="0" y="0" width="100" height="60" rx="3" fill="#FFFDF5" stroke="#E3DDD2" stroke-width="2"/>';
     return '<rect x="0" y="0" width="100" height="60" rx="3" fill="#FFFDF5" stroke="#E3DDD2" stroke-width="2"/><path d="M10 16 L70 16 M10 28 L84 28 M10 40 L60 40" stroke="#E3DDD2" stroke-width="3" stroke-linecap="round"/>';
   } };
   T.outline = { view: '0 0 100 100', stretch: true, svg: function (p) {
@@ -574,6 +575,11 @@
   T.book = { view: '0 0 120 80', svg: function (p, o) {
     return '<rect x="2" y="6" width="116" height="72" rx="6" fill="' + C.blue + '"/><rect x="8" y="2" width="50" height="70" rx="3" fill="#FFFDF5"/><rect x="62" y="2" width="50" height="70" rx="3" fill="#FFFDF5"/>' +
       '<path d="M60 4 L60 72" stroke="#E3DDD2" stroke-width="3"/><path d="M70 64 L104 64" stroke="#E3DDD2" stroke-width="3"/><text x="98" y="16" font-size="9" font-weight="900" fill="#B8BFCC" font-family="sans-serif">' + (o.state.page || 1) + '</text>';
+  } };
+  T.rainbow = { view: '0 0 120 64', svg: function () {
+    var cols = [C.coral, C.orange, C.yellow, C.green, C.blue, C.purple], t = '';
+    cols.forEach(function (c, i) { var r = 56 - i * 6; t += '<path d="M' + (60 - r) + ' 62 A' + r + ' ' + r + ' 0 0 1 ' + (60 + r) + ' 62" fill="none" stroke="' + c + '" stroke-width="6.5"/>'; });
+    return t;
   } };
   T.bin = { view: '0 0 80 100', svg: function (p, o) {
     var c = sc(p, o, '#9AA0B4');

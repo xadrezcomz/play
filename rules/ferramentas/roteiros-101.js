@@ -215,6 +215,19 @@ module.exports = ({ unit, touch, sleep, center, board, tapXY, tap, dragXY, drag,
     187: ['LUA EM CASA', async () => { await tap('moon'); await notWon(187, 'tocar na lua'); await dragTo('bucket', 'house'); }],
     188: ['BORBOLETA', async () => { await dragTo('wr', 'slot'); await sleep(500); await notWon(188, 'asa virada'); await tap('wr'); await sleep(200); await dragTo('wr', 'slot'); }],
     189: ['ERRO NO ESPELHO', async () => { await tap('r_ball'); await notWon(189, 'tocar num reflexo certo'); await tap('r_star'); }],
-    190: ['PORTA NO ESPELHO', async () => { await walk('ruli', [[46, 93]]); await notWon(190, 'ir até o espelho'); await walk('ruli', [[10, 93]]); }]
+    190: ['PORTA NO ESPELHO', async () => { await walk('ruli', [[46, 93]]); await notWon(190, 'ir até o espelho'); await walk('ruli', [[10, 93]]); }],
+    191: ['MAÇÃ', async () => { await tap('tree'); await notWon(191, 'procurar na árvore'); await dragTo('w_apple', 'ruli'); }],
+    192: ['ACORDE', async () => { await tap('ruli'); await notWon(192, 'tocar no Ruli'); await dragTo('w_wake', 'ruli'); }],
+    193: ['GATO E RATO', async () => { await dragBy('w1', 0, 200); await sleep(400); await notWon(193, 'tirar a palavra'); await dragTo('w1', 'w3'); }],
+    194: ['FELIZ', async () => { await rub('ruli', 14); await sleep(300); await notWon(194, 'fazer carinho'); await dragTo('w_happy', 'sad'); }],
+    195: ['MAIS LONGA', async () => { await tap('c'); await notWon(195, 'a maior palavra'); await tap('w_long'); }],
+    196: ['ÚLTIMA', async () => { await tap('fim'); await notWon(196, 'tocar em FIM'); await tap('w_last'); }],
+    197: ['PLACA', async () => { await sleep(2500); await tap('star'); await sleep(2000); await notWon(197, 'tocar na estrela'); await sleep(3000); }, 4000],
+    198: ['ARCO-ÍRIS', async () => { await dragTo('w_a', 'w_b'); }],
+    199: ['EM ORDEM', async () => { for (let k = 1; k <= 5; k++) { await dragTo('w' + k, 's' + k); await sleep(200); } }],
+    200: ['FRASE VERDADEIRA', async () => {
+      await dragBy('t4', 0, 260); await dragBy('t5', 0, 340); await sleep(300); await notWon(200, 'tirar o TRÊS');
+      await restart(); await dragBy('t1', 0, 260); await dragBy('t2', 0, 340);
+    }]
   };
 };
