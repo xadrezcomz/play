@@ -264,7 +264,7 @@
     return '<rect width="100" height="100" rx="4" fill="' + fill + '"/>' +
       (night ? '<circle cx="20" cy="30" r="1.6" fill="#fff"/><circle cx="70" cy="18" r="1.2" fill="#fff"/><circle cx="84" cy="56" r="1.4" fill="#fff"/><circle cx="40" cy="70" r="1" fill="#fff"/>' : '');
   } };
-  T.clock = { view: '0 0 100 100', svg: function () {
+  T.clock = { view: '0 0 100 100', svg: function (p) {
     var t = '';
     for (var i = 0; i < 12; i++) t += '<rect x="48.5" y="8" width="3" height="' + (i % 3 ? 5 : 9) + '" rx="1.5" fill="' + C.ink + '" transform="rotate(' + i * 30 + ' 50 50)"/>';
     if (p.numbers) [[12, 50, 30], [3, 74, 55], [6, 50, 80], [9, 26, 55]].forEach(function (q) {
