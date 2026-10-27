@@ -28,7 +28,8 @@
 //   magnet     { targets:[ids], radius }          → puxa os alvos que chegarem perto
 //   tank       { stones:[ids], per, floaters:[ids], top } → pedras sobem a água; o que flutua sobe junto
 //   melts      { heat:'id', shade:[ids], rate, safeMs } → derrete ao sol, a não ser que algo faça sombra
-//   mirrorOf   { source:'id', axis }              → repete o movimento de outro, espelhado
+//   mirrorOf   { source:'id', axis, axisObj, dir:'x'|'y' } → repete o movimento de outro, espelhado (o eixo pode ser um objeto)
+//   shadowOf   { source:'id', light:'id', k, y } → sombra no chão: anda para o lado contrário da luz
 //   spotlight  { target:'id', radius }            → lanterna: ilumina o escuro em volta
 //   timer      { every, do:[ações], times, delay } → repete ações sozinho
 //   order      { seq:[ids] }                      → tocar na ordem certa (state.done)
@@ -587,13 +588,35 @@
 
     mirrorOf: {
       init: function (o, cfg, E) {
-        var ax = cfg.axis != null ? cfg.axis : 50;
+        function axis() { var a = cfg.axisObj && E.get(cfg.axisObj); return a ? (cfg.dir === 'y' ? a.y : a.x) : (cfg.axis != null ? cfg.axis : 50); }
         function follow(e) {
-          if (e.obj.id !== cfg.source) return;
-          o.x = 2 * ax - e.obj.x; o.y = e.obj.y; o.layout();
+          if (e && e.obj && e.obj.id !== cfg.source && e.obj.id !== cfg.axisObj) return;
+          var src = E.get(cfg.source), ax = axis();
+          if (!src) return;
+          if (cfg.dir === 'y') { o.x = src.x; o.y = 2 * ax - src.y; } else { o.x = 2 * ax - src.x; o.y = src.y; }
+          o.layout();
+          E.emit('mirrored', { obj: o });
         }
         E.on('dragmove', follow);
         E.on('drop', follow);
+        setTimeout(follow, 20);
+      }
+    },
+
+    shadowOf: {
+      init: function (o, cfg, E) {
+        function upd(e) {
+          if (e && e.obj && e.obj.id !== cfg.source && e.obj.id !== cfg.light) return;
+          var src = E.get(cfg.source), lt = E.get(cfg.light);
+          if (!src || !lt) return;
+          var b = E.boardBounds(o, 0);
+          o.x = U.clamp(src.x + (src.x - lt.x) * (cfg.k || 1), b.x1, b.x2);
+          if (cfg.y != null) o.y = cfg.y;
+          o.layout();
+        }
+        E.on('dragmove', upd);
+        E.on('drop', upd);
+        setTimeout(upd, 20);
       }
     },
 

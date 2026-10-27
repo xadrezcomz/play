@@ -267,6 +267,9 @@
   T.clock = { view: '0 0 100 100', svg: function () {
     var t = '';
     for (var i = 0; i < 12; i++) t += '<rect x="48.5" y="8" width="3" height="' + (i % 3 ? 5 : 9) + '" rx="1.5" fill="' + C.ink + '" transform="rotate(' + i * 30 + ' 50 50)"/>';
+    if (p.numbers) [[12, 50, 30], [3, 74, 55], [6, 50, 80], [9, 26, 55]].forEach(function (q) {
+      t += '<text x="' + q[1] + '" y="' + q[2] + '" text-anchor="middle" font-size="13" font-weight="900" fill="' + C.ink + '" font-family="Nunito, system-ui, sans-serif">' + q[0] + '</text>';
+    });
     return '<circle cx="50" cy="50" r="47" fill="#fff" stroke="' + C.ink + '" stroke-width="5"/>' + t;
   } };
   // ponteiro: desenhado do centro para cima, para girar em volta do centro
@@ -384,7 +387,7 @@
   } };
   T.leaf = { view: '0 0 100 70', svg: function (p, o) {
     var c = sc(p, o, '#D6D0C4');
-    return '<path d="M6 60 Q10 6 94 8 Q88 64 6 60Z" fill="' + c + '"/><path d="M10 58 Q50 36 88 12" stroke="#fff" stroke-width="3" fill="none" opacity=".6"/>';
+    return (o.state.flip ? '<g transform="translate(100 0) scale(-1 1)">' : '<g>') + '<path d="M6 60 Q10 6 94 8 Q88 64 6 60Z" fill="' + c + '"/><path d="M10 58 Q50 36 88 12" stroke="#fff" stroke-width="3" fill="none" opacity=".6"/></g>';
   } };
   T.xmark = { view: '0 0 100 100', svg: function (p, o) {
     var a = 1 - (o.state.erase || 0);

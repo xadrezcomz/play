@@ -1101,6 +1101,68 @@ RULES.L10N['es-ES'] = {
     LEVEL_180_TITLE: 'MANDA LA PELOTA A LA CESTA',
     LEVEL_180_HINT_1: 'Es un balancín.',
     LEVEL_180_HINT_2: 'Algo ligero no sirve.',
-    LEVEL_180_HINT_3: 'Suelta la piedra en el extremo derecho del balancín.'
+    LEVEL_180_HINT_3: 'Suelta la piedra en el extremo derecho del balancín.',
+    CHAPTER_19: 'ESPEJOS Y SOMBRAS',
+    LEVEL_183_A: '3:00',
+    LEVEL_183_B: '9:00',
+    LEVEL_183_C: '6:00',
+    LEVEL_184_MSG: 'TOCA LA ESTRELLA',
+    FB_ONE_SHADOW_LEFT: 'SOBRA UNA SOMBRA...',
+    FB_MIRROR: 'ESO ES LO QUE MUESTRA EL ESPEJO...',
+    FB_READ_MIRROR: 'LEE EL ESPEJO...',
+    FB_MOVE_LIGHT: 'LA LUZ SE PUEDE MOVER',
+    FB_TOO_FAR: 'DEMASIADO LEJOS...',
+    FB_WRONG_SIDE: 'ESTÁ DADA LA VUELTA...',
+    FB_SAME_IN_MIRROR: 'ESE ESTÁ BIEN',
+
+    LEVEL_181_TITLE: 'PON CADA UNO EN SU SOMBRA',
+    LEVEL_181_HINT_1: 'Cada objeto tiene su sombra.',
+    LEVEL_181_HINT_2: 'Ruli también tiene sombra.',
+    LEVEL_181_HINT_3: 'Lleva la estrella, la manzana y a Ruli a las sombras con la misma forma.',
+
+    LEVEL_182_TITLE: 'LLEVA A CADA RULI A SU BANDERA',
+    LEVEL_182_HINT_1: 'El de allá es un reflejo.',
+    LEVEL_182_HINT_2: 'El espejo se puede mover.',
+    LEVEL_182_HINT_3: 'Arrastra el espejo un poco a la izquierda y luego lleva a Ruli hasta su bandera.',
+
+    LEVEL_183_TITLE: '¿QUÉ HORA ES DE VERDAD?',
+    LEVEL_183_HINT_1: 'Es un reloj en el espejo.',
+    LEVEL_183_HINT_2: 'En el espejo, la derecha es la izquierda.',
+    LEVEL_183_HINT_3: 'El espejo muestra las 3: en realidad son las 9.',
+
+    LEVEL_184_TITLE: 'HAZ LO QUE DICE EL ESPEJO',
+    LEVEL_184_HINT_1: 'La frase está al revés.',
+    LEVEL_184_HINT_2: 'Léela de derecha a izquierda.',
+    LEVEL_184_HINT_3: 'El espejo dice: TOCA LA ESTRELLA.',
+
+    LEVEL_185_TITLE: 'HAZ QUE LA SOMBRA DE RULI TOQUE LA ESTRELLA',
+    LEVEL_185_HINT_1: 'La sombra cambia con la luz.',
+    LEVEL_185_HINT_2: 'La sombra queda en el lado contrario a la lámpara.',
+    LEVEL_185_HINT_3: 'Lleva la lámpara a la derecha: la sombra va a la izquierda.',
+
+    LEVEL_186_TITLE: 'JUNTA A RULI CON SU REFLEJO',
+    LEVEL_186_HINT_1: 'El reflejo copia a Ruli.',
+    LEVEL_186_HINT_2: '¿Dónde se encuentran?',
+    LEVEL_186_HINT_3: 'Lleva a Ruli abajo, hasta la orilla del agua.',
+
+    LEVEL_187_TITLE: 'LLEVA LA LUNA A CASA',
+    LEVEL_187_HINT_1: 'La luna del cielo está demasiado lejos.',
+    LEVEL_187_HINT_2: 'Hay otra luna por aquí.',
+    LEVEL_187_HINT_3: 'La luna reflejada en el cubo va con él: lleva el cubo hasta la casa.',
+
+    LEVEL_188_TITLE: 'COMPLETA LA MARIPOSA',
+    LEVEL_188_HINT_1: 'Las alas son simétricas.',
+    LEVEL_188_HINT_2: 'El ala suelta está dada la vuelta.',
+    LEVEL_188_HINT_3: 'Toca el ala para girarla y luego encájala en la sombra.',
+
+    LEVEL_189_TITLE: 'ENCUENTRA EL ERROR EN EL ESPEJO',
+    LEVEL_189_HINT_1: 'El espejo lo copia todo.',
+    LEVEL_189_HINT_2: 'Compara los colores.',
+    LEVEL_189_HINT_3: 'El reflejo de la estrella es azul: tócalo.',
+
+    LEVEL_190_TITLE: 'LLEGA A LA PUERTA',
+    LEVEL_190_HINT_1: 'La puerta solo existe en el espejo.',
+    LEVEL_190_HINT_2: 'El reflejo se mueve al revés.',
+    LEVEL_190_HINT_3: 'Aleja a Ruli del espejo, hacia la izquierda: el reflejo llega a la puerta.'
   }
 };

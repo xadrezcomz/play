@@ -454,6 +454,7 @@
       if (!o) return;
       if (a.add) o.el.classList.add(a.add);
       if (a.remove) o.el.classList.remove(a.remove);
+      if (a.toggle) o.el.classList.toggle(a.toggle);
     },
     // troca dois objetos de lugar (e o que cada um carrega junto)
     swap: function (a, e, E) {

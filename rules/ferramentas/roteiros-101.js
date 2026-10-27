@@ -199,6 +199,22 @@ module.exports = ({ unit, touch, sleep, center, board, tapXY, tap, dragXY, drag,
       await dragTo('m', 'b'); await sleep(1200); await dragTo('s', 'm'); await sleep(1200);
     }, 4000],
     179: ['AFUNDE', async () => { await dragToBoard('rock', 30, 96); await sleep(400); await notWon(179, 'pedra sozinha'); await dragTo('rock', 'ball'); }, 4000],
-    180: ['GANGORRA', async () => { await dragTo('feather', 'end'); await sleep(700); await notWon(180, 'pena leve demais'); await dragTo('rock', 'end'); await sleep(1300); }, 4000]
+    180: ['GANGORRA', async () => { await dragTo('feather', 'end'); await sleep(700); await notWon(180, 'pena leve demais'); await dragTo('rock', 'end'); await sleep(1300); }, 4000],
+    181: ['SOMBRAS', async () => {
+      await dragTo('star', 's_star'); await dragTo('apple', 's_apple'); await sleep(300); await notWon(181, 'sem o Ruli');
+      await dragTo('ruli', 's_ruli');
+    }],
+    182: ['ESPELHO MÓVEL', async () => {
+      await dragToBoard('ruli', 20, 88); await sleep(300); await notWon(182, 'só o Ruli na bandeira');
+      await dragToBoard('mirror', 42, 70); await sleep(300);
+    }],
+    183: ['RELÓGIO NO ESPELHO', async () => { await tap('o3'); await notWon(183, 'ler 3 horas'); await tap('o9'); }],
+    184: ['FRASE NO ESPELHO', async () => { await tap('ball'); await notWon(184, 'tocar na bola'); await tap('star'); }],
+    185: ['SOMBRA', async () => { await tap('lamp'); await notWon(185, 'tocar na lâmpada'); await dragToBoard('lamp', 88, 44); }],
+    186: ['REFLEXO NA ÁGUA', async () => { await dragToBoard('ruli', 20, 40); await notWon(186, 'andar para o lado'); await dragToBoard('ruli', 50, 72); }],
+    187: ['LUA EM CASA', async () => { await tap('moon'); await notWon(187, 'tocar na lua'); await dragTo('bucket', 'house'); }],
+    188: ['BORBOLETA', async () => { await dragTo('wr', 'slot'); await sleep(500); await notWon(188, 'asa virada'); await tap('wr'); await sleep(200); await dragTo('wr', 'slot'); }],
+    189: ['ERRO NO ESPELHO', async () => { await tap('r_ball'); await notWon(189, 'tocar num reflexo certo'); await tap('r_star'); }],
+    190: ['PORTA NO ESPELHO', async () => { await walk('ruli', [[46, 93]]); await notWon(190, 'ir até o espelho'); await walk('ruli', [[10, 93]]); }]
   };
 };

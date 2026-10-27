@@ -1101,6 +1101,68 @@ RULES.L10N['pt-BR'] = {
     LEVEL_180_TITLE: 'MANDE A BOLA PARA A CESTA',
     LEVEL_180_HINT_1: 'É uma gangorra.',
     LEVEL_180_HINT_2: 'Leve demais não adianta.',
-    LEVEL_180_HINT_3: 'Solte a pedra na ponta direita da gangorra.'
+    LEVEL_180_HINT_3: 'Solte a pedra na ponta direita da gangorra.',
+    CHAPTER_19: 'ESPELHOS E SOMBRAS',
+    LEVEL_183_A: '3:00',
+    LEVEL_183_B: '9:00',
+    LEVEL_183_C: '6:00',
+    LEVEL_184_MSG: 'TOQUE NA ESTRELA',
+    FB_ONE_SHADOW_LEFT: 'SOBROU UMA SOMBRA...',
+    FB_MIRROR: 'ISSO É O QUE O ESPELHO MOSTRA...',
+    FB_READ_MIRROR: 'LEIA O ESPELHO...',
+    FB_MOVE_LIGHT: 'A LUZ PODE MUDAR DE LUGAR',
+    FB_TOO_FAR: 'LONGE DEMAIS...',
+    FB_WRONG_SIDE: 'ESTÁ VIRADA...',
+    FB_SAME_IN_MIRROR: 'ESSE ESTÁ CERTO',
+
+    LEVEL_181_TITLE: 'ENCAIXE CADA UM NA SUA SOMBRA',
+    LEVEL_181_HINT_1: 'Cada objeto tem sua sombra.',
+    LEVEL_181_HINT_2: 'O Ruli também tem sombra.',
+    LEVEL_181_HINT_3: 'Leve a estrela, a maçã e o Ruli até as sombras de mesmo formato.',
+
+    LEVEL_182_TITLE: 'LEVE CADA RULI À SUA BANDEIRA',
+    LEVEL_182_HINT_1: 'O de lá é um reflexo.',
+    LEVEL_182_HINT_2: 'O espelho pode andar.',
+    LEVEL_182_HINT_3: 'Arraste o espelho um pouco para a esquerda e depois leve o Ruli até a bandeira dele.',
+
+    LEVEL_183_TITLE: 'QUE HORAS SÃO DE VERDADE?',
+    LEVEL_183_HINT_1: 'É um relógio no espelho.',
+    LEVEL_183_HINT_2: 'No espelho, direita vira esquerda.',
+    LEVEL_183_HINT_3: 'O espelho mostra 3 horas: na verdade são 9.',
+
+    LEVEL_184_TITLE: 'FAÇA O QUE O ESPELHO DIZ',
+    LEVEL_184_HINT_1: 'A frase está ao contrário.',
+    LEVEL_184_HINT_2: 'Leia da direita para a esquerda.',
+    LEVEL_184_HINT_3: 'O espelho diz: TOQUE NA ESTRELA.',
+
+    LEVEL_185_TITLE: 'FAÇA A SOMBRA DO RULI TOCAR A ESTRELA',
+    LEVEL_185_HINT_1: 'A sombra muda com a luz.',
+    LEVEL_185_HINT_2: 'A sombra fica do lado contrário da lâmpada.',
+    LEVEL_185_HINT_3: 'Leve a lâmpada para a direita: a sombra vai para a esquerda.',
+
+    LEVEL_186_TITLE: 'JUNTE O RULI COM O REFLEXO',
+    LEVEL_186_HINT_1: 'O reflexo copia o Ruli.',
+    LEVEL_186_HINT_2: 'Onde os dois se encontram?',
+    LEVEL_186_HINT_3: 'Leve o Ruli para baixo, até a beira da água.',
+
+    LEVEL_187_TITLE: 'LEVE A LUA PARA CASA',
+    LEVEL_187_HINT_1: 'A lua do céu está longe demais.',
+    LEVEL_187_HINT_2: 'Tem outra lua por aqui.',
+    LEVEL_187_HINT_3: 'A lua refletida no balde vai junto: leve o balde até a casa.',
+
+    LEVEL_188_TITLE: 'COMPLETE A BORBOLETA',
+    LEVEL_188_HINT_1: 'As asas são espelhadas.',
+    LEVEL_188_HINT_2: 'A asa solta está virada.',
+    LEVEL_188_HINT_3: 'Toque na asa para virar e depois encaixe na sombra.',
+
+    LEVEL_189_TITLE: 'ACHE O ERRO NO ESPELHO',
+    LEVEL_189_HINT_1: 'O espelho copia tudo.',
+    LEVEL_189_HINT_2: 'Compare as cores.',
+    LEVEL_189_HINT_3: 'O reflexo da estrela está azul: toque nele.',
+
+    LEVEL_190_TITLE: 'CHEGUE À PORTA',
+    LEVEL_190_HINT_1: 'A porta só existe no espelho.',
+    LEVEL_190_HINT_2: 'O reflexo anda ao contrário.',
+    LEVEL_190_HINT_3: 'Afaste o Ruli do espelho, para a esquerda: o reflexo chega na porta.'
   }
 };

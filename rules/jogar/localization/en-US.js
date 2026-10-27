@@ -1101,6 +1101,68 @@ RULES.L10N['en-US'] = {
     LEVEL_180_TITLE: 'SEND THE BALL INTO THE BASKET',
     LEVEL_180_HINT_1: 'It\'s a seesaw.',
     LEVEL_180_HINT_2: 'Too light won\'t work.',
-    LEVEL_180_HINT_3: 'Drop the rock on the right end of the seesaw.'
+    LEVEL_180_HINT_3: 'Drop the rock on the right end of the seesaw.',
+    CHAPTER_19: 'MIRRORS AND SHADOWS',
+    LEVEL_183_A: '3:00',
+    LEVEL_183_B: '9:00',
+    LEVEL_183_C: '6:00',
+    LEVEL_184_MSG: 'TAP THE STAR',
+    FB_ONE_SHADOW_LEFT: 'ONE SHADOW IS LEFT...',
+    FB_MIRROR: 'THAT\'S WHAT THE MIRROR SHOWS...',
+    FB_READ_MIRROR: 'READ THE MIRROR...',
+    FB_MOVE_LIGHT: 'THE LIGHT CAN MOVE',
+    FB_TOO_FAR: 'TOO FAR...',
+    FB_WRONG_SIDE: 'IT\'S FLIPPED...',
+    FB_SAME_IN_MIRROR: 'THAT ONE IS RIGHT',
+
+    LEVEL_181_TITLE: 'MATCH EACH ONE TO ITS SHADOW',
+    LEVEL_181_HINT_1: 'Each object has its shadow.',
+    LEVEL_181_HINT_2: 'Ruli has a shadow too.',
+    LEVEL_181_HINT_3: 'Take the star, the apple and Ruli to the shadows with the same shape.',
+
+    LEVEL_182_TITLE: 'TAKE EACH RULI TO ITS FLAG',
+    LEVEL_182_HINT_1: 'The one over there is a reflection.',
+    LEVEL_182_HINT_2: 'The mirror can move.',
+    LEVEL_182_HINT_3: 'Drag the mirror a bit to the left, then take Ruli to his flag.',
+
+    LEVEL_183_TITLE: 'WHAT TIME IS IT REALLY?',
+    LEVEL_183_HINT_1: 'It\'s a clock in the mirror.',
+    LEVEL_183_HINT_2: 'In a mirror, right becomes left.',
+    LEVEL_183_HINT_3: 'The mirror shows 3 o\'clock: it is really 9.',
+
+    LEVEL_184_TITLE: 'DO WHAT THE MIRROR SAYS',
+    LEVEL_184_HINT_1: 'The sentence is backwards.',
+    LEVEL_184_HINT_2: 'Read it from right to left.',
+    LEVEL_184_HINT_3: 'The mirror says: TAP THE STAR.',
+
+    LEVEL_185_TITLE: 'MAKE RULI\'S SHADOW TOUCH THE STAR',
+    LEVEL_185_HINT_1: 'The shadow changes with the light.',
+    LEVEL_185_HINT_2: 'The shadow is on the opposite side of the lamp.',
+    LEVEL_185_HINT_3: 'Move the lamp to the right: the shadow goes left.',
+
+    LEVEL_186_TITLE: 'BRING RULI AND HIS REFLECTION TOGETHER',
+    LEVEL_186_HINT_1: 'The reflection copies Ruli.',
+    LEVEL_186_HINT_2: 'Where do they meet?',
+    LEVEL_186_HINT_3: 'Move Ruli down to the edge of the water.',
+
+    LEVEL_187_TITLE: 'TAKE THE MOON HOME',
+    LEVEL_187_HINT_1: 'The moon in the sky is too far.',
+    LEVEL_187_HINT_2: 'There\'s another moon around here.',
+    LEVEL_187_HINT_3: 'The moon reflected in the bucket comes along: take the bucket to the house.',
+
+    LEVEL_188_TITLE: 'COMPLETE THE BUTTERFLY',
+    LEVEL_188_HINT_1: 'The wings are mirrored.',
+    LEVEL_188_HINT_2: 'The loose wing is flipped.',
+    LEVEL_188_HINT_3: 'Tap the wing to flip it, then fit it into the shadow.',
+
+    LEVEL_189_TITLE: 'FIND THE MISTAKE IN THE MIRROR',
+    LEVEL_189_HINT_1: 'The mirror copies everything.',
+    LEVEL_189_HINT_2: 'Compare the colors.',
+    LEVEL_189_HINT_3: 'The star\'s reflection is blue: tap it.',
+
+    LEVEL_190_TITLE: 'REACH THE DOOR',
+    LEVEL_190_HINT_1: 'The door only exists in the mirror.',
+    LEVEL_190_HINT_2: 'The reflection moves the other way.',
+    LEVEL_190_HINT_3: 'Move Ruli away from the mirror, to the left: the reflection reaches the door.'
   }
 };

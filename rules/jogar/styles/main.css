@@ -472,3 +472,7 @@ button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-c
 .obj.invisible { opacity: 0; transition: opacity .35s; }
 .obj.invisible.seen { opacity: 1; }
 .sleepy-star .obj-inner { opacity: .7; filter: saturate(.55); animation: breathe 2.4s ease-in-out infinite; }
+.silhouette .obj-inner { filter: brightness(0); opacity: .18; }
+.flipx .obj-inner { transform: scaleX(-1); }
+.flipy .obj-inner { transform: scaleY(-1); }
+.reflect .obj-inner { transform: scaleY(-1); opacity: .55; }
