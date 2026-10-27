@@ -212,9 +212,9 @@ module.exports = ({ unit, touch, sleep, center, board, tapXY, tap, dragXY, drag,
     288: ['HORA REAL', async () => {
       const d = new Date(), want = Math.round(((d.getHours() % 12) + d.getMinutes() / 60) * 30 / 30) * 30;
       const wrong = (want + 150) % 360;
-      await spin('hour', (wrong || 360) / 360 + 0.05); await sleep(200); await tap('ok'); await notWon(288, 'hora errada');
+      await spin('hour', (wrong || 360) / 360); await sleep(200); await tap('ok'); await notWon(288, 'hora errada');
       const now = await obj('hour', 'angle'); const delta = ((want - now) + 360) % 360;
-      if (delta) await spin('hour', delta / 360 + 0.05);
+      if (delta) await spin('hour', delta / 360);
       await sleep(200); await tap('ok');
     }],
     289: ['FORA DO X', async () => { await tap('x'); await notWon(289, 'tocar no X');

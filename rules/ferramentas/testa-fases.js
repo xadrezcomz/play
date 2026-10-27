@@ -119,7 +119,9 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     const r = thin ? Math.max(c[2], c[3]) * 0.3 : Math.min(c[2], c[3]) * 0.35;
     const a0 = thin ? rot * Math.PI / 180 : -Math.PI / 2;
     await touch('touchStart', [[c[0] + Math.cos(a0) * r, c[1] + Math.sin(a0) * r]]);
-    for (let i = 1; i <= n; i++) { const a = a0 + i * Math.PI * 2 / 24; await touch('touchMove', [[c[0] + Math.cos(a) * r, c[1] + Math.sin(a) * r]]); await sleep(12); }
+    // primeiro um passo para fora (na mesma direção): começa a girar sem perder ângulo
+    const R2 = r + 12; await touch('touchMove', [[c[0] + Math.cos(a0) * R2, c[1] + Math.sin(a0) * R2]]); await sleep(12);
+    for (let i = 1; i <= n; i++) { const a = a0 + i * Math.PI * 2 / 24; await touch('touchMove', [[c[0] + Math.cos(a) * R2, c[1] + Math.sin(a) * R2]]); await sleep(12); }
     await touch('touchEnd', []); await sleep(80);
   };
   const drawPath = async (pts) => {
@@ -375,7 +377,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       await spin('p1', 0.25); await notWon(93, 'só um cano');
       await spin('p2', 0.5); await spin('p3', 0.25);
     }],
-    94: ['COFRE', async () => { await tap('d1'); await notWon(94, 'tocar no disco'); await spin('d1', 0.15); await spin('d2', 0.65); }],
+    94: ['COFRE', async () => { await tap('d1'); await notWon(94, 'tocar no disco'); await spin('d1', 0.1); await spin('d2', 0.6); }],
     95: ['RULI DORMIR', async () => {
       await tap('switch'); await dragTo('radio', 'box'); await sleep(800); await tap('ruli'); await sleep(2500); await notWon(95, 'acordar o Ruli');
       await sleep(3500);
