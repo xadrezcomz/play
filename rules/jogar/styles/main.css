@@ -480,3 +480,4 @@ button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-c
 .obj.dim .obj-inner { opacity: .72; }
 .shiver .obj-inner { animation: shiver .25s linear infinite; }
 @keyframes shiver { 25% { transform: translateX(-3%); } 75% { transform: translateX(3%); } }
+.map-n.long { font-size: calc(var(--W) * .031); width: calc(var(--W) * .092); height: calc(var(--W) * .092); letter-spacing: -.03em; }
