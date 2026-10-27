@@ -32,7 +32,7 @@
 //   spotlight  { target:'id', radius }            → lanterna: ilumina o escuro em volta
 //   timer      { every, do:[ações], times, delay } → repete ações sozinho
 //   order      { seq:[ids] }                      → tocar na ordem certa (state.done)
-//   simon      { seq:[ids], show }                → mostra uma sequência e espera a repetição
+//   simon      { seq:[ids], show, answer }        → mostra uma sequência e espera a repetição (ou "answer")
 //   drawZone   { from:'id', to:'id', spawn:'id', tol } → um traço de A até B faz aparecer algo
 //   connect    { dots:[ids], spawn:'id', tol }    → um traço que passa pelos pontos em ordem
 //   balance    { left:'id', right:'id', ids:[...] } → a barra inclina conforme o peso de cada prato
@@ -42,6 +42,7 @@
 //   patrol     { points:[[x,y]...], ms, pause }  → anda sozinho de ponto em ponto (para ao ser segurado)
 //   spinner    { speed }                         → gira sozinho até state.stopped (aí grava state.angle)
 //   sumDisplay { container, ids:[...] }          → state.n = soma dos números dentro do container
+//   bake       { in:'id', ms, set }              → fica dentro de "in" por ms seguidos: liga os estados
 //   encircle   { target:'id' }                   → um traço fechado em volta do alvo (state.done)
 //   palette    { from:[ids] }                    → mistura as cores soltas em cima (state.color); tocar limpa
 (function () {
@@ -666,9 +667,10 @@
           var x = e.obj;
           x.setState('on', true);
           setTimeout(function () { x.setState('on', false); }, 180);
-          if (x.id === cfg.seq[i]) {
+          var ans = cfg.answer || cfg.seq;
+          if (x.id === ans[i]) {
             i++;
-            if (i >= cfg.seq.length) { o.setState('done', true); E.emit('repeated', { obj: o }); }
+            if (i >= ans.length) { o.setState('done', true); E.emit('repeated', { obj: o }); }
           } else {
             E.fail('FB_AGAIN_WATCH');
             setTimeout(play, 900);
@@ -878,6 +880,30 @@
         E.on('drop', function () { setTimeout(upd, 200); });
         E.on('rotated', function () { setTimeout(upd, 50); });
         setTimeout(upd, 30);
+      }
+    },
+
+    bake: {
+      init: function (o, cfg, E) {
+        var tok = E.token, t0 = 0, done = false;
+        var iv = setInterval(function () {
+          if (E.token !== tok) { clearInterval(iv); return; }
+          if (done || E.paused) return;
+          var box = E.get(cfg['in']);
+          var inside = box && !box.hidden && !o.hidden && !o.el.classList.contains('dragging') && E.isInside(o, box) &&
+            (!cfg.requires || Object.keys(cfg.requires).every(function (k) { return box.state[k] === cfg.requires[k]; }));
+          if (!inside) { if (t0) { t0 = 0; o.setState('baking', 0); } return; }
+          if (!t0) t0 = U.now();
+          var k = Math.min(1, (U.now() - t0) / (cfg.ms || 2500));
+          o.setState('baking', Math.round(k * 10) / 10);
+          if (k >= 1) {
+            done = true;
+            Object.keys(cfg.set || {}).forEach(function (key) { o.setState(key, cfg.set[key]); });
+            o.fx('pop'); R.Audio.play('pop');
+            E.emit('baked', { obj: o });
+            E.check();
+          }
+        }, 100);
       }
     },
 

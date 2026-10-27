@@ -984,6 +984,63 @@ RULES.L10N['pt-BR'] = {
     LEVEL_160_TITLE: 'PROTEJA O RULI DA CHUVA',
     LEVEL_160_HINT_1: 'A nuvem não sai.',
     LEVEL_160_HINT_2: 'Desenhe uma proteção.',
-    LEVEL_160_HINT_3: 'Desenhe um círculo em volta do Ruli, começando e terminando no mesmo lugar.'
+    LEVEL_160_HINT_3: 'Desenhe um círculo em volta do Ruli, começando e terminando no mesmo lugar.',
+    CHAPTER_17: 'NA HORA CERTA',
+    FB_TOO_FAST: 'RÁPIDA DEMAIS!',
+    FB_MISSED: 'PASSOU DA HORA...',
+    FB_TOO_SOON: 'CEDO DEMAIS...',
+    FB_RED_LIGHT: 'SINAL VERMELHO!',
+    FB_GROWING_TAKES_TIME: 'CRESCER LEVA TEMPO...',
+    FB_SLOW_TIME: 'O TEMPO ESTÁ DEVAGAR...',
+
+    LEVEL_161_TITLE: 'PEGUE A ESTRELA',
+    LEVEL_161_HINT_1: 'Ela foge de cada toque.',
+    LEVEL_161_HINT_2: 'Estrelas também cansam.',
+    LEVEL_161_HINT_3: 'Fique sem tocar em nada por 3 segundos: a estrela cochila. Aí toque nela.',
+
+    LEVEL_162_TITLE: 'PARE O PONTEIRO NO 12',
+    LEVEL_162_HINT_1: 'O botão para o ponteiro.',
+    LEVEL_162_HINT_2: 'Aperte um pouco antes.',
+    LEVEL_162_HINT_3: 'Aperte o botão quando o ponteiro estiver chegando no topo.',
+
+    LEVEL_163_TITLE: 'FRITE O OVO',
+    LEVEL_163_HINT_1: 'A frigideira está quente.',
+    LEVEL_163_HINT_2: 'Fritar leva um tempinho.',
+    LEVEL_163_HINT_3: 'Coloque o ovo na frigideira e não mexa até ele fritar.',
+
+    LEVEL_164_TITLE: 'ATRAVESSE A RUA',
+    LEVEL_164_HINT_1: 'Olhe o sinal.',
+    LEVEL_164_HINT_2: 'Vermelho: pare. Verde: siga.',
+    LEVEL_164_HINT_3: 'Espere o sinal ficar verde e arraste o Ruli até o outro lado.',
+
+    LEVEL_165_TITLE: 'TOQUE NA LUA',
+    LEVEL_165_HINT_1: 'Agora é de dia.',
+    LEVEL_165_HINT_2: 'O dia não dura para sempre.',
+    LEVEL_165_HINT_3: 'Espere um pouco: a noite chega e a lua aparece.',
+
+    LEVEL_166_TITLE: 'PARE NO 5',
+    LEVEL_166_HINT_1: 'O número muda sozinho.',
+    LEVEL_166_HINT_2: 'Toque bem na hora.',
+    LEVEL_166_HINT_3: 'Toque no número quando ele mostrar 5.',
+
+    LEVEL_167_TITLE: 'REPITA AO CONTRÁRIO',
+    LEVEL_167_HINT_1: 'Preste atenção na ordem.',
+    LEVEL_167_HINT_2: 'Do fim para o começo.',
+    LEVEL_167_HINT_3: 'Se piscar vermelho, verde, amarelo, toque amarelo, verde, vermelho.',
+
+    LEVEL_168_TITLE: 'FAÇA A PLANTA CRESCER',
+    LEVEL_168_HINT_1: 'Plantas precisam de água.',
+    LEVEL_168_HINT_2: 'E de paciência.',
+    LEVEL_168_HINT_3: 'Regue a planta e depois não toque em nada por 3 segundos.',
+
+    LEVEL_169_TITLE: 'PEGUE O RATINHO 3 VEZES',
+    LEVEL_169_HINT_1: 'Ele aparece nos buracos.',
+    LEVEL_169_HINT_2: 'Seja rápido.',
+    LEVEL_169_HINT_3: 'Toque no ratinho cada vez que ele aparecer, até marcar 3.',
+
+    LEVEL_170_TITLE: 'ESPERE O NÚMERO CHEGAR A 0',
+    LEVEL_170_HINT_1: 'Vai demorar...',
+    LEVEL_170_HINT_2: 'Dá para adiantar o tempo?',
+    LEVEL_170_HINT_3: 'Gire o ponteiro do relógio várias vezes: o tempo passa mais rápido.'
   }
 };

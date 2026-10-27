@@ -984,6 +984,63 @@ RULES.L10N['es-ES'] = {
     LEVEL_160_TITLE: 'PROTEGE A RULI DE LA LLUVIA',
     LEVEL_160_HINT_1: 'La nube no se mueve.',
     LEVEL_160_HINT_2: 'Dibuja una protección.',
-    LEVEL_160_HINT_3: 'Dibuja un círculo alrededor de Ruli, empezando y terminando en el mismo sitio.'
+    LEVEL_160_HINT_3: 'Dibuja un círculo alrededor de Ruli, empezando y terminando en el mismo sitio.',
+    CHAPTER_17: 'EN EL MOMENTO JUSTO',
+    FB_TOO_FAST: '¡DEMASIADO RÁPIDA!',
+    FB_MISSED: 'SE PASÓ...',
+    FB_TOO_SOON: 'DEMASIADO PRONTO...',
+    FB_RED_LIGHT: '¡SEMÁFORO EN ROJO!',
+    FB_GROWING_TAKES_TIME: 'CRECER LLEVA TIEMPO...',
+    FB_SLOW_TIME: 'EL TIEMPO VA LENTO...',
+
+    LEVEL_161_TITLE: 'ATRAPA LA ESTRELLA',
+    LEVEL_161_HINT_1: 'Huye de cada toque.',
+    LEVEL_161_HINT_2: 'Las estrellas también se cansan.',
+    LEVEL_161_HINT_3: 'No toques nada durante 3 segundos: la estrella se duerme. Entonces tócala.',
+
+    LEVEL_162_TITLE: 'PARA LA AGUJA EN EL 12',
+    LEVEL_162_HINT_1: 'El botón para la aguja.',
+    LEVEL_162_HINT_2: 'Pulsa un poco antes.',
+    LEVEL_162_HINT_3: 'Pulsa el botón cuando la aguja esté llegando arriba.',
+
+    LEVEL_163_TITLE: 'FRÍE EL HUEVO',
+    LEVEL_163_HINT_1: 'La sartén está caliente.',
+    LEVEL_163_HINT_2: 'Freír lleva un momento.',
+    LEVEL_163_HINT_3: 'Pon el huevo en la sartén y no lo muevas hasta que se fría.',
+
+    LEVEL_164_TITLE: 'CRUZA LA CALLE',
+    LEVEL_164_HINT_1: 'Mira el semáforo.',
+    LEVEL_164_HINT_2: 'Rojo: para. Verde: sigue.',
+    LEVEL_164_HINT_3: 'Espera a que el semáforo esté en verde y arrastra a Ruli al otro lado.',
+
+    LEVEL_165_TITLE: 'TOCA LA LUNA',
+    LEVEL_165_HINT_1: 'Ahora es de día.',
+    LEVEL_165_HINT_2: 'El día no dura para siempre.',
+    LEVEL_165_HINT_3: 'Espera un poco: llega la noche y aparece la luna.',
+
+    LEVEL_166_TITLE: 'PARA EN EL 5',
+    LEVEL_166_HINT_1: 'El número cambia solo.',
+    LEVEL_166_HINT_2: 'Toca justo a tiempo.',
+    LEVEL_166_HINT_3: 'Toca el número cuando muestre 5.',
+
+    LEVEL_167_TITLE: 'REPÍTELO AL REVÉS',
+    LEVEL_167_HINT_1: 'Presta atención al orden.',
+    LEVEL_167_HINT_2: 'Del final al principio.',
+    LEVEL_167_HINT_3: 'Si parpadea rojo, verde, amarillo, toca amarillo, verde, rojo.',
+
+    LEVEL_168_TITLE: 'HAZ CRECER LA PLANTA',
+    LEVEL_168_HINT_1: 'Las plantas necesitan agua.',
+    LEVEL_168_HINT_2: 'Y paciencia.',
+    LEVEL_168_HINT_3: 'Riega la planta y luego no toques nada durante 3 segundos.',
+
+    LEVEL_169_TITLE: 'ATRAPA AL RATÓN 3 VECES',
+    LEVEL_169_HINT_1: 'Sale por los agujeros.',
+    LEVEL_169_HINT_2: 'Sé rápido.',
+    LEVEL_169_HINT_3: 'Toca al ratón cada vez que aparezca, hasta llegar a 3.',
+
+    LEVEL_170_TITLE: 'ESPERA A QUE EL NÚMERO LLEGUE A 0',
+    LEVEL_170_HINT_1: 'Va a tardar...',
+    LEVEL_170_HINT_2: '¿Se puede adelantar el tiempo?',
+    LEVEL_170_HINT_3: 'Gira la aguja del reloj varias veces: el tiempo pasa más rápido.'
   }
 };

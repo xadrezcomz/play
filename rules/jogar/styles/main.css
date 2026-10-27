@@ -471,3 +471,4 @@ button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-c
 .obj-word.huge-word .obj-inner { font-size: 1.8em; }
 .obj.invisible { opacity: 0; transition: opacity .35s; }
 .obj.invisible.seen { opacity: 1; }
+.sleepy-star .obj-inner { opacity: .7; filter: saturate(.55); animation: breathe 2.4s ease-in-out infinite; }

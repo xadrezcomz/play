@@ -128,6 +128,43 @@ module.exports = ({ touch, sleep, center, board, tapXY, tap, dragXY, drag, dragB
     159: ['CACHORRO', async () => { await dragTo('bone', 'dog'); await sleep(300); await notWon(159, 'dar o osso'); await rub('dog', 18, 40); }],
     160: ['CÍRCULO', async () => { await tap('ruli'); await notWon(160, 'tocar no Ruli');
       const pts = []; for (let i = 0; i <= 26; i++) { const a = i / 24 * Math.PI * 2; pts.push([50 + 20 * Math.cos(a), 80 + 20 * Math.sin(a)]); }
-      await drawPath(pts); }]
+      await drawPath(pts); }],
+    161: ['ESTRELA DORMINDO', async () => { await tap('star'); await notWon(161, 'tocar na estrela acordada'); await sleep(4300); await tap('star'); }, 4000],
+    162: ['PARE NO 12', async () => {
+      for (let k = 0; k < 8; k++) {
+        // mede a velocidade real e calcula quando o ponteiro chega perto do topo
+        const r0 = await page.evaluate(() => [RULES.Game.engine.get('hand').rot, performance.now()]); await sleep(300);
+        const r1 = await page.evaluate(() => [RULES.Game.engine.get('hand').rot, performance.now()]);
+        const v = (((r1[0] - r0[0]) + 360) % 360) / (r1[1] - r0[1]);
+        const wait = (((352 - r1[0]) + 360) % 360) / v - 70;
+        await sleep(Math.max(0, wait));
+        await tap('stop'); await sleep(300);
+        if ((await page.evaluate(() => RULES.Game.won))) return;
+        await sleep(900);
+      }
+    }],
+    163: ['OVO FRITO', async () => { await dragTo('egg', 'pan'); await sleep(800); await dragBy('egg', -100, -150); await sleep(300); await notWon(163, 'tirar cedo'); await dragTo('egg', 'pan'); await sleep(3000); }],
+    164: ['SEMÁFORO', async () => {
+      await walk('ruli', [[50, 90]]); await sleep(500); await notWon(164, 'atravessar no vermelho');
+      for (let i = 0; i < 100; i++) { if ((await obj('light', 'light')) === 'green') break; await sleep(60); }
+      await walk('ruli', [[86, 90]], 6);
+    }, 4000],
+    165: ['LUA', async () => { await tap('sky'); await notWon(165, 'tocar no céu de dia'); await sleep(6800); await tap('moon'); }],
+    166: ['PARE NO 5', async () => {
+      await tap('n'); await notWon(166, 'tocar fora da hora');
+      for (let i = 0; i < 300; i++) { if ((await obj('n', 'n')) === 5) break; await sleep(15); }
+      await tap('n');
+    }],
+    167: ['AO CONTRÁRIO', async () => { await sleep(3800); for (const id of ['l2', 'l4', 'l1']) { await tap(id); await sleep(250); } }],
+    168: ['PLANTA', async () => { await dragTo('can', 'plant'); await sleep(300); await tap('plant'); await sleep(1500); await tap('plant'); await notWon(168, 'mexer na planta'); await sleep(3600); }],
+    169: ['RATINHO', async () => {
+      for (let i = 0; i < 400; i++) {
+        const v = await page.evaluate(() => { const m = RULES.Game.engine.get('mouse'); return !m.hidden; });
+        if (v) { await tap('mouse'); await sleep(200); }
+        if ((await obj('score', 'n')) >= 3) break;
+        await sleep(30);
+      }
+    }],
+    170: ['ADIANTE O RELÓGIO', async () => { await spin('hand', 3); await sleep(200); await spin('hand', 3); await sleep(200); await spin('hand', 3); }]
   };
 };

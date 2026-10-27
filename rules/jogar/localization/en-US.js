@@ -984,6 +984,63 @@ RULES.L10N['en-US'] = {
     LEVEL_160_TITLE: 'PROTECT RULI FROM THE RAIN',
     LEVEL_160_HINT_1: 'The cloud won\'t move.',
     LEVEL_160_HINT_2: 'Draw some protection.',
-    LEVEL_160_HINT_3: 'Draw a circle around Ruli, starting and ending at the same spot.'
+    LEVEL_160_HINT_3: 'Draw a circle around Ruli, starting and ending at the same spot.',
+    CHAPTER_17: 'RIGHT ON TIME',
+    FB_TOO_FAST: 'TOO FAST!',
+    FB_MISSED: 'MISSED IT...',
+    FB_TOO_SOON: 'TOO SOON...',
+    FB_RED_LIGHT: 'RED LIGHT!',
+    FB_GROWING_TAKES_TIME: 'GROWING TAKES TIME...',
+    FB_SLOW_TIME: 'TIME IS SLOW...',
+
+    LEVEL_161_TITLE: 'CATCH THE STAR',
+    LEVEL_161_HINT_1: 'It runs away from every tap.',
+    LEVEL_161_HINT_2: 'Stars get tired too.',
+    LEVEL_161_HINT_3: 'Don\'t touch anything for 3 seconds: the star dozes off. Then tap it.',
+
+    LEVEL_162_TITLE: 'STOP THE HAND AT 12',
+    LEVEL_162_HINT_1: 'The button stops the hand.',
+    LEVEL_162_HINT_2: 'Press a little early.',
+    LEVEL_162_HINT_3: 'Press the button when the hand is reaching the top.',
+
+    LEVEL_163_TITLE: 'FRY THE EGG',
+    LEVEL_163_HINT_1: 'The pan is hot.',
+    LEVEL_163_HINT_2: 'Frying takes a moment.',
+    LEVEL_163_HINT_3: 'Put the egg in the pan and don\'t move it until it\'s fried.',
+
+    LEVEL_164_TITLE: 'CROSS THE STREET',
+    LEVEL_164_HINT_1: 'Look at the light.',
+    LEVEL_164_HINT_2: 'Red: stop. Green: go.',
+    LEVEL_164_HINT_3: 'Wait for the green light and drag Ruli to the other side.',
+
+    LEVEL_165_TITLE: 'TAP THE MOON',
+    LEVEL_165_HINT_1: 'It\'s daytime now.',
+    LEVEL_165_HINT_2: 'The day doesn\'t last forever.',
+    LEVEL_165_HINT_3: 'Wait a bit: night comes and the moon appears.',
+
+    LEVEL_166_TITLE: 'STOP AT 5',
+    LEVEL_166_HINT_1: 'The number changes by itself.',
+    LEVEL_166_HINT_2: 'Tap right on time.',
+    LEVEL_166_HINT_3: 'Tap the number when it shows 5.',
+
+    LEVEL_167_TITLE: 'REPEAT IT BACKWARDS',
+    LEVEL_167_HINT_1: 'Pay attention to the order.',
+    LEVEL_167_HINT_2: 'From the end to the start.',
+    LEVEL_167_HINT_3: 'If it flashes red, green, yellow, tap yellow, green, red.',
+
+    LEVEL_168_TITLE: 'MAKE THE PLANT GROW',
+    LEVEL_168_HINT_1: 'Plants need water.',
+    LEVEL_168_HINT_2: 'And patience.',
+    LEVEL_168_HINT_3: 'Water the plant, then don\'t touch anything for 3 seconds.',
+
+    LEVEL_169_TITLE: 'CATCH THE MOUSE 3 TIMES',
+    LEVEL_169_HINT_1: 'It pops out of the holes.',
+    LEVEL_169_HINT_2: 'Be quick.',
+    LEVEL_169_HINT_3: 'Tap the mouse each time it appears, until you reach 3.',
+
+    LEVEL_170_TITLE: 'WAIT FOR THE NUMBER TO REACH 0',
+    LEVEL_170_HINT_1: 'This will take a while...',
+    LEVEL_170_HINT_2: 'Can you speed up time?',
+    LEVEL_170_HINT_3: 'Turn the clock hand several times: time goes faster.'
   }
 };

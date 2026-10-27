@@ -108,8 +108,9 @@
   } };
 
   T.button = { view: '0 0 100 100', svg: function (p, o) {
-    var c = col(p, C.coral), down = o.state.pressed;
-    return '<ellipse cx="50" cy="70" rx="46" ry="22" fill="' + shade(c, -60) + '"/>' +
+    var c = col(p, C.coral), down = o.state.pressed || o.state.on;
+    if (o.state.on) c = shade(c, 45);
+    return (o.state.on ? '<ellipse cx="50" cy="56" rx="50" ry="34" fill="' + c + '" opacity=".35"/>' : '') + '<ellipse cx="50" cy="70" rx="46" ry="22" fill="' + shade(c, -60) + '"/>' +
       '<rect x="12" y="' + (down ? 52 : 38) + '" width="76" height="' + (down ? 18 : 32) + '" rx="10" fill="' + shade(c, -30) + '"/>' +
       '<ellipse cx="50" cy="' + (down ? 52 : 38) + '" rx="38" ry="16" fill="' + c + '"/>';
   } };
@@ -432,6 +433,7 @@
   } };
   // ovo: state.crack (0–1) racha; state.hatched mostra o pintinho
   T.egg = { view: '0 0 80 100', svg: function (p, o) {
+    if (o.state.cooked) return '<g transform="translate(-10 18)">' + T.fried.svg(p, o) + '</g>';
     if (o.state.hatched) {
       return '<path d="M8 66 L18 56 L28 66 L40 54 L52 66 L62 56 L72 66 Q72 96 40 96 Q8 96 8 66Z" fill="#FFF6E6" stroke="#E8D9BE" stroke-width="3"/>' +
         '<circle cx="40" cy="44" r="22" fill="' + C.yellow + '"/><circle cx="33" cy="40" r="3.4" fill="' + C.ink + '"/><circle cx="47" cy="40" r="3.4" fill="' + C.ink + '"/><path d="M36 48 L44 48 L40 54Z" fill="' + C.orange + '"/>';
@@ -540,6 +542,7 @@
   // tela de números (marcador): state.n
   T.display = { view: '0 0 120 60', svg: function (p, o) {
     var n = o.state.n != null ? o.state.n : (p.n != null ? p.n : 0);
+    if (typeof n === 'number') n = Math.ceil(n - 1e-9);
     return '<rect x="2" y="2" width="116" height="56" rx="10" fill="' + C.ink + '"/><rect x="8" y="8" width="104" height="44" rx="6" fill="#1E2033"/>' +
       '<text x="60" y="45" text-anchor="middle" font-size="38" font-weight="900" fill="' + (p.color ? col(p) : '#7CF29A') + '" font-family="ui-monospace, Menlo, monospace">' + n + '</text>';
   } };
@@ -582,7 +585,7 @@
     return '<rect x="74" y="16" width="44" height="9" rx="4.5" fill="' + C.ink + '"/><ellipse cx="40" cy="24" rx="38" ry="14" fill="#4A4E69"/><ellipse cx="40" cy="20" rx="32" ry="9" fill="#5C6080"/>' +
       (o.state.hot ? '<path d="M24 8 Q20 0 26 -6 M40 6 Q36 -2 42 -8 M56 8 Q52 0 58 -6" stroke="#C9CED6" stroke-width="3" fill="none" stroke-linecap="round"/>' : '');
   } };
-  T.fried = { view: '0 0 100 70', svg: function () {
+  T.fried = { view: '0 0 100 70', svg: function (p, o) {
     return '<path d="M10 40 Q4 14 34 12 Q50 2 70 12 Q98 14 92 40 Q96 64 60 62 Q40 70 24 60 Q4 58 10 40Z" fill="#fff" stroke="#EEE6D8" stroke-width="3"/><circle cx="50" cy="36" r="15" fill="' + C.yellow + '"/><ellipse cx="45" cy="31" rx="4" ry="3" fill="#fff" opacity=".6"/>';
   } };
 
