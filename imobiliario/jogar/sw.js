@@ -1,7 +1,7 @@
 /* Imobiliário 3D — deixa o jogo abrir sem internet depois da primeira visita.
    "Rede primeiro": com internet vem sempre a versão do site (e a cópia é
    renovada); sem internet, vem a cópia guardada. */
-const COPIA = 'imobiliario-v1';
+const COPIA = 'imobiliario-v2';
 const ARQUIVOS = ['./', 'manifest.webmanifest', 'icone-192.png', 'icone-512.png'];
 
 self.addEventListener('install', (evento) => {
