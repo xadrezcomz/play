@@ -201,6 +201,24 @@ module.exports = ({ unit, touch, sleep, center, board, tapXY, tap, dragXY, drag,
     280: ['FESTA', async () => {
       await dragTo('pp', 'room'); await sleep(200); await tap('ss'); await sleep(300); await dragTo('ss', 'room'); await sleep(500); await notWon(280, 'falta o escondido');
       await dragBy('bush', 0, -160); await sleep(200); await dragTo('hh', 'room');
-    }]
+    }],
+    281: ['NÚMERO DA FASE', async () => { await dragTo('d3', 'd1'); await sleep(400); await notWon(281, 'trocar 8 e 1'); await restart(); await dragTo('d1', 'd2'); }],
+    282: ['DICA MENTIROSA', async () => { await tap('star'); await notWon(282, 'seguir a dica'); await tap('circle'); }],
+    283: ['TENTATIVAS', async () => { await tap('ok'); await notWon(283, 'responder 0'); await restart(); await tapN('ans', 2); await tap('ok'); }],
+    284: ['PINTE A FASE', async () => { await dragTo('pb', 'board'); await sleep(400); await notWon(284, 'pintar o quadro'); await dragTo('pb', 'w_fase'); }],
+    285: ['QUE FASE', async () => { await tapN('d1', 2); await tapN('d2', 8); await tapN('d3', 4); await notWon(285, '284'); await tap('d3'); }],
+    286: ['FRASE NA CAIXA', async () => { await dragTo('ball', 'box'); await sleep(300); await notWon(286, 'a bola'); await dragTo('p', 'box'); }],
+    287: ['ESTERLA', async () => { await tap('star'); await notWon(287, 'tocar antes de corrigir'); await dragTo('la', 'lb'); await sleep(400); await tap('star'); }],
+    288: ['HORA REAL', async () => {
+      const d = new Date(), want = Math.round(((d.getHours() % 12) + d.getMinutes() / 60) * 30 / 30) * 30;
+      const wrong = (want + 150) % 360;
+      await spin('hour', (wrong || 360) / 360 + 0.05); await sleep(200); await tap('ok'); await notWon(288, 'hora errada');
+      const now = await obj('hour', 'angle'); const delta = ((want - now) + 360) % 360;
+      if (delta) await spin('hour', delta / 360 + 0.05);
+      await sleep(200); await tap('ok');
+    }],
+    289: ['FORA DO X', async () => { await tap('x'); await notWon(289, 'tocar no X');
+      const t = await page.evaluate(() => { const r = document.querySelector('#instr-text').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }); await tapXY(t[0], t[1]); }],
+    290: ['ÚLTIMA DICA', async () => { await tap('s1'); await notWon(290, 'triângulo vermelho'); await tap('s2'); }]
   };
 };

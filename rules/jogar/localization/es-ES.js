@@ -1726,6 +1726,70 @@ RULES.L10N['es-ES'] = {
     LEVEL_280_TITLE: 'TODOS A LA FIESTA',
     LEVEL_280_HINT_1: 'Son cuatro amigos.',
     LEVEL_280_HINT_2: 'Uno duerme y otro se esconde.',
-    LEVEL_280_HINT_3: 'Despierta al amarillo, quita el arbusto del morado y lleva a todos a la sala.'
+    LEVEL_280_HINT_3: 'Despierta al amarillo, quita el arbusto del morado y lleva a todos a la sala.',
+    CHAPTER_29: 'LA PANTALLA MIENTE',
+    LEVEL_281_LABEL: 'NIVEL [[d1|8]][[d2|2]][[d3|1]]',
+    LEVEL_284_LABEL: '[[w_fase|NIVEL]] 284',
+    LEVEL_284_WORD: 'NIVEL',
+    LEVEL_285_LABEL: 'NIVEL [[q|???]]',
+    LEVEL_285_NUM: '285',
+    FB_HINT_LIED: 'LA PISTA MINTIÓ...',
+    FB_COUNT_VISITS: 'CUENTA LAS VECES...',
+    FB_THATS_A_DRAWING: 'ESA ES OTRA PALABRA NIVEL',
+    FB_THATS_A_BALL: 'ESO ES UNA PELOTA, NO UNA FRASE',
+    FB_NO_SUCH_THING: '¿ESTERLLA? ESO NO EXISTE',
+    FB_CHECK_REAL_TIME: 'MIRA TU RELOJ',
+    FB_THATS_THE_X: '¡ESA ES LA X!',
+    FB_READ_LAST_HINT: 'LEE LA ÚLTIMA PISTA',
+
+    LEVEL_281_TITLE: 'ARREGLA EL NÚMERO DEL NIVEL',
+    LEVEL_281_HINT_1: 'Mira el número de arriba.',
+    LEVEL_281_HINT_2: 'Los números pueden cambiar de lugar.',
+    LEVEL_281_HINT_3: 'Arrastra el 8 encima del 2: queda NIVEL 281.',
+
+    LEVEL_282_TITLE: 'NO CONFÍES EN LAS PISTAS',
+    LEVEL_282_HINT_1: 'Toca la estrella.',
+    LEVEL_282_HINT_2: 'En serio, es la estrella.',
+    LEVEL_282_HINT_3: '¡Mentira! Es el círculo.',
+
+    LEVEL_283_TITLE: '¿CUÁNTAS VECES HAS ENTRADO EN ESTE NIVEL?',
+    LEVEL_283_HINT_1: 'Cuenta esta vez también.',
+    LEVEL_283_HINT_2: 'Reiniciar cuenta como entrar otra vez.',
+    LEVEL_283_HINT_3: 'Si es la primera vez, marca 1. Cada reinicio suma uno.',
+
+    LEVEL_284_TITLE: 'PINTA LA PALABRA NIVEL DE AZUL',
+    LEVEL_284_HINT_1: 'La del cuadro no es la única.',
+    LEVEL_284_HINT_2: 'Mira arriba de la pantalla.',
+    LEVEL_284_HINT_3: 'Lleva la pintura azul hasta la palabra NIVEL de arriba.',
+
+    LEVEL_285_TITLE: '¿QUÉ NIVEL ES ESTE?',
+    LEVEL_285_HINT_1: 'El número desapareció.',
+    LEVEL_285_HINT_2: '¿Cuál fue el nivel anterior?',
+    LEVEL_285_HINT_3: 'El anterior fue el 284: este es el 285.',
+
+    LEVEL_286_TITLE: '[[p|PON ESTA FRASE EN LA CAJA]]',
+    LEVEL_286_HINT_1: 'No es la pelota.',
+    LEVEL_286_HINT_2: 'La frase es un objeto.',
+    LEVEL_286_HINT_3: 'Arrastra la frase entera de arriba hasta la caja.',
+
+    LEVEL_287_TITLE: 'TOCA LA EST[[la|E]][[lb|R]]LLA',
+    LEVEL_287_HINT_1: '¿Esa palabra está bien?',
+    LEVEL_287_HINT_2: 'Hay dos letras cambiadas.',
+    LEVEL_287_HINT_3: 'Arrastra la E encima de la R para formar ESTRELLA y luego toca la estrella.',
+
+    LEVEL_288_TITLE: '¿QUÉ HORA ES AHORA?',
+    LEVEL_288_HINT_1: 'Es una pregunta de verdad.',
+    LEVEL_288_HINT_2: 'Mira el reloj de tu dispositivo.',
+    LEVEL_288_HINT_3: 'Gira la aguja hasta la hora actual y pulsa el botón verde.',
+
+    LEVEL_289_TITLE: 'TOCA DONDE QUIERAS MENOS EN LA X',
+    LEVEL_289_HINT_1: '¿La X está en todas partes?',
+    LEVEL_289_HINT_2: 'La pantalla es más grande que la X.',
+    LEVEL_289_HINT_3: 'Toca la frase de arriba.',
+
+    LEVEL_290_TITLE: 'HAZ LO QUE DICE LA ÚLTIMA PISTA',
+    LEVEL_290_HINT_1: 'No es esta pista.',
+    LEVEL_290_HINT_2: 'Tampoco es esta.',
+    LEVEL_290_HINT_3: 'Toca el triángulo azul.'
   }
 };

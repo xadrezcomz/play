@@ -22,6 +22,9 @@
 //   { type:'countState', ids:[...], key, equals|min|max } → quantos têm o estado ligado
 //   { type:'stacked', ids:[...] }          → empilhados, de cima para baixo, um apoiado no outro
 //   { type:'wordsIn', ids:[...], equals|min|max } → quantas dessas palavras continuam na instrução
+//   { type:'wordText', target, equals }    → o texto de uma palavra-objeto
+//   { type:'attemptIs', target, key }      → estado igual ao número de tentativas (reiniciar conta)
+//   { type:'realHour', target, key, tol }  → ângulo (graus) igual à hora de agora no relógio do aparelho
 //   state também aceita min/max (números)
 //   { type:'all'|'any', of:[...] }, { type:'not', of: cond }
 (function () {
@@ -141,6 +144,18 @@
       c.ids.forEach(function (id) { var o = E.get(id); if (o && o.inText) n++; });
       if (c.equals != null) return n === c.equals;
       return n >= (c.min != null ? c.min : 0) && n <= (c.max != null ? c.max : Infinity);
+    },
+
+    wordText: function (c, E) { var o = E.get(c.target); return !!o && String(o.text).trim() === String(c.equals); },
+
+    attemptIs: function (c, E) { var o = E.get(c.target); return !!o && o.state[c.key || 'n'] === E.attempt; },
+
+    realHour: function (c, E) {
+      var o = E.get(c.target);
+      if (!o || o.state[c.key || 'angle'] == null) return false;
+      var d = new Date(), want = ((d.getHours() % 12) + d.getMinutes() / 60) * 30;
+      var diff = Math.abs(((o.state[c.key || 'angle'] - want) % 360 + 540) % 360 - 180);
+      return diff <= (c.tol != null ? c.tol : 30);
     },
 
     count: function (c, E) {

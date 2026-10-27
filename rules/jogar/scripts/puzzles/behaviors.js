@@ -48,6 +48,7 @@
 //   pairs      { cards:[ids], ms }               → jogo da memória: dois iguais ficam abertos (state.done no fim)
 //   hanoi      { pegs:[ids], discs:[menor→maior], base, h } → torre de Hanói (state.done quando tudo vai para o último pino)
 //   stickTo    { target:'id', side:'right'|'left'|'top', dx, dy } → fica grudado na borda de outro (que estica ou anda)
+//   wordSwap   { ids:[...], tol }                → solte uma palavra em cima de outra: as duas trocam de texto (evento 'swapped')
 //   follows    { target:'id', gap, speed }       → segue outro objeto, mantendo uma distância (fila)
 //   magnify    { targets:[ids], radius, scale }  → lupa: o que fica embaixo dela aparece maior (state.big)
 //   encircle   { target:'id' }                   → um traço fechado em volta do alvo (state.done)
@@ -1068,6 +1069,27 @@
         E.on('scale', function (e) { if (e.obj.id === cfg.target) upd(); });
         E.on('dragmove', function (e) { if (e.obj.id === cfg.target) upd(); });
         setTimeout(upd, 20);
+      }
+    },
+
+    wordSwap: {
+      init: function (o, cfg, E) {
+        E.on('drop', function (e) {
+          var a = e.obj;
+          if (cfg.ids.indexOf(a.id) < 0) return;
+          var ca = a.center(), best = null, bd = cfg.tol || 8;
+          cfg.ids.forEach(function (id) {
+            var b = E.get(id);
+            if (!b || b === a) return;
+            var cb = b.center(), d = U.dist(ca[0], ca[1], cb[0], cb[1]);
+            if (d < bd) { bd = d; best = b; }
+          });
+          e.handled = true;
+          if (!best) { a.moveTo(a.x0, a.y0, 220); return; }
+          R.Actions.swapText({ swapText: [a.id, best.id] }, e, E);
+          R.Audio.play('pop');
+          E.emit('swapped', { obj: a, other: best });
+        });
       }
     },
 

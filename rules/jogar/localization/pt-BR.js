@@ -1726,6 +1726,70 @@ RULES.L10N['pt-BR'] = {
     LEVEL_280_TITLE: 'TODOS NA FESTA',
     LEVEL_280_HINT_1: 'São quatro amigos.',
     LEVEL_280_HINT_2: 'Um dorme e outro se esconde.',
-    LEVEL_280_HINT_3: 'Acorde o amarelo, tire o arbusto do roxo e leve todos para a sala.'
+    LEVEL_280_HINT_3: 'Acorde o amarelo, tire o arbusto do roxo e leve todos para a sala.',
+    CHAPTER_29: 'A TELA MENTE',
+    LEVEL_281_LABEL: 'FASE [[d1|8]][[d2|2]][[d3|1]]',
+    LEVEL_284_LABEL: '[[w_fase|FASE]] 284',
+    LEVEL_284_WORD: 'FASE',
+    LEVEL_285_LABEL: 'FASE [[q|???]]',
+    LEVEL_285_NUM: '285',
+    FB_HINT_LIED: 'A DICA MENTIU...',
+    FB_COUNT_VISITS: 'CONTE AS VEZES...',
+    FB_THATS_A_DRAWING: 'ESSA É OUTRA PALAVRA FASE',
+    FB_THATS_A_BALL: 'ISSO É UMA BOLA, NÃO UMA FRASE',
+    FB_NO_SUCH_THING: 'ESTERLA? ISSO NÃO EXISTE',
+    FB_CHECK_REAL_TIME: 'OLHE NO SEU RELÓGIO',
+    FB_THATS_THE_X: 'ISSO É O X!',
+    FB_READ_LAST_HINT: 'LEIA A ÚLTIMA DICA',
+
+    LEVEL_281_TITLE: 'ARRUME O NÚMERO DA FASE',
+    LEVEL_281_HINT_1: 'Olhe o número lá em cima.',
+    LEVEL_281_HINT_2: 'Os números podem trocar de lugar.',
+    LEVEL_281_HINT_3: 'Arraste o 8 em cima do 2: fica FASE 281.',
+
+    LEVEL_282_TITLE: 'NÃO CONFIE NAS DICAS',
+    LEVEL_282_HINT_1: 'Toque na estrela.',
+    LEVEL_282_HINT_2: 'Sério, é a estrela.',
+    LEVEL_282_HINT_3: 'Mentira! É o círculo.',
+
+    LEVEL_283_TITLE: 'QUANTAS VEZES VOCÊ ENTROU NESTA FASE?',
+    LEVEL_283_HINT_1: 'Conte esta vez também.',
+    LEVEL_283_HINT_2: 'Reiniciar conta como entrar de novo.',
+    LEVEL_283_HINT_3: 'Se é a primeira vez, marque 1. Cada reinício soma um.',
+
+    LEVEL_284_TITLE: 'PINTE A PALAVRA FASE DE AZUL',
+    LEVEL_284_HINT_1: 'A do quadro não é a única.',
+    LEVEL_284_HINT_2: 'Olhe para o topo da tela.',
+    LEVEL_284_HINT_3: 'Leve a tinta azul até a palavra FASE lá em cima.',
+
+    LEVEL_285_TITLE: 'QUE FASE É ESTA?',
+    LEVEL_285_HINT_1: 'O número sumiu.',
+    LEVEL_285_HINT_2: 'Qual foi a fase anterior?',
+    LEVEL_285_HINT_3: 'A anterior foi a 284: esta é a 285.',
+
+    LEVEL_286_TITLE: '[[p|COLOQUE ESTA FRASE NA CAIXA]]',
+    LEVEL_286_HINT_1: 'Não é a bola.',
+    LEVEL_286_HINT_2: 'A frase é um objeto.',
+    LEVEL_286_HINT_3: 'Arraste a frase inteira lá de cima até a caixa.',
+
+    LEVEL_287_TITLE: 'TOQUE NA EST[[la|E]][[lb|R]]LA',
+    LEVEL_287_HINT_1: 'Essa palavra está certa?',
+    LEVEL_287_HINT_2: 'Duas letras estão trocadas.',
+    LEVEL_287_HINT_3: 'Arraste o E em cima do R para formar ESTRELA e depois toque na estrela.',
+
+    LEVEL_288_TITLE: 'QUE HORAS SÃO AGORA?',
+    LEVEL_288_HINT_1: 'É uma pergunta de verdade.',
+    LEVEL_288_HINT_2: 'Olhe o relógio do seu aparelho.',
+    LEVEL_288_HINT_3: 'Gire o ponteiro até a hora atual e aperte o botão verde.',
+
+    LEVEL_289_TITLE: 'TOQUE EM QUALQUER LUGAR MENOS NO X',
+    LEVEL_289_HINT_1: 'O X está em todo lugar?',
+    LEVEL_289_HINT_2: 'A tela é maior que o X.',
+    LEVEL_289_HINT_3: 'Toque na frase lá em cima.',
+
+    LEVEL_290_TITLE: 'FAÇA O QUE A ÚLTIMA DICA DIZ',
+    LEVEL_290_HINT_1: 'Não é esta dica.',
+    LEVEL_290_HINT_2: 'Ainda não é esta.',
+    LEVEL_290_HINT_3: 'Toque no triângulo azul.'
   }
 };

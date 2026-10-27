@@ -1726,6 +1726,70 @@ RULES.L10N['en-US'] = {
     LEVEL_280_TITLE: 'EVERYONE AT THE PARTY',
     LEVEL_280_HINT_1: 'There are four friends.',
     LEVEL_280_HINT_2: 'One is asleep and one is hiding.',
-    LEVEL_280_HINT_3: 'Wake the yellow one, move the bush off the purple one and bring everyone into the room.'
+    LEVEL_280_HINT_3: 'Wake the yellow one, move the bush off the purple one and bring everyone into the room.',
+    CHAPTER_29: 'THE SCREEN LIES',
+    LEVEL_281_LABEL: 'LEVEL [[d1|8]][[d2|2]][[d3|1]]',
+    LEVEL_284_LABEL: '[[w_fase|LEVEL]] 284',
+    LEVEL_284_WORD: 'LEVEL',
+    LEVEL_285_LABEL: 'LEVEL [[q|???]]',
+    LEVEL_285_NUM: '285',
+    FB_HINT_LIED: 'THE HINT LIED...',
+    FB_COUNT_VISITS: 'COUNT THE TIMES...',
+    FB_THATS_A_DRAWING: 'THAT\'S ANOTHER WORD LEVEL',
+    FB_THATS_A_BALL: 'THAT\'S A BALL, NOT A SENTENCE',
+    FB_NO_SUCH_THING: 'STRA? THAT\'S NOT A THING',
+    FB_CHECK_REAL_TIME: 'CHECK YOUR CLOCK',
+    FB_THATS_THE_X: 'THAT\'S THE X!',
+    FB_READ_LAST_HINT: 'READ THE LAST HINT',
+
+    LEVEL_281_TITLE: 'FIX THE LEVEL NUMBER',
+    LEVEL_281_HINT_1: 'Look at the number up top.',
+    LEVEL_281_HINT_2: 'The digits can swap places.',
+    LEVEL_281_HINT_3: 'Drag the 8 onto the 2: it becomes LEVEL 281.',
+
+    LEVEL_282_TITLE: 'DON\'T TRUST THE HINTS',
+    LEVEL_282_HINT_1: 'Tap the star.',
+    LEVEL_282_HINT_2: 'Seriously, it\'s the star.',
+    LEVEL_282_HINT_3: 'I lied! It\'s the circle.',
+
+    LEVEL_283_TITLE: 'HOW MANY TIMES HAVE YOU ENTERED THIS LEVEL?',
+    LEVEL_283_HINT_1: 'Count this time too.',
+    LEVEL_283_HINT_2: 'Restarting counts as entering again.',
+    LEVEL_283_HINT_3: 'If this is the first time, set 1. Each restart adds one.',
+
+    LEVEL_284_TITLE: 'PAINT THE WORD LEVEL BLUE',
+    LEVEL_284_HINT_1: 'The one on the board isn\'t the only one.',
+    LEVEL_284_HINT_2: 'Look at the top of the screen.',
+    LEVEL_284_HINT_3: 'Bring the blue paint to the word LEVEL up top.',
+
+    LEVEL_285_TITLE: 'WHICH LEVEL IS THIS?',
+    LEVEL_285_HINT_1: 'The number disappeared.',
+    LEVEL_285_HINT_2: 'What was the previous level?',
+    LEVEL_285_HINT_3: 'The previous one was 284: this is 285.',
+
+    LEVEL_286_TITLE: '[[p|PUT THIS SENTENCE IN THE BOX]]',
+    LEVEL_286_HINT_1: 'Not the ball.',
+    LEVEL_286_HINT_2: 'The sentence is an object.',
+    LEVEL_286_HINT_3: 'Drag the whole sentence from up top into the box.',
+
+    LEVEL_287_TITLE: 'TAP THE ST[[la|R]][[lb|A]]',
+    LEVEL_287_HINT_1: 'Is that word right?',
+    LEVEL_287_HINT_2: 'Two letters are swapped.',
+    LEVEL_287_HINT_3: 'Drag the R onto the A to make STAR, then tap the star.',
+
+    LEVEL_288_TITLE: 'WHAT TIME IS IT NOW?',
+    LEVEL_288_HINT_1: 'It\'s a real question.',
+    LEVEL_288_HINT_2: 'Look at your device\'s clock.',
+    LEVEL_288_HINT_3: 'Turn the hand to the current hour and press the green button.',
+
+    LEVEL_289_TITLE: 'TAP ANYWHERE BUT THE X',
+    LEVEL_289_HINT_1: 'Is the X everywhere?',
+    LEVEL_289_HINT_2: 'The screen is bigger than the X.',
+    LEVEL_289_HINT_3: 'Tap the sentence up top.',
+
+    LEVEL_290_TITLE: 'DO WHAT THE LAST HINT SAYS',
+    LEVEL_290_HINT_1: 'Not this hint.',
+    LEVEL_290_HINT_2: 'Not this one either.',
+    LEVEL_290_HINT_3: 'Tap the blue triangle.'
   }
 };
