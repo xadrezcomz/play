@@ -1602,6 +1602,69 @@ RULES.L10N['pt-BR'] = {
     LEVEL_260_TITLE: 'ABRA O PRESENTE',
     LEVEL_260_HINT_1: 'Primeiro, o laço.',
     LEVEL_260_HINT_2: 'Depois, a tampa. E o que tem dentro é pequeno.',
-    LEVEL_260_HINT_3: 'Afaste os dedos no presente, deslize para cima e use a lupa no meio do presente.'
+    LEVEL_260_HINT_3: 'Afaste os dedos no presente, deslize para cima e use a lupa no meio do presente.',
+    CHAPTER_27: 'AO CONTRÁRIO',
+    LEVEL_267_ALL: 'TUDO',
+    LEVEL_270_A: 'NÃO TOQUE NA LUA',
+    LEVEL_270_B: 'DEIXE A BOLA FORA DA CAIXA',
+    LEVEL_270_C: 'APAGUE A LUZ',
+    FB_NOT_THE_STAR: 'NA ESTRELA NÃO! DO COMEÇO...',
+    FB_STILL_FULL: 'CONTINUA CHEIO',
+    FB_USE_ARROWS: 'USE AS SETAS',
+    FB_WRONG_WAY: 'LADO ERRADO!',
+    FB_YES_IS_NO: 'AQUI SIM É NÃO...',
+    FB_YOU_WON_RACE: 'VOCÊ CHEGOU PRIMEIRO!',
+    FB_TOO_TIDY: 'ARRUMADO DEMAIS...',
+    FB_BACKWARDS_PLEASE: 'PARA O OUTRO LADO!',
+
+    LEVEL_261_TITLE: 'TOQUE EM TUDO MENOS NA ESTRELA',
+    LEVEL_261_HINT_1: 'Tudo... menos uma coisa.',
+    LEVEL_261_HINT_2: 'Se tocar na estrela, começa de novo.',
+    LEVEL_261_HINT_3: 'Toque na bola, no cubo, na maçã e no coração.',
+
+    LEVEL_262_TITLE: 'ESVAZIE O COPO',
+    LEVEL_262_HINT_1: 'Tocar não esvazia.',
+    LEVEL_262_HINT_2: 'Copos podem virar.',
+    LEVEL_262_HINT_3: 'Gire o copo até ficar de cabeça para baixo.',
+
+    LEVEL_263_TITLE: 'CHEGUE À BANDEIRA',
+    LEVEL_263_HINT_1: 'Use as setas.',
+    LEVEL_263_HINT_2: 'Elas estão trocadas.',
+    LEVEL_263_HINT_3: 'Toque na seta da esquerda: o Ruli vai para a direita.',
+
+    LEVEL_264_TITLE: 'AQUI, SIM É NÃO. VOCÊ QUER PASSAR DE FASE?',
+    LEVEL_264_HINT_1: 'Leia a primeira frase.',
+    LEVEL_264_HINT_2: 'Se SIM é NÃO, o que é NÃO?',
+    LEVEL_264_HINT_3: 'Toque em NÃO.',
+
+    LEVEL_265_TITLE: 'CHEGUE EM ÚLTIMO',
+    LEVEL_265_HINT_1: 'É uma corrida ao contrário.',
+    LEVEL_265_HINT_2: 'Espere o amigo.',
+    LEVEL_265_HINT_3: 'Deixe o amigo chegar na bandeira primeiro e depois leve o Ruli até lá.',
+
+    LEVEL_266_TITLE: 'BAGUNCE O QUARTO',
+    LEVEL_266_HINT_1: 'Está tudo arrumado.',
+    LEVEL_266_HINT_2: 'Tire do lugar.',
+    LEVEL_266_HINT_3: 'Arraste cada objeto para fora do seu espaço.',
+
+    LEVEL_267_TITLE: 'TIRE TUDO DA CAIXA',
+    LEVEL_267_HINT_1: 'Tudo mesmo.',
+    LEVEL_267_HINT_2: 'Tem uma palavra lá dentro.',
+    LEVEL_267_HINT_3: 'Tire a bola, a estrela e a palavra TUDO da caixa.',
+
+    LEVEL_268_TITLE: 'GIRE O RELÓGIO PARA TRÁS',
+    LEVEL_268_HINT_1: 'O relógio anda num sentido.',
+    LEVEL_268_HINT_2: 'Para trás é o outro.',
+    LEVEL_268_HINT_3: 'Gire o ponteiro uma volta inteira no sentido anti-horário.',
+
+    LEVEL_269_TITLE: 'DESÇA ATÉ A BANDEIRA',
+    LEVEL_269_HINT_1: 'O balão puxa para cima.',
+    LEVEL_269_HINT_2: 'Sem balão, o Ruli cai.',
+    LEVEL_269_HINT_3: 'Toque no Ruli para estourar o balão.',
+
+    LEVEL_270_TITLE: 'FAÇA O CONTRÁRIO DA PLACA',
+    LEVEL_270_HINT_1: 'Leia cada linha e pense no contrário.',
+    LEVEL_270_HINT_2: 'A luz já está acesa.',
+    LEVEL_270_HINT_3: 'Toque na lua, coloque a bola na caixa e deixe a luz acesa.'
   }
 };

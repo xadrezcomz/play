@@ -145,6 +145,35 @@ module.exports = ({ unit, touch, sleep, center, board, tapXY, tap, dragXY, drag,
       await tap('gift'); await notWon(260, 'tocar no presente'); await pinch('gift', 1.9); await sleep(400);
       const c = await center('gift'); await dragXY(c[0], c[1] + 20, c[0], c[1] - 120, 5); await sleep(400);
       await dragToBoard('lens', 52, 78); await sleep(300); await tap('ring');
+    }],
+    261: ['MENOS A ESTRELA', async () => {
+      await tap('ball'); await tap('star'); await sleep(200); await tap('cube'); await tap('apple'); await tap('heart'); await notWon(261, 'tocar na estrela no meio');
+      await tap('ball');
+    }],
+    262: ['ESVAZIE', async () => { await tap('cup'); await notWon(262, 'tocar no copo'); await spin('cup', 0.6); }],
+    263: ['SETAS TROCADAS', async () => {
+      await tap('right'); await tap('right'); await notWon(263, 'seta da direita');
+      for (let i = 0; i < 8; i++) { await tap('left'); await sleep(120); }
+    }],
+    264: ['SIM É NÃO', async () => { await tap('yes'); await notWon(264, 'SIM'); await tap('no'); }],
+    265: ['ÚLTIMO', async () => {
+      await walk('ruli', [[86, 90]]); await sleep(400); await notWon(265, 'chegar primeiro');
+      for (let i = 0; i < 120; i++) { if ((await pos('friend'))[0] >= 83) break; await sleep(100); }
+      await walk('ruli', [[86, 90]]);
+    }, 4000],
+    266: ['BAGUNÇA', async () => { await tap('t1'); await notWon(266, 'tocar'); await dragBy('t1', 0, 150); await dragBy('t2', 0, 180); await sleep(200); await notWon(266, 'falta um'); await dragBy('t3', 0, 150); }],
+    267: ['ESVAZIE A CAIXA', async () => { await dragBy('ball', -100, 160); await dragBy('star', 100, 160); await sleep(400); await notWon(267, 'sem a palavra'); await dragBy('all', 0, 190); }],
+    268: ['PARA TRÁS', async () => {
+      await spin('hand', 0.5); await sleep(300); await notWon(268, 'sentido horário');
+      const c = await center('hand'), r = Math.min(c[2], c[3]) * 0.35;
+      await touch('touchStart', [[c[0], c[1] - r]]);
+      for (let i = 1; i <= 30; i++) { const a = -Math.PI / 2 - i * Math.PI * 2 / 24; await touch('touchMove', [[c[0] + Math.cos(a) * r, c[1] + Math.sin(a) * r]]); await sleep(12); }
+      await touch('touchEnd', []); await sleep(200);
+    }],
+    269: ['ESTOURE O BALÃO', async () => { await sleep(1200); await notWon(269, 'esperar'); await tap('ruli'); await sleep(2500); }, 4000],
+    270: ['CONTRÁRIO DA PLACA', async () => {
+      await tap('switch'); await tap('moon'); await dragTo('ball', 'box'); await sleep(300); await notWon(270, 'apagar a luz');
+      await tap('switch');
     }]
   };
 };

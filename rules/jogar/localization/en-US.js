@@ -1602,6 +1602,69 @@ RULES.L10N['en-US'] = {
     LEVEL_260_TITLE: 'OPEN THE PRESENT',
     LEVEL_260_HINT_1: 'First, the bow.',
     LEVEL_260_HINT_2: 'Then the lid. And what\'s inside is small.',
-    LEVEL_260_HINT_3: 'Spread your fingers on the present, swipe up and use the magnifying glass in the middle of the present.'
+    LEVEL_260_HINT_3: 'Spread your fingers on the present, swipe up and use the magnifying glass in the middle of the present.',
+    CHAPTER_27: 'BACKWARDS',
+    LEVEL_267_ALL: 'EVERYTHING',
+    LEVEL_270_A: 'DON\'T TAP THE MOON',
+    LEVEL_270_B: 'LEAVE THE BALL OUT OF THE BOX',
+    LEVEL_270_C: 'TURN OFF THE LIGHT',
+    FB_NOT_THE_STAR: 'NOT THE STAR! START OVER...',
+    FB_STILL_FULL: 'IT\'S STILL FULL',
+    FB_USE_ARROWS: 'USE THE ARROWS',
+    FB_WRONG_WAY: 'WRONG WAY!',
+    FB_YES_IS_NO: 'HERE YES MEANS NO...',
+    FB_YOU_WON_RACE: 'YOU GOT THERE FIRST!',
+    FB_TOO_TIDY: 'TOO TIDY...',
+    FB_BACKWARDS_PLEASE: 'THE OTHER WAY!',
+
+    LEVEL_261_TITLE: 'TAP EVERYTHING BUT THE STAR',
+    LEVEL_261_HINT_1: 'Everything... except one thing.',
+    LEVEL_261_HINT_2: 'Tapping the star starts over.',
+    LEVEL_261_HINT_3: 'Tap the ball, the cube, the apple and the heart.',
+
+    LEVEL_262_TITLE: 'EMPTY THE GLASS',
+    LEVEL_262_HINT_1: 'Tapping doesn\'t empty it.',
+    LEVEL_262_HINT_2: 'Glasses can be turned over.',
+    LEVEL_262_HINT_3: 'Turn the glass until it is upside down.',
+
+    LEVEL_263_TITLE: 'REACH THE FLAG',
+    LEVEL_263_HINT_1: 'Use the arrows.',
+    LEVEL_263_HINT_2: 'They\'re swapped.',
+    LEVEL_263_HINT_3: 'Tap the left arrow: Ruli goes right.',
+
+    LEVEL_264_TITLE: 'HERE, YES MEANS NO. DO YOU WANT TO PASS THE LEVEL?',
+    LEVEL_264_HINT_1: 'Read the first sentence.',
+    LEVEL_264_HINT_2: 'If YES is NO, what is NO?',
+    LEVEL_264_HINT_3: 'Tap NO.',
+
+    LEVEL_265_TITLE: 'FINISH LAST',
+    LEVEL_265_HINT_1: 'It\'s a backwards race.',
+    LEVEL_265_HINT_2: 'Wait for your friend.',
+    LEVEL_265_HINT_3: 'Let your friend reach the flag first, then take Ruli there.',
+
+    LEVEL_266_TITLE: 'MESS UP THE ROOM',
+    LEVEL_266_HINT_1: 'Everything is tidy.',
+    LEVEL_266_HINT_2: 'Move things out of place.',
+    LEVEL_266_HINT_3: 'Drag each object out of its spot.',
+
+    LEVEL_267_TITLE: 'TAKE EVERYTHING OUT OF THE BOX',
+    LEVEL_267_HINT_1: 'Really everything.',
+    LEVEL_267_HINT_2: 'There\'s a word in there.',
+    LEVEL_267_HINT_3: 'Take the ball, the star and the word EVERYTHING out of the box.',
+
+    LEVEL_268_TITLE: 'TURN THE CLOCK BACKWARDS',
+    LEVEL_268_HINT_1: 'A clock goes one way.',
+    LEVEL_268_HINT_2: 'Backwards is the other.',
+    LEVEL_268_HINT_3: 'Turn the hand one full turn counterclockwise.',
+
+    LEVEL_269_TITLE: 'GO DOWN TO THE FLAG',
+    LEVEL_269_HINT_1: 'The balloon pulls him up.',
+    LEVEL_269_HINT_2: 'Without the balloon, Ruli falls.',
+    LEVEL_269_HINT_3: 'Tap Ruli to pop the balloon.',
+
+    LEVEL_270_TITLE: 'DO THE OPPOSITE OF THE SIGN',
+    LEVEL_270_HINT_1: 'Read each line and think of the opposite.',
+    LEVEL_270_HINT_2: 'The light is already on.',
+    LEVEL_270_HINT_3: 'Tap the moon, put the ball in the box and leave the light on.'
   }
 };

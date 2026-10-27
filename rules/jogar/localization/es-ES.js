@@ -1602,6 +1602,69 @@ RULES.L10N['es-ES'] = {
     LEVEL_260_TITLE: 'ABRE EL REGALO',
     LEVEL_260_HINT_1: 'Primero, el lazo.',
     LEVEL_260_HINT_2: 'Luego, la tapa. Y lo de dentro es pequeño.',
-    LEVEL_260_HINT_3: 'Separa los dedos sobre el regalo, desliza hacia arriba y usa la lupa en el medio del regalo.'
+    LEVEL_260_HINT_3: 'Separa los dedos sobre el regalo, desliza hacia arriba y usa la lupa en el medio del regalo.',
+    CHAPTER_27: 'AL REVÉS',
+    LEVEL_267_ALL: 'TODO',
+    LEVEL_270_A: 'NO TOQUES LA LUNA',
+    LEVEL_270_B: 'DEJA LA PELOTA FUERA DE LA CAJA',
+    LEVEL_270_C: 'APAGA LA LUZ',
+    FB_NOT_THE_STAR: '¡LA ESTRELLA NO! DESDE EL PRINCIPIO...',
+    FB_STILL_FULL: 'SIGUE LLENO',
+    FB_USE_ARROWS: 'USA LAS FLECHAS',
+    FB_WRONG_WAY: '¡LADO EQUIVOCADO!',
+    FB_YES_IS_NO: 'AQUÍ SÍ ES NO...',
+    FB_YOU_WON_RACE: '¡LLEGASTE PRIMERO!',
+    FB_TOO_TIDY: 'DEMASIADO ORDENADO...',
+    FB_BACKWARDS_PLEASE: '¡HACIA EL OTRO LADO!',
+
+    LEVEL_261_TITLE: 'TOCA TODO MENOS LA ESTRELLA',
+    LEVEL_261_HINT_1: 'Todo... menos una cosa.',
+    LEVEL_261_HINT_2: 'Si tocas la estrella, empiezas de nuevo.',
+    LEVEL_261_HINT_3: 'Toca la pelota, el cubo, la manzana y el corazón.',
+
+    LEVEL_262_TITLE: 'VACÍA EL VASO',
+    LEVEL_262_HINT_1: 'Tocar no lo vacía.',
+    LEVEL_262_HINT_2: 'Los vasos se pueden voltear.',
+    LEVEL_262_HINT_3: 'Gira el vaso hasta que quede boca abajo.',
+
+    LEVEL_263_TITLE: 'LLEGA A LA BANDERA',
+    LEVEL_263_HINT_1: 'Usa las flechas.',
+    LEVEL_263_HINT_2: 'Están cambiadas.',
+    LEVEL_263_HINT_3: 'Toca la flecha de la izquierda: Ruli va a la derecha.',
+
+    LEVEL_264_TITLE: 'AQUÍ, SÍ ES NO. ¿QUIERES PASAR DE NIVEL?',
+    LEVEL_264_HINT_1: 'Lee la primera frase.',
+    LEVEL_264_HINT_2: 'Si SÍ es NO, ¿qué es NO?',
+    LEVEL_264_HINT_3: 'Toca NO.',
+
+    LEVEL_265_TITLE: 'LLEGA EL ÚLTIMO',
+    LEVEL_265_HINT_1: 'Es una carrera al revés.',
+    LEVEL_265_HINT_2: 'Espera al amigo.',
+    LEVEL_265_HINT_3: 'Deja que el amigo llegue primero a la bandera y luego lleva a Ruli allí.',
+
+    LEVEL_266_TITLE: 'DESORDENA EL CUARTO',
+    LEVEL_266_HINT_1: 'Todo está ordenado.',
+    LEVEL_266_HINT_2: 'Saca las cosas de su sitio.',
+    LEVEL_266_HINT_3: 'Arrastra cada objeto fuera de su espacio.',
+
+    LEVEL_267_TITLE: 'SACA TODO DE LA CAJA',
+    LEVEL_267_HINT_1: 'Todo de verdad.',
+    LEVEL_267_HINT_2: 'Hay una palabra dentro.',
+    LEVEL_267_HINT_3: 'Saca la pelota, la estrella y la palabra TODO de la caja.',
+
+    LEVEL_268_TITLE: 'GIRA EL RELOJ HACIA ATRÁS',
+    LEVEL_268_HINT_1: 'Un reloj va en un sentido.',
+    LEVEL_268_HINT_2: 'Hacia atrás es el otro.',
+    LEVEL_268_HINT_3: 'Gira la aguja una vuelta entera en sentido antihorario.',
+
+    LEVEL_269_TITLE: 'BAJA HASTA LA BANDERA',
+    LEVEL_269_HINT_1: 'El globo tira hacia arriba.',
+    LEVEL_269_HINT_2: 'Sin globo, Ruli cae.',
+    LEVEL_269_HINT_3: 'Toca a Ruli para reventar el globo.',
+
+    LEVEL_270_TITLE: 'HAZ LO CONTRARIO DEL CARTEL',
+    LEVEL_270_HINT_1: 'Lee cada línea y piensa en lo contrario.',
+    LEVEL_270_HINT_2: 'La luz ya está encendida.',
+    LEVEL_270_HINT_3: 'Toca la luna, mete la pelota en la caja y deja la luz encendida.'
   }
 };

@@ -492,7 +492,7 @@
           if (E.token !== tok) return;
           requestAnimationFrame(frame);
           if (E.paused || E.completed || o.hidden || o.el.classList.contains('dragging')) return;
-          if (cfg.needs && !o.state[cfg.needs]) return;
+          if (cfg.needs && !o.state[cfg.needs]) { o.state.floating = false; return; }
           if (o.state.tied) return;
           o.state.floating = true;
           if (o.y - o.sh / 2 > ceil) { o.y -= sp; o.layout(); }
