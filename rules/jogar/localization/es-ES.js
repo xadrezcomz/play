@@ -1665,6 +1665,67 @@ RULES.L10N['es-ES'] = {
     LEVEL_270_TITLE: 'HAZ LO CONTRARIO DEL CARTEL',
     LEVEL_270_HINT_1: 'Lee cada línea y piensa en lo contrario.',
     LEVEL_270_HINT_2: 'La luz ya está encendida.',
-    LEVEL_270_HINT_3: 'Toca la luna, mete la pelota en la caja y deja la luz encendida.'
+    LEVEL_270_HINT_3: 'Toca la luna, mete la pelota en la caja y deja la luz encendida.',
+    CHAPTER_28: 'RULI Y SUS AMIGOS',
+    LEVEL_280_PARTY: '¡FIESTA!',
+    FB_SHY: 'ES TÍMIDO...',
+    FB_NOT_WHAT_I_WANT: 'NO ERA ESO LO QUE QUERÍA',
+    FB_COLDER: '¡MÁS FRÍO TODAVÍA!',
+    FB_THIS_ONE_IS_FINE: 'ESTE ESTÁ BIEN',
+    FB_FOLLOW_RULI: '¡YO SIGO A RULI!',
+    FB_NOT_FAIR: 'ASÍ NO ES JUSTO',
+    FB_SOMEONE_OUT: 'HAY ALGUIEN FUERA DE LA FOTO',
+    FB_TOO_BIG_FOR_PHOTO: 'DEMASIADO GRANDE PARA LA FOTO',
+    FB_SOMEONE_MISSING: 'FALTA ALGUIEN...',
+
+    LEVEL_271_TITLE: 'CADA AMIGO EN SU CASA',
+    LEVEL_271_HINT_1: 'Las puertas tienen colores.',
+    LEVEL_271_HINT_2: 'Un amigo está dormido.',
+    LEVEL_271_HINT_3: 'Lleva a cada amigo a la puerta de su color; toca al morado para despertarlo antes.',
+
+    LEVEL_272_TITLE: 'HAZ QUE SE ABRACEN',
+    LEVEL_272_HINT_1: 'El amigo es tímido.',
+    LEVEL_272_HINT_2: 'A oscuras no ve llegar a Ruli.',
+    LEVEL_272_HINT_3: 'Apaga la luz con el interruptor y lleva a Ruli hasta su amigo.',
+
+    LEVEL_273_TITLE: 'DALE A CADA AMIGO LO QUE QUIERE',
+    LEVEL_273_HINT_1: 'Cada uno piensa en algo.',
+    LEVEL_273_HINT_2: 'Mira los bocadillos.',
+    LEVEL_273_HINT_3: 'Manzana para el rosa, estrella para el amarillo y pelota para el morado.',
+
+    LEVEL_274_TITLE: 'CALIENTA AL AMIGO',
+    LEVEL_274_HINT_1: 'Tiene frío.',
+    LEVEL_274_HINT_2: '¿Qué es caliente?',
+    LEVEL_274_HINT_3: 'Lleva el sol hasta el amigo.',
+
+    LEVEL_275_TITLE: '¿QUIÉN ESTÁ TRISTE?',
+    LEVEL_275_HINT_1: 'Mira las bocas.',
+    LEVEL_275_HINT_2: 'Uno no sonríe.',
+    LEVEL_275_HINT_3: 'El amigo verde está serio: tócalo.',
+
+    LEVEL_276_TITLE: 'LLEVA A TODOS DENTRO DE CASA',
+    LEVEL_276_HINT_1: 'Los amigos siguen a Ruli.',
+    LEVEL_276_HINT_2: 'Solo tienes que mover a Ruli.',
+    LEVEL_276_HINT_3: 'Arrastra a Ruli dentro de la casa y espera a que entre la fila.',
+
+    LEVEL_277_TITLE: 'REPARTE LOS CARAMELOS',
+    LEVEL_277_HINT_1: 'Seis caramelos, tres amigos.',
+    LEVEL_277_HINT_2: 'Todos igual.',
+    LEVEL_277_HINT_3: 'Pon dos caramelos en cada plato.',
+
+    LEVEL_278_TITLE: 'HAZ UNA FOTO CON TODOS',
+    LEVEL_278_HINT_1: 'Todos dentro del marco.',
+    LEVEL_278_HINT_2: 'Un amigo es demasiado grande.',
+    LEVEL_278_HINT_3: 'Achica al grandote, lleva a los cuatro al marco y pulsa la cámara.',
+
+    LEVEL_279_TITLE: 'CAMBIA LOS SOMBREROS',
+    LEVEL_279_HINT_1: 'Cada uno quiere el sombrero de su color.',
+    LEVEL_279_HINT_2: 'Suelta un sombrero en una cabeza: los dos se cambian.',
+    LEVEL_279_HINT_3: 'Lleva el sombrero rosa al amigo rosa y luego el amarillo al amarillo.',
+
+    LEVEL_280_TITLE: 'TODOS A LA FIESTA',
+    LEVEL_280_HINT_1: 'Son cuatro amigos.',
+    LEVEL_280_HINT_2: 'Uno duerme y otro se esconde.',
+    LEVEL_280_HINT_3: 'Despierta al amarillo, quita el arbusto del morado y lleva a todos a la sala.'
   }
 };

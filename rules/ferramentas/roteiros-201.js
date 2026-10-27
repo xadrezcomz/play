@@ -174,6 +174,33 @@ module.exports = ({ unit, touch, sleep, center, board, tapXY, tap, dragXY, drag,
     270: ['CONTRÁRIO DA PLACA', async () => {
       await tap('switch'); await tap('moon'); await dragTo('ball', 'box'); await sleep(300); await notWon(270, 'apagar a luz');
       await tap('switch');
+    }],
+    271: ['CASAS', async () => {
+      await dragTo('f_pink', 'z_pink'); await dragTo('f_yellow', 'z_yellow'); await dragTo('f_purple', 'z_purple'); await sleep(300); await notWon(271, 'roxo dormindo');
+      await tap('f_purple'); await sleep(600); await dragTo('f_purple', 'z_purple');
+    }],
+    272: ['ABRAÇO', async () => { await dragTo('ruli', 'shy'); await sleep(500); await notWon(272, 'o tímido foge'); await tap('switch'); await sleep(200); await dragTo('ruli', 'shy'); }],
+    273: ['PRESENTES', async () => {
+      await dragTo('star', 'fa'); await sleep(400); await notWon(273, 'presente errado');
+      await dragTo('apple', 'fa'); await sleep(300); await dragTo('star', 'fb'); await sleep(300); await dragTo('ball', 'fc');
+    }],
+    274: ['FRIO', async () => { await dragTo('ice', 'cold'); await sleep(400); await notWon(274, 'sorvete'); await dragTo('sun', 'cold'); }],
+    275: ['TRISTE', async () => { await tap('c1'); await notWon(275, 'tocar num feliz'); await tap('c4'); }],
+    276: ['FILA', async () => { await tap('g1'); await notWon(276, 'tocar num amigo'); await walk('ruli', [[60, 80], [84, 42]], 30); await sleep(3500); }, 5000],
+    277: ['DOCES', async () => {
+      for (let k = 0; k < 3; k++) { await dragTo('k' + k, 'p1z'); await sleep(150); }
+      await sleep(300); await notWon(277, 'três num prato'); await dragTo('k2', 'p2z'); await sleep(150);
+      await dragTo('k3', 'p2z'); await dragTo('k4', 'p3z'); await dragTo('k5', 'p3z');
+    }],
+    278: ['FOTO', async () => {
+      for (const q of ['q1', 'q2', 'q3']) { await dragTo(q, 'frame'); await sleep(150); }
+      await tap('cam'); await notWon(278, 'faltando o grandão');
+      await pinch('big', 0.55); await sleep(200); await dragTo('big', 'frame'); await sleep(200); await tap('cam');
+    }],
+    279: ['CHAPÉUS', async () => { await dragTo('hat_pink', 'head_pink'); await sleep(500); await notWon(279, 'um chapéu certo'); await dragTo('hat_yellow', 'head_yellow'); await sleep(400); }],
+    280: ['FESTA', async () => {
+      await dragTo('pp', 'room'); await sleep(200); await tap('ss'); await sleep(300); await dragTo('ss', 'room'); await sleep(500); await notWon(280, 'falta o escondido');
+      await dragBy('bush', 0, -160); await sleep(200); await dragTo('hh', 'room');
     }]
   };
 };

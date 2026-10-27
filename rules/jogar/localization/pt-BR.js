@@ -1665,6 +1665,67 @@ RULES.L10N['pt-BR'] = {
     LEVEL_270_TITLE: 'FAÇA O CONTRÁRIO DA PLACA',
     LEVEL_270_HINT_1: 'Leia cada linha e pense no contrário.',
     LEVEL_270_HINT_2: 'A luz já está acesa.',
-    LEVEL_270_HINT_3: 'Toque na lua, coloque a bola na caixa e deixe a luz acesa.'
+    LEVEL_270_HINT_3: 'Toque na lua, coloque a bola na caixa e deixe a luz acesa.',
+    CHAPTER_28: 'RULI E AMIGOS',
+    LEVEL_280_PARTY: 'FESTA!',
+    FB_SHY: 'ELE É TÍMIDO...',
+    FB_NOT_WHAT_I_WANT: 'NÃO ERA ISSO QUE EU QUERIA',
+    FB_COLDER: 'MAIS FRIO AINDA!',
+    FB_THIS_ONE_IS_FINE: 'ESSE ESTÁ BEM',
+    FB_FOLLOW_RULI: 'EU SIGO O RULI!',
+    FB_NOT_FAIR: 'ASSIM NÃO É JUSTO',
+    FB_SOMEONE_OUT: 'TEM GENTE FORA DA FOTO',
+    FB_TOO_BIG_FOR_PHOTO: 'GRANDE DEMAIS PARA A FOTO',
+    FB_SOMEONE_MISSING: 'FALTA ALGUÉM...',
+
+    LEVEL_271_TITLE: 'CADA AMIGO NA SUA CASA',
+    LEVEL_271_HINT_1: 'As portas têm cores.',
+    LEVEL_271_HINT_2: 'Um amigo está dormindo.',
+    LEVEL_271_HINT_3: 'Leve cada amigo até a porta da sua cor; toque no roxo para acordá-lo antes.',
+
+    LEVEL_272_TITLE: 'FAÇA OS DOIS SE ABRAÇAREM',
+    LEVEL_272_HINT_1: 'O amigo é tímido.',
+    LEVEL_272_HINT_2: 'No escuro ele não vê o Ruli chegando.',
+    LEVEL_272_HINT_3: 'Apague a luz no interruptor e leve o Ruli até o amigo.',
+
+    LEVEL_273_TITLE: 'DÊ A CADA AMIGO O QUE ELE QUER',
+    LEVEL_273_HINT_1: 'Cada um pensa numa coisa.',
+    LEVEL_273_HINT_2: 'Olhe os balões.',
+    LEVEL_273_HINT_3: 'Maçã para o rosa, estrela para o amarelo e bola para o roxo.',
+
+    LEVEL_274_TITLE: 'ESQUENTE O AMIGO',
+    LEVEL_274_HINT_1: 'Ele está com frio.',
+    LEVEL_274_HINT_2: 'O que é quente?',
+    LEVEL_274_HINT_3: 'Leve o sol até o amigo.',
+
+    LEVEL_275_TITLE: 'QUEM ESTÁ TRISTE?',
+    LEVEL_275_HINT_1: 'Olhe as bocas.',
+    LEVEL_275_HINT_2: 'Um não está sorrindo.',
+    LEVEL_275_HINT_3: 'O amigo verde está sério: toque nele.',
+
+    LEVEL_276_TITLE: 'LEVE TODOS PARA DENTRO DE CASA',
+    LEVEL_276_HINT_1: 'Os amigos seguem o Ruli.',
+    LEVEL_276_HINT_2: 'Você só precisa levar o Ruli.',
+    LEVEL_276_HINT_3: 'Arraste o Ruli para dentro da casa e espere a fila entrar.',
+
+    LEVEL_277_TITLE: 'DIVIDA OS DOCES',
+    LEVEL_277_HINT_1: 'Seis doces, três amigos.',
+    LEVEL_277_HINT_2: 'Todos iguais.',
+    LEVEL_277_HINT_3: 'Coloque dois doces em cada prato.',
+
+    LEVEL_278_TITLE: 'TIRE UMA FOTO COM TODOS',
+    LEVEL_278_HINT_1: 'Todo mundo dentro do quadro.',
+    LEVEL_278_HINT_2: 'Um amigo é grande demais.',
+    LEVEL_278_HINT_3: 'Diminua o grandão, leve os quatro para o quadro e aperte a câmera.',
+
+    LEVEL_279_TITLE: 'TROQUE OS CHAPÉUS',
+    LEVEL_279_HINT_1: 'Cada um quer o chapéu da sua cor.',
+    LEVEL_279_HINT_2: 'Solte um chapéu numa cabeça: os dois trocam.',
+    LEVEL_279_HINT_3: 'Leve o chapéu rosa para o amigo rosa e depois o amarelo para o amarelo.',
+
+    LEVEL_280_TITLE: 'TODOS NA FESTA',
+    LEVEL_280_HINT_1: 'São quatro amigos.',
+    LEVEL_280_HINT_2: 'Um dorme e outro se esconde.',
+    LEVEL_280_HINT_3: 'Acorde o amarelo, tire o arbusto do roxo e leve todos para a sala.'
   }
 };

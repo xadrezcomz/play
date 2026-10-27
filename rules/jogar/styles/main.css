@@ -477,3 +477,6 @@ button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-c
 .flipy .obj-inner { transform: scaleY(-1); }
 .reflect .obj-inner { transform: scaleY(-1); opacity: .55; }
 .faint .obj-inner { opacity: .28; }
+.obj.dim .obj-inner { opacity: .72; }
+.shiver .obj-inner { animation: shiver .25s linear infinite; }
+@keyframes shiver { 25% { transform: translateX(-3%); } 75% { transform: translateX(3%); } }

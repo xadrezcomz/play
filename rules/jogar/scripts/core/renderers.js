@@ -606,6 +606,24 @@
   T.snake = { view: '0 0 100 30', stretch: true, svg: function () {
     return '<rect x="0" y="6" width="100" height="18" rx="9" fill="' + C.green + '"/><path d="M8 15 L92 15" stroke="#4FA85A" stroke-width="3" stroke-dasharray="6 8"/>';
   } };
+  T.hat = { view: '0 0 60 70', svg: function (p, o) {
+    var c = sc(p, o, C.coral);
+    return '<path d="M30 4 L54 64 L6 64Z" fill="' + c + '"/><path d="M18 34 L42 34 M13 48 L47 48" stroke="#fff" stroke-width="4" opacity=".6"/><circle cx="30" cy="5" r="5" fill="' + C.yellow + '"/><rect x="2" y="60" width="56" height="8" rx="4" fill="' + shade(c, -25) + '"/>';
+  } };
+  // balão de pensamento com um desenho dentro (props.sym)
+  T.thought = { view: '0 0 100 80', svg: function (p) {
+    var t = T[p.sym] || T.star, v = t.view.split(' ').map(Number), k = Math.min(44 / v[2], 36 / v[3]);
+    return '<circle cx="18" cy="74" r="4" fill="#fff" stroke="#E3DDD2" stroke-width="2"/><circle cx="28" cy="64" r="6" fill="#fff" stroke="#E3DDD2" stroke-width="2"/>' +
+      '<ellipse cx="58" cy="32" rx="40" ry="28" fill="#fff" stroke="#E3DDD2" stroke-width="3"/>' +
+      '<g transform="translate(' + (58 - v[2] * k / 2).toFixed(1) + ' ' + (32 - v[3] * k / 2).toFixed(1) + ') scale(' + k.toFixed(3) + ')">' + t.svg({ color: p.symColor }, { state: {}, def: { props: {} } }) + '</g>';
+  } };
+  T.camera = { view: '0 0 100 70', svg: function () {
+    return '<rect x="4" y="14" width="92" height="52" rx="10" fill="' + C.ink + '"/><rect x="30" y="4" width="30" height="14" rx="4" fill="' + C.ink + '"/><circle cx="50" cy="40" r="18" fill="#4A4E69"/><circle cx="50" cy="40" r="11" fill="#7FC1F5"/><circle cx="82" cy="24" r="4" fill="' + C.coral + '"/>';
+  } };
+  T.candy = { view: '0 0 100 50', svg: function (p) {
+    var c = col(p, C.pink);
+    return '<path d="M20 25 L2 8 L2 42Z" fill="' + c + '"/><path d="M80 25 L98 8 L98 42Z" fill="' + c + '"/><ellipse cx="50" cy="25" rx="32" ry="20" fill="' + c + '"/><path d="M34 12 Q50 25 34 38 M50 6 Q66 25 50 44" stroke="#fff" stroke-width="4" fill="none" opacity=".5"/>';
+  } };
   T.bin = { view: '0 0 80 100', svg: function (p, o) {
     var c = sc(p, o, '#9AA0B4');
     return '<rect x="30" y="2" width="20" height="8" rx="3" fill="' + shade(c, -30) + '"/><rect x="4" y="8" width="72" height="12" rx="5" fill="' + shade(c, -20) + '"/>' +

@@ -1665,6 +1665,67 @@ RULES.L10N['en-US'] = {
     LEVEL_270_TITLE: 'DO THE OPPOSITE OF THE SIGN',
     LEVEL_270_HINT_1: 'Read each line and think of the opposite.',
     LEVEL_270_HINT_2: 'The light is already on.',
-    LEVEL_270_HINT_3: 'Tap the moon, put the ball in the box and leave the light on.'
+    LEVEL_270_HINT_3: 'Tap the moon, put the ball in the box and leave the light on.',
+    CHAPTER_28: 'RULI AND FRIENDS',
+    LEVEL_280_PARTY: 'PARTY!',
+    FB_SHY: 'HE\'S SHY...',
+    FB_NOT_WHAT_I_WANT: 'THAT\'S NOT WHAT I WANTED',
+    FB_COLDER: 'EVEN COLDER!',
+    FB_THIS_ONE_IS_FINE: 'THIS ONE IS FINE',
+    FB_FOLLOW_RULI: 'I FOLLOW RULI!',
+    FB_NOT_FAIR: 'THAT\'S NOT FAIR',
+    FB_SOMEONE_OUT: 'SOMEONE IS OUT OF THE PHOTO',
+    FB_TOO_BIG_FOR_PHOTO: 'TOO BIG FOR THE PHOTO',
+    FB_SOMEONE_MISSING: 'SOMEONE IS MISSING...',
+
+    LEVEL_271_TITLE: 'EACH FRIEND IN THEIR HOUSE',
+    LEVEL_271_HINT_1: 'The doors have colors.',
+    LEVEL_271_HINT_2: 'One friend is asleep.',
+    LEVEL_271_HINT_3: 'Take each friend to the door of their color; tap the purple one to wake him first.',
+
+    LEVEL_272_TITLE: 'MAKE THEM HUG',
+    LEVEL_272_HINT_1: 'The friend is shy.',
+    LEVEL_272_HINT_2: 'In the dark he can\'t see Ruli coming.',
+    LEVEL_272_HINT_3: 'Turn off the light at the switch and take Ruli to his friend.',
+
+    LEVEL_273_TITLE: 'GIVE EACH FRIEND WHAT THEY WANT',
+    LEVEL_273_HINT_1: 'Each one is thinking of something.',
+    LEVEL_273_HINT_2: 'Look at the bubbles.',
+    LEVEL_273_HINT_3: 'Apple for pink, star for yellow and ball for purple.',
+
+    LEVEL_274_TITLE: 'WARM UP THE FRIEND',
+    LEVEL_274_HINT_1: 'He\'s cold.',
+    LEVEL_274_HINT_2: 'What\'s warm?',
+    LEVEL_274_HINT_3: 'Bring the sun to the friend.',
+
+    LEVEL_275_TITLE: 'WHO IS SAD?',
+    LEVEL_275_HINT_1: 'Look at the mouths.',
+    LEVEL_275_HINT_2: 'One isn\'t smiling.',
+    LEVEL_275_HINT_3: 'The green friend is serious: tap him.',
+
+    LEVEL_276_TITLE: 'TAKE EVERYONE INSIDE THE HOUSE',
+    LEVEL_276_HINT_1: 'The friends follow Ruli.',
+    LEVEL_276_HINT_2: 'You only need to move Ruli.',
+    LEVEL_276_HINT_3: 'Drag Ruli into the house and wait for the line to come in.',
+
+    LEVEL_277_TITLE: 'SHARE THE CANDY',
+    LEVEL_277_HINT_1: 'Six candies, three friends.',
+    LEVEL_277_HINT_2: 'Everyone the same.',
+    LEVEL_277_HINT_3: 'Put two candies on each plate.',
+
+    LEVEL_278_TITLE: 'TAKE A PHOTO WITH EVERYONE',
+    LEVEL_278_HINT_1: 'Everyone inside the frame.',
+    LEVEL_278_HINT_2: 'One friend is too big.',
+    LEVEL_278_HINT_3: 'Shrink the big one, bring all four into the frame and press the camera.',
+
+    LEVEL_279_TITLE: 'SWAP THE HATS',
+    LEVEL_279_HINT_1: 'Each one wants the hat of their color.',
+    LEVEL_279_HINT_2: 'Drop a hat on a head: the two swap.',
+    LEVEL_279_HINT_3: 'Take the pink hat to the pink friend, then the yellow one to the yellow friend.',
+
+    LEVEL_280_TITLE: 'EVERYONE AT THE PARTY',
+    LEVEL_280_HINT_1: 'There are four friends.',
+    LEVEL_280_HINT_2: 'One is asleep and one is hiding.',
+    LEVEL_280_HINT_3: 'Wake the yellow one, move the bush off the purple one and bring everyone into the room.'
   }
 };

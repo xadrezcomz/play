@@ -10,14 +10,14 @@
 //   clickable  { toggle:'on', fx, sound }
 //   container  { fit, fitRatio, slots:[[fx,fy]...], accepts:[ids], rejectSay }
 //   door       { openDistance }                   → estado open = true
-//   flee       { from:'id', radius, jump, margin } → foge quando "from" chega perto
+//   flee       { from:'id', radius, jump, margin, when } → foge quando "from" chega perto (when: condição para fugir)
 //   fallsInto  { zones:['id'], safe:['ponte'] }   → cai e volta ao início (a não ser que uma ponte cubra)
 //   character  {}                                 → reações do Ruli ao ser arrastado
 //   mirror     { from:'id', key }                 → copia um estado de outro objeto (lâmpada ↔ interruptor)
 //   group      { members:[ids], key, max, tieMs } → no máximo N ligados; ligados juntos "empatam"
 //   pourer     { target:'id', range, rate }       → segurado em cima do alvo, despeja e enche (fill → full)
 //   gravity    { delay, g, solids:[ids] }         → cai; pousa em cima de "solids"; se cair da tela, volta
-//   snap       { to:[ids], tol, fitScale }        → solto perto de um lugar, encaixa (state.at = id)
+//   snap       { to:[ids], tol, fitScale, swap }  → solto perto de um lugar, encaixa (state.at = id); swap troca com quem estava lá
 //   receives   { from:[ids], set, consume, requires, toolRequires, copyColor, returnTool, failSay } → ferramenta solta em cima
 //   rubbable   { count, decayMs, progress, set, requires } → esfregar (ou passar algo por cima) várias vezes
 //   carries    { ids:[...] }                      → ao ser arrastado, leva esses objetos junto
@@ -48,6 +48,7 @@
 //   pairs      { cards:[ids], ms }               → jogo da memória: dois iguais ficam abertos (state.done no fim)
 //   hanoi      { pegs:[ids], discs:[menor→maior], base, h } → torre de Hanói (state.done quando tudo vai para o último pino)
 //   stickTo    { target:'id', side:'right'|'left'|'top', dx, dy } → fica grudado na borda de outro (que estica ou anda)
+//   follows    { target:'id', gap, speed }       → segue outro objeto, mantendo uma distância (fila)
 //   magnify    { targets:[ids], radius, scale }  → lupa: o que fica embaixo dela aparece maior (state.big)
 //   encircle   { target:'id' }                   → um traço fechado em volta do alvo (state.done)
 //   palette    { from:[ids] }                    → mistura as cores soltas em cima (state.color); tocar limpa
@@ -129,6 +130,7 @@
         E.on('dragmove', function (e) {
           var f = e.obj;
           if (f.id !== cfg.from || U.now() < until) return;
+          if (cfg.when && !R.Conditions.test(cfg.when, E)) return;
           if (U.dist(f.x, f.y, o.x, o.y) >= r) return;
           until = U.now() + 60;
           var b = E.boardBounds(o, cfg.margin || 4);
@@ -298,7 +300,7 @@
     snap: {
       init: function (o, cfg, E) {
         var tol = cfg.tol || 9;
-        o.state.at = null;
+        if (o.state.at === undefined) o.state.at = null;   // pode começar já encaixado (state.at nos dados)
         E.on('drop', function (e) {
           if (e.obj !== o) return;
           var best = null, bd = tol;
@@ -313,8 +315,15 @@
             return;
           }
           e.handled = true;
+          var prevAt = o.state.at;
           E.objects.forEach(function (x) {
             if (x !== o && x.state && x.state.at === best.id) {
+              if (cfg.swap && prevAt && prevAt !== best.id) {
+                var pa = E.get(prevAt);
+                x.setState('at', prevAt);
+                x.moveTo(pa ? pa.x : e.fromX, pa ? pa.y : e.fromY, 260);
+                return;
+              }
               x.setState('at', null);
               x.scale = x.scale0;
               x.moveTo(x.x0, x.y0, 260);
@@ -1059,6 +1068,25 @@
         E.on('scale', function (e) { if (e.obj.id === cfg.target) upd(); });
         E.on('dragmove', function (e) { if (e.obj.id === cfg.target) upd(); });
         setTimeout(upd, 20);
+      }
+    },
+
+    follows: {
+      init: function (o, cfg, E) {
+        var tok = E.token, gap = cfg.gap || 12, sp = cfg.speed || 0.12;
+        function frame() {
+          if (E.token !== tok) return;
+          requestAnimationFrame(frame);
+          if (E.paused || E.completed || o.hidden || o.el.classList.contains('dragging')) return;
+          var t = E.get(cfg.target);
+          if (!t) return;
+          var d = U.dist(o.x, o.y, t.x, t.y);
+          if (d <= gap) return;
+          var k = Math.min(1, sp * (d - gap) / d);
+          o.x += (t.x - o.x) * k; o.y += (t.y - o.y) * k;
+          o.layout();
+        }
+        requestAnimationFrame(frame);
       }
     },
 
