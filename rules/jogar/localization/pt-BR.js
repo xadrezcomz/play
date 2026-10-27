@@ -1540,6 +1540,68 @@ RULES.L10N['pt-BR'] = {
     LEVEL_250_TITLE: 'LEVE A TORRE PARA O ÚLTIMO PINO',
     LEVEL_250_HINT_1: 'Um disco por vez.',
     LEVEL_250_HINT_2: 'Grande nunca em cima de pequeno.',
-    LEVEL_250_HINT_3: 'Pequeno no 3, médio no 2, pequeno no 2, grande no 3, pequeno no 1, médio no 3, pequeno no 3.'
+    LEVEL_250_HINT_3: 'Pequeno no 3, médio no 2, pequeno no 2, grande no 3, pequeno no 1, médio no 3, pequeno no 3.',
+    CHAPTER_26: 'DOIS DEDOS',
+    LEVEL_258_MSG: 'TOQUE NA ESTRELA',
+    FB_STUCK_LID: 'A TAMPA ESTÁ PRESA',
+    FB_HUNGRY_SNAKE: 'ELA ESTÁ COM FOME...',
+    FB_DOOR_CLOSED: 'A PORTA FECHOU',
+    FB_SIZE_HOLE: 'NÃO É DO TAMANHO DO BURACO',
+    FB_ONE_EACH: 'FALTA O OUTRO BOTÃO',
+    FB_STUCK_TOGETHER: 'ESTÃO GRUDADOS!',
+    FB_TOO_SMALL: 'PEQUENO DEMAIS PARA VER...',
+    FB_TIED: 'ESTÁ AMARRADO',
+    FB_UNTIED: 'DESAMARROU!',
+    FB_LOOKS_EMPTY: 'PARECE VAZIO...',
+
+    LEVEL_251_TITLE: 'APERTE OS DOIS BOTÕES JUNTOS',
+    LEVEL_251_HINT_1: 'Um botão sozinho volta logo.',
+    LEVEL_251_HINT_2: 'Dois dedos, ou algo pesado para segurar um.',
+    LEVEL_251_HINT_3: 'Toque nos dois ao mesmo tempo, ou deixe a pedra em cima de um e toque no outro.',
+
+    LEVEL_252_TITLE: 'ABRA A CAIXA',
+    LEVEL_252_HINT_1: 'A tampa está presa.',
+    LEVEL_252_HINT_2: 'Como se abre algo com dois dedos?',
+    LEVEL_252_HINT_3: 'Afaste dois dedos em cima da caixa (ou gire a rodinha do mouse sobre ela).',
+
+    LEVEL_253_TITLE: 'ESTIQUE A COBRA ATÉ A MAÇÃ',
+    LEVEL_253_HINT_1: 'A cobra não anda.',
+    LEVEL_253_HINT_2: 'Ela estica.',
+    LEVEL_253_HINT_3: 'Use a pinça (ou a rodinha do mouse) na cobra até a cabeça chegar na maçã.',
+
+    LEVEL_254_TITLE: 'PASSE PELA PORTA',
+    LEVEL_254_HINT_1: 'A porta desce quando você solta.',
+    LEVEL_254_HINT_2: 'Segure com um dedo, ou calce a porta.',
+    LEVEL_254_HINT_3: 'Segure a porta em cima e passe o Ruli com o outro dedo, ou ponha a caixa embaixo da porta e depois levante a porta.',
+
+    LEVEL_255_TITLE: 'COLOQUE A BOLA NO BURACO',
+    LEVEL_255_HINT_1: 'A bola é grande demais.',
+    LEVEL_255_HINT_2: 'Do tamanho certo.',
+    LEVEL_255_HINT_3: 'Diminua a bola até ficar do tamanho do buraco e solte em cima dele.',
+
+    LEVEL_256_TITLE: 'ABRA O PORTÃO',
+    LEVEL_256_HINT_1: 'São dois botões.',
+    LEVEL_256_HINT_2: 'Um amigo pode ajudar.',
+    LEVEL_256_HINT_3: 'Coloque o Ruli num botão e o amigo no outro.',
+
+    LEVEL_257_TITLE: 'SEPARE OS DOIS AMIGOS',
+    LEVEL_257_HINT_1: 'Eles estão grudados.',
+    LEVEL_257_HINT_2: 'Estique para separar.',
+    LEVEL_257_HINT_3: 'Use a pinça (ou a rodinha do mouse) no abraço até eles se separarem.',
+
+    LEVEL_258_TITLE: 'LEIA A LETRA MIÚDA',
+    LEVEL_258_HINT_1: 'O papel é pequeno demais.',
+    LEVEL_258_HINT_2: 'Amplie.',
+    LEVEL_258_HINT_3: 'Aumente o papel com a pinça (ou a rodinha): ele diz TOQUE NA ESTRELA.',
+
+    LEVEL_259_TITLE: 'ACHE A FORMIGA',
+    LEVEL_259_HINT_1: 'Ela é pequena demais para ver.',
+    LEVEL_259_HINT_2: 'Use a lupa.',
+    LEVEL_259_HINT_3: 'Passe a lupa pela tela: a formiga está à direita, no alto. Toque nela.',
+
+    LEVEL_260_TITLE: 'ABRA O PRESENTE',
+    LEVEL_260_HINT_1: 'Primeiro, o laço.',
+    LEVEL_260_HINT_2: 'Depois, a tampa. E o que tem dentro é pequeno.',
+    LEVEL_260_HINT_3: 'Afaste os dedos no presente, deslize para cima e use a lupa no meio do presente.'
   }
 };

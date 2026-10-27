@@ -437,4 +437,4 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   console.log(errors.length ? 'ERROS:\n' + errors.join('\n') : 'sem erros no console');
   await browser.close();
   process.exit(errors.length ? 1 : 0);
-})().catch(e => { console.error('FALHOU:', e.message); process.exit(1); });
+})().catch(e => { console.error('FALHOU:', e.message, process.env.DEBUG ? e.stack : ''); process.exit(1); });

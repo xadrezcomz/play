@@ -600,6 +600,12 @@
     var c = col(p, C.coral);
     return '<rect x="0" y="0" width="100" height="20" rx="10" fill="' + c + '"/><rect x="6" y="3" width="88" height="5" rx="2.5" fill="#fff" opacity=".3"/>';
   } };
+  T.lens = { view: '0 0 100 100', svg: function () {
+    return '<path d="M64 64 L94 94" stroke="' + C.woodDark + '" stroke-width="12" stroke-linecap="round"/><circle cx="40" cy="40" r="34" fill="#DFF3FF" fill-opacity=".35" stroke="' + C.ink + '" stroke-width="7"/><ellipse cx="28" cy="26" rx="10" ry="6" fill="#fff" opacity=".7" transform="rotate(-30 28 26)"/>';
+  } };
+  T.snake = { view: '0 0 100 30', stretch: true, svg: function () {
+    return '<rect x="0" y="6" width="100" height="18" rx="9" fill="' + C.green + '"/><path d="M8 15 L92 15" stroke="#4FA85A" stroke-width="3" stroke-dasharray="6 8"/>';
+  } };
   T.bin = { view: '0 0 80 100', svg: function (p, o) {
     var c = sc(p, o, '#9AA0B4');
     return '<rect x="30" y="2" width="20" height="8" rx="3" fill="' + shade(c, -30) + '"/><rect x="4" y="8" width="72" height="12" rx="5" fill="' + shade(c, -20) + '"/>' +

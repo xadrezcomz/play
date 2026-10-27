@@ -1540,6 +1540,68 @@ RULES.L10N['es-ES'] = {
     LEVEL_250_TITLE: 'LLEVA LA TORRE A LA ÚLTIMA VARILLA',
     LEVEL_250_HINT_1: 'Un disco a la vez.',
     LEVEL_250_HINT_2: 'Nunca uno grande sobre uno pequeño.',
-    LEVEL_250_HINT_3: 'Pequeño a la 3, mediano a la 2, pequeño a la 2, grande a la 3, pequeño a la 1, mediano a la 3, pequeño a la 3.'
+    LEVEL_250_HINT_3: 'Pequeño a la 3, mediano a la 2, pequeño a la 2, grande a la 3, pequeño a la 1, mediano a la 3, pequeño a la 3.',
+    CHAPTER_26: 'DOS DEDOS',
+    LEVEL_258_MSG: 'TOCA LA ESTRELLA',
+    FB_STUCK_LID: 'LA TAPA ESTÁ ATASCADA',
+    FB_HUNGRY_SNAKE: 'TIENE HAMBRE...',
+    FB_DOOR_CLOSED: 'LA PUERTA SE CERRÓ',
+    FB_SIZE_HOLE: 'NO ES DEL TAMAÑO DEL AGUJERO',
+    FB_ONE_EACH: 'FALTA EL OTRO BOTÓN',
+    FB_STUCK_TOGETHER: '¡ESTÁN PEGADOS!',
+    FB_TOO_SMALL: 'DEMASIADO PEQUEÑO PARA VERLO...',
+    FB_TIED: 'ESTÁ ATADO',
+    FB_UNTIED: '¡DESATADO!',
+    FB_LOOKS_EMPTY: 'PARECE VACÍO...',
+
+    LEVEL_251_TITLE: 'PULSA LOS DOS BOTONES A LA VEZ',
+    LEVEL_251_HINT_1: 'Un botón solo vuelve enseguida.',
+    LEVEL_251_HINT_2: 'Dos dedos, o algo pesado para sujetar uno.',
+    LEVEL_251_HINT_3: 'Toca los dos a la vez, o deja la piedra encima de uno y toca el otro.',
+
+    LEVEL_252_TITLE: 'ABRE LA CAJA',
+    LEVEL_252_HINT_1: 'La tapa está atascada.',
+    LEVEL_252_HINT_2: '¿Cómo se abre algo con dos dedos?',
+    LEVEL_252_HINT_3: 'Separa dos dedos encima de la caja (o gira la rueda del ratón sobre ella).',
+
+    LEVEL_253_TITLE: 'ESTIRA LA SERPIENTE HASTA LA MANZANA',
+    LEVEL_253_HINT_1: 'La serpiente no camina.',
+    LEVEL_253_HINT_2: 'Se estira.',
+    LEVEL_253_HINT_3: 'Usa la pinza (o la rueda del ratón) en la serpiente hasta que la cabeza llegue a la manzana.',
+
+    LEVEL_254_TITLE: 'PASA POR LA PUERTA',
+    LEVEL_254_HINT_1: 'La puerta baja cuando sueltas.',
+    LEVEL_254_HINT_2: 'Sujétala con un dedo, o cálzala.',
+    LEVEL_254_HINT_3: 'Sujeta la puerta arriba y pasa a Ruli con otro dedo, o pon la caja debajo de la puerta y luego levanta la puerta.',
+
+    LEVEL_255_TITLE: 'METE LA PELOTA EN EL AGUJERO',
+    LEVEL_255_HINT_1: 'La pelota es demasiado grande.',
+    LEVEL_255_HINT_2: 'Del tamaño justo.',
+    LEVEL_255_HINT_3: 'Achica la pelota hasta el tamaño del agujero y suéltala encima.',
+
+    LEVEL_256_TITLE: 'ABRE EL PORTÓN',
+    LEVEL_256_HINT_1: 'Hay dos botones.',
+    LEVEL_256_HINT_2: 'Un amigo puede ayudar.',
+    LEVEL_256_HINT_3: 'Pon a Ruli en un botón y al amigo en el otro.',
+
+    LEVEL_257_TITLE: 'SEPARA A LOS DOS AMIGOS',
+    LEVEL_257_HINT_1: 'Están pegados.',
+    LEVEL_257_HINT_2: 'Estira para separar.',
+    LEVEL_257_HINT_3: 'Usa la pinza (o la rueda del ratón) en el abrazo hasta que se separen.',
+
+    LEVEL_258_TITLE: 'LEE LA LETRA PEQUEÑA',
+    LEVEL_258_HINT_1: 'El papel es demasiado pequeño.',
+    LEVEL_258_HINT_2: 'Amplía.',
+    LEVEL_258_HINT_3: 'Agranda el papel con la pinza (o la rueda): dice TOCA LA ESTRELLA.',
+
+    LEVEL_259_TITLE: 'ENCUENTRA LA HORMIGA',
+    LEVEL_259_HINT_1: 'Es demasiado pequeña para verla.',
+    LEVEL_259_HINT_2: 'Usa la lupa.',
+    LEVEL_259_HINT_3: 'Pasa la lupa por la pantalla: la hormiga está a la derecha, arriba. Tócala.',
+
+    LEVEL_260_TITLE: 'ABRE EL REGALO',
+    LEVEL_260_HINT_1: 'Primero, el lazo.',
+    LEVEL_260_HINT_2: 'Luego, la tapa. Y lo de dentro es pequeño.',
+    LEVEL_260_HINT_3: 'Separa los dedos sobre el regalo, desliza hacia arriba y usa la lupa en el medio del regalo.'
   }
 };

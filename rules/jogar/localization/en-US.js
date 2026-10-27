@@ -1540,6 +1540,68 @@ RULES.L10N['en-US'] = {
     LEVEL_250_TITLE: 'MOVE THE TOWER TO THE LAST PEG',
     LEVEL_250_HINT_1: 'One disc at a time.',
     LEVEL_250_HINT_2: 'Never big on top of small.',
-    LEVEL_250_HINT_3: 'Small to 3, medium to 2, small to 2, big to 3, small to 1, medium to 3, small to 3.'
+    LEVEL_250_HINT_3: 'Small to 3, medium to 2, small to 2, big to 3, small to 1, medium to 3, small to 3.',
+    CHAPTER_26: 'TWO FINGERS',
+    LEVEL_258_MSG: 'TAP THE STAR',
+    FB_STUCK_LID: 'THE LID IS STUCK',
+    FB_HUNGRY_SNAKE: 'IT\'S HUNGRY...',
+    FB_DOOR_CLOSED: 'THE DOOR CLOSED',
+    FB_SIZE_HOLE: 'IT\'S NOT THE SIZE OF THE HOLE',
+    FB_ONE_EACH: 'THE OTHER BUTTON IS MISSING',
+    FB_STUCK_TOGETHER: 'THEY\'RE STUCK TOGETHER!',
+    FB_TOO_SMALL: 'TOO SMALL TO SEE...',
+    FB_TIED: 'IT\'S TIED',
+    FB_UNTIED: 'UNTIED!',
+    FB_LOOKS_EMPTY: 'LOOKS EMPTY...',
+
+    LEVEL_251_TITLE: 'PRESS BOTH BUTTONS TOGETHER',
+    LEVEL_251_HINT_1: 'One button alone pops back up.',
+    LEVEL_251_HINT_2: 'Two fingers, or something heavy to hold one.',
+    LEVEL_251_HINT_3: 'Tap both at the same time, or leave the rock on one and tap the other.',
+
+    LEVEL_252_TITLE: 'OPEN THE BOX',
+    LEVEL_252_HINT_1: 'The lid is stuck.',
+    LEVEL_252_HINT_2: 'How do you open something with two fingers?',
+    LEVEL_252_HINT_3: 'Spread two fingers on the box (or scroll the mouse wheel over it).',
+
+    LEVEL_253_TITLE: 'STRETCH THE SNAKE TO THE APPLE',
+    LEVEL_253_HINT_1: 'The snake doesn\'t walk.',
+    LEVEL_253_HINT_2: 'It stretches.',
+    LEVEL_253_HINT_3: 'Pinch (or use the mouse wheel on) the snake until its head reaches the apple.',
+
+    LEVEL_254_TITLE: 'GO THROUGH THE DOOR',
+    LEVEL_254_HINT_1: 'The door drops when you let go.',
+    LEVEL_254_HINT_2: 'Hold it with one finger, or prop it open.',
+    LEVEL_254_HINT_3: 'Hold the door up and move Ruli with another finger, or put the box under the door and then lift the door.',
+
+    LEVEL_255_TITLE: 'PUT THE BALL IN THE HOLE',
+    LEVEL_255_HINT_1: 'The ball is too big.',
+    LEVEL_255_HINT_2: 'The right size.',
+    LEVEL_255_HINT_3: 'Shrink the ball to the size of the hole and drop it on it.',
+
+    LEVEL_256_TITLE: 'OPEN THE GATE',
+    LEVEL_256_HINT_1: 'There are two buttons.',
+    LEVEL_256_HINT_2: 'A friend can help.',
+    LEVEL_256_HINT_3: 'Put Ruli on one button and his friend on the other.',
+
+    LEVEL_257_TITLE: 'SEPARATE THE TWO FRIENDS',
+    LEVEL_257_HINT_1: 'They\'re stuck together.',
+    LEVEL_257_HINT_2: 'Stretch to separate.',
+    LEVEL_257_HINT_3: 'Pinch (or use the mouse wheel on) the hug until they come apart.',
+
+    LEVEL_258_TITLE: 'READ THE SMALL PRINT',
+    LEVEL_258_HINT_1: 'The paper is too small.',
+    LEVEL_258_HINT_2: 'Zoom in.',
+    LEVEL_258_HINT_3: 'Make the paper bigger with a pinch (or the wheel): it says TAP THE STAR.',
+
+    LEVEL_259_TITLE: 'FIND THE ANT',
+    LEVEL_259_HINT_1: 'It\'s too small to see.',
+    LEVEL_259_HINT_2: 'Use the magnifying glass.',
+    LEVEL_259_HINT_3: 'Move the magnifying glass over the screen: the ant is on the right, up high. Tap it.',
+
+    LEVEL_260_TITLE: 'OPEN THE PRESENT',
+    LEVEL_260_HINT_1: 'First, the bow.',
+    LEVEL_260_HINT_2: 'Then the lid. And what\'s inside is small.',
+    LEVEL_260_HINT_3: 'Spread your fingers on the present, swipe up and use the magnifying glass in the middle of the present.'
   }
 };

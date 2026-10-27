@@ -117,6 +117,34 @@ module.exports = ({ unit, touch, sleep, center, board, tapXY, tap, dragXY, drag,
       const mv = async (d, x) => { await dragToBoard(d, x, 70); await sleep(350); };
       await mv('d2', 80); await notWon(250, 'mexer no disco de baixo');
       await mv('d1', 80); await mv('d2', 50); await mv('d1', 50); await mv('d3', 80); await mv('d1', 20); await mv('d2', 80); await mv('d1', 80);
+    }],
+    251: ['DOIS BOTÕES', async () => {
+      await tap('bA'); await sleep(700); await tap('bB'); await sleep(500); await notWon(251, 'um depois do outro');
+      await tapTogether('bA', 'bB'); await sleep(300);
+      if (await page.evaluate(() => RULES.Game.current === 251 && !RULES.Game.won)) { console.log('      (dois dedos não funcionou, usando a pedra)'); await restart(); await dragTo('rock', 'bA'); await sleep(300); await tap('bB'); }
+    }],
+    252: ['ABRA A CAIXA', async () => { await tap('box'); await notWon(252, 'tocar na caixa'); await pinch('box', 1.9); }],
+    253: ['COBRA', async () => { await tap('body'); await notWon(253, 'tocar na cobra'); await pinch('body', 3.2); }],
+    254: ['PORTA CALÇADA', async () => {
+      await walk('ruli', [[70, 98]]); await notWon(254, 'porta fechada');
+      await dragToBoard('wedge', 56, 98); await sleep(300); await dragBy('door', 0, -120); await sleep(800);
+      await walk('ruli', [[30, 98], [80, 98]]);
+    }],
+    255: ['TAMANHO DO BURACO', async () => {
+      await dragTo('ball', 'hole'); await sleep(500); await notWon(255, 'bola grande');
+      await pinch('ball', 0.52); await sleep(200); const s = await obj('ball'); console.log('      escala', s.scale.toFixed(2));
+      await dragTo('ball', 'hole');
+    }],
+    256: ['DOIS BOTÕES COM PESO', async () => {
+      await dragTo('ruli', 'zone1'); await sleep(300); await notWon(256, 'só o Ruli'); await dragTo('friend', 'zone2');
+    }],
+    257: ['SEPARE', async () => { await tap('hug'); await notWon(257, 'tocar no abraço'); await pinch('hug', 1.8); }],
+    258: ['LETRA MIÚDA', async () => { await tap('sun'); await notWon(258, 'chutar o sol'); const c = await center('tiny'); await pinchAt(c[0], c[1], 4); await sleep(200); await tap('star'); }],
+    259: ['LUPA', async () => { await tap('leaf'); await notWon(259, 'procurar sem lupa'); await dragToBoard('lens', 74, 58); await sleep(300); await tap('ant'); }],
+    260: ['PRESENTE', async () => {
+      await tap('gift'); await notWon(260, 'tocar no presente'); await pinch('gift', 1.9); await sleep(400);
+      const c = await center('gift'); await dragXY(c[0], c[1] + 20, c[0], c[1] - 120, 5); await sleep(400);
+      await dragToBoard('lens', 52, 78); await sleep(300); await tap('ring');
     }]
   };
 };

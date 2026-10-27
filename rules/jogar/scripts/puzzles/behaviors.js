@@ -47,6 +47,8 @@
 //   fragile    { max, carries:[ids] }            → arrastado rápido demais: evento 'spill' (e volta)
 //   pairs      { cards:[ids], ms }               → jogo da memória: dois iguais ficam abertos (state.done no fim)
 //   hanoi      { pegs:[ids], discs:[menor→maior], base, h } → torre de Hanói (state.done quando tudo vai para o último pino)
+//   stickTo    { target:'id', side:'right'|'left'|'top', dx, dy } → fica grudado na borda de outro (que estica ou anda)
+//   magnify    { targets:[ids], radius, scale }  → lupa: o que fica embaixo dela aparece maior (state.big)
 //   encircle   { target:'id' }                   → um traço fechado em volta do alvo (state.done)
 //   palette    { from:[ids] }                    → mistura as cores soltas em cima (state.color); tocar limpa
 (function () {
@@ -1041,6 +1043,40 @@
           o.setState('moves', (o.state.moves || 0) + (best !== from ? 1 : 0));
           if (stacks[stacks.length - 1].length === cfg.discs.length) o.setState('done', true);
         });
+      }
+    },
+
+    stickTo: {
+      init: function (o, cfg, E) {
+        function upd() {
+          var t = E.get(cfg.target);
+          if (!t) return;
+          var side = cfg.side || 'right';
+          o.x = (side === 'right' ? t.x + t.sw / 2 : side === 'left' ? t.x - t.sw / 2 : t.x) + (cfg.dx || 0);
+          o.y = (side === 'top' ? t.y - t.sh / 2 : t.y) + (cfg.dy || 0);
+          o.layout();
+        }
+        E.on('scale', function (e) { if (e.obj.id === cfg.target) upd(); });
+        E.on('dragmove', function (e) { if (e.obj.id === cfg.target) upd(); });
+        setTimeout(upd, 20);
+      }
+    },
+
+    magnify: {
+      init: function (o, cfg, E) {
+        function upd() {
+          (cfg.targets || []).forEach(function (id) {
+            var t = E.get(id);
+            if (!t) return;
+            var near = U.dist(t.x, t.y, o.x, o.y) < (cfg.radius || 10);
+            if (near) { t.z = Math.max(t.z, o.z + 1); t.layout(); }   // aparece na frente da lente
+            if (near === !!t.state.big) return;
+            t.setState('big', near);
+            t.animate(function () { t.scale = near ? t.scale0 * (cfg.scale || 3) : t.scale0; t.layout(); }, 180);
+          });
+        }
+        E.on('dragmove', function (e) { if (e.obj === o) upd(); });
+        E.on('drop', function (e) { if (e.obj === o) upd(); });
       }
     },
 
