@@ -42,6 +42,7 @@
 //   patrol     { points:[[x,y]...], ms, pause }  → anda sozinho de ponto em ponto (para ao ser segurado)
 //   spinner    { speed }                         → gira sozinho até state.stopped (aí grava state.angle)
 //   sumDisplay { container, ids:[...] }          → state.n = soma dos números dentro do container
+//   palette    { from:[ids] }                    → mistura as cores soltas em cima (state.color); tocar limpa
 (function () {
   'use strict';
   var R = window.RULES, U = R.util;
@@ -876,6 +877,30 @@
         E.on('drop', function () { setTimeout(upd, 200); });
         E.on('rotated', function () { setTimeout(upd, 50); });
         setTimeout(upd, 30);
+      }
+    },
+
+    palette: {
+      init: function (o, cfg, E) {
+        var MIX = { 'blue+coral': 'purple', 'coral+yellow': 'orange', 'blue+yellow': 'green', 'blue+coral+yellow': 'woodDark' };
+        var set = [];
+        E.on('drop', function (e) {
+          var t = e.obj;
+          if (e.handled || t === o || (cfg.from || []).indexOf(t.id) < 0 || !U.overlap(t.rect(), o.rect())) return;
+          e.handled = true;
+          var c = (t.def.props || {}).color || t.state.color;
+          if (c && set.indexOf(c) < 0) set.push(c);
+          set.sort();
+          o.setState('color', set.length === 1 ? set[0] : (MIX[set.join('+')] || 'woodDark'));
+          t.moveTo(t.x0, t.y0, 260);
+          o.fx('squash');
+          R.Audio.play('pop');
+          E.emit('mixed', { obj: o, color: o.state.color });
+        });
+        E.on('tap', function (e) {
+          if (e.obj !== o || !set.length) return;
+          set = []; o.setState('color', null); o.fx('wobble'); R.Audio.play('whoosh');
+        });
       }
     },
 

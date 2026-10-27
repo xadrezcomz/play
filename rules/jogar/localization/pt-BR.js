@@ -860,6 +860,70 @@ RULES.L10N['pt-BR'] = {
     LEVEL_140_TITLE: 'CHEGUE À BANDEIRA',
     LEVEL_140_HINT_1: 'O labirinto não tem saída.',
     LEVEL_140_HINT_2: 'E se o labirinto se mexer?',
-    LEVEL_140_HINT_3: 'Arraste o chão do labirinto para longe do Ruli e depois leve o Ruli até a bandeira.'
+    LEVEL_140_HINT_3: 'Arraste o chão do labirinto para longe do Ruli e depois leve o Ruli até a bandeira.',
+    CHAPTER_15: 'CORES QUE ENGANAM',
+    COLOR_RED: 'VERMELHO',
+    COLOR_BLUE: 'AZUL',
+    COLOR_GREEN: 'VERDE',
+    COLOR_YELLOW: 'AMARELO',
+    UI_YES: 'SIM',
+    UI_NO: 'NÃO',
+    FB_THATS_YELLOW: 'ESSA PALAVRA É AMARELA...',
+    FB_NOT_ORANGE: 'AINDA NÃO É LARANJA',
+    FB_NOT_ALL: 'AINDA NÃO É TUDO...',
+    FB_LOOK_AGAIN: 'OLHE DE NOVO...',
+    FB_NOT_WHITE: 'ISSO NÃO É BRANCO',
+    FB_GRAY_LEFT: 'E A CINZA?',
+    FB_SIZE_TOO: 'O TAMANHO TAMBÉM CONTA',
+
+    LEVEL_141_TITLE: 'TOQUE NA PALAVRA AZUL',
+    LEVEL_141_HINT_1: 'Leia com os olhos, não com a cabeça.',
+    LEVEL_141_HINT_2: 'Qual palavra está pintada de azul?',
+    LEVEL_141_HINT_3: 'Toque em VERMELHO: ela está escrita em azul.',
+
+    LEVEL_142_TITLE: 'PINTE O CÍRCULO DE LARANJA',
+    LEVEL_142_HINT_1: 'Não tem tinta laranja.',
+    LEVEL_142_HINT_2: 'Duas cores juntas fazem outra.',
+    LEVEL_142_HINT_3: 'Junte a gota vermelha com a amarela e leve a laranja até o círculo.',
+
+    LEVEL_143_TITLE: 'DEIXE [[w_all|TUDO]] ROXO',
+    LEVEL_143_HINT_1: 'Tudo é tudo mesmo.',
+    LEVEL_143_HINT_2: 'O Ruli também. E a frase?',
+    LEVEL_143_HINT_3: 'Pinte os círculos, o Ruli e a palavra TUDO com a tinta roxa.',
+
+    LEVEL_144_TITLE: 'OS DOIS QUADRADOS SÃO IGUAIS?',
+    LEVEL_144_HINT_1: 'O fundo engana.',
+    LEVEL_144_HINT_2: 'Coloque um ao lado do outro.',
+    LEVEL_144_HINT_3: 'São iguais: toque em SIM.',
+
+    LEVEL_145_TITLE: 'ESCONDA O RULI',
+    LEVEL_145_HINT_1: 'O arbusto é verde.',
+    LEVEL_145_HINT_2: 'O Ruli também pode ser.',
+    LEVEL_145_HINT_3: 'Pinte o Ruli de verde e coloque ele no meio do arbusto.',
+
+    LEVEL_146_TITLE: 'DEIXE O CÍRCULO BRANCO',
+    LEVEL_146_HINT_1: 'Não existe tinta branca.',
+    LEVEL_146_HINT_2: 'Dá para limpar a tinta.',
+    LEVEL_146_HINT_3: 'Esfregue o círculo com o dedo até sair a tinta.',
+
+    LEVEL_147_TITLE: 'SEPARE AS BOLAS POR COR',
+    LEVEL_147_HINT_1: 'Cada cesto tem uma cor.',
+    LEVEL_147_HINT_2: 'E a bola cinza?',
+    LEVEL_147_HINT_3: 'Coloque cada bola no cesto da sua cor e pinte a cinza de azul antes de guardar.',
+
+    LEVEL_148_TITLE: 'QUAL VEM DEPOIS?',
+    LEVEL_148_HINT_1: 'Olhe as cores.',
+    LEVEL_148_HINT_2: 'Olhe também o tamanho.',
+    LEVEL_148_HINT_3: 'A sequência pede um círculo azul e pequeno.',
+
+    LEVEL_149_TITLE: 'PINTE O RULI DE VERDE',
+    LEVEL_149_HINT_1: 'Não tem tinta verde.',
+    LEVEL_149_HINT_2: 'Use a paleta para misturar.',
+    LEVEL_149_HINT_3: 'Leve o azul e o amarelo até a paleta e depois a paleta até o Ruli.',
+
+    LEVEL_150_TITLE: 'PINTE O ARCO-ÍRIS',
+    LEVEL_150_HINT_1: 'Três cores puras e três misturas.',
+    LEVEL_150_HINT_2: 'Toque na paleta para limpá-la.',
+    LEVEL_150_HINT_3: 'Pinte da esquerda para a direita: vermelho, laranja (vermelho + amarelo), amarelo, verde (azul + amarelo), azul e roxo (vermelho + azul).'
   }
 };

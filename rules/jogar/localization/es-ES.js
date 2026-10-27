@@ -860,6 +860,70 @@ RULES.L10N['es-ES'] = {
     LEVEL_140_TITLE: 'LLEGA A LA BANDERA',
     LEVEL_140_HINT_1: 'El laberinto no tiene salida.',
     LEVEL_140_HINT_2: '¿Y si el laberinto se mueve?',
-    LEVEL_140_HINT_3: 'Arrastra el suelo del laberinto lejos de Ruli y luego lleva a Ruli hasta la bandera.'
+    LEVEL_140_HINT_3: 'Arrastra el suelo del laberinto lejos de Ruli y luego lleva a Ruli hasta la bandera.',
+    CHAPTER_15: 'COLORES QUE ENGAÑAN',
+    COLOR_RED: 'ROJO',
+    COLOR_BLUE: 'AZUL',
+    COLOR_GREEN: 'VERDE',
+    COLOR_YELLOW: 'AMARILLO',
+    UI_YES: 'SÍ',
+    UI_NO: 'NO',
+    FB_THATS_YELLOW: 'ESA PALABRA ES AMARILLA...',
+    FB_NOT_ORANGE: 'TODAVÍA NO ES NARANJA',
+    FB_NOT_ALL: 'TODAVÍA NO ES TODO...',
+    FB_LOOK_AGAIN: 'MIRA OTRA VEZ...',
+    FB_NOT_WHITE: 'ESO NO ES BLANCO',
+    FB_GRAY_LEFT: '¿Y LA GRIS?',
+    FB_SIZE_TOO: 'EL TAMAÑO TAMBIÉN CUENTA',
+
+    LEVEL_141_TITLE: 'TOCA LA PALABRA AZUL',
+    LEVEL_141_HINT_1: 'Lee con los ojos, no con la cabeza.',
+    LEVEL_141_HINT_2: '¿Qué palabra está pintada de azul?',
+    LEVEL_141_HINT_3: 'Toca ROJO: está escrita en azul.',
+
+    LEVEL_142_TITLE: 'PINTA EL CÍRCULO DE NARANJA',
+    LEVEL_142_HINT_1: 'No hay pintura naranja.',
+    LEVEL_142_HINT_2: 'Dos colores juntos hacen otro.',
+    LEVEL_142_HINT_3: 'Junta la gota roja con la amarilla y lleva la naranja hasta el círculo.',
+
+    LEVEL_143_TITLE: 'PINTA [[w_all|TODO]] DE MORADO',
+    LEVEL_143_HINT_1: 'Todo es todo.',
+    LEVEL_143_HINT_2: 'Ruli también. ¿Y la frase?',
+    LEVEL_143_HINT_3: 'Pinta los círculos, a Ruli y la palabra TODO con la pintura morada.',
+
+    LEVEL_144_TITLE: '¿LOS DOS CUADRADOS SON IGUALES?',
+    LEVEL_144_HINT_1: 'El fondo engaña.',
+    LEVEL_144_HINT_2: 'Pon uno al lado del otro.',
+    LEVEL_144_HINT_3: 'Son iguales: toca SÍ.',
+
+    LEVEL_145_TITLE: 'ESCONDE A RULI',
+    LEVEL_145_HINT_1: 'El arbusto es verde.',
+    LEVEL_145_HINT_2: 'Ruli también puede serlo.',
+    LEVEL_145_HINT_3: 'Pinta a Ruli de verde y ponlo en medio del arbusto.',
+
+    LEVEL_146_TITLE: 'DEJA EL CÍRCULO BLANCO',
+    LEVEL_146_HINT_1: 'No hay pintura blanca.',
+    LEVEL_146_HINT_2: 'La pintura se puede limpiar.',
+    LEVEL_146_HINT_3: 'Frota el círculo con el dedo hasta que salga la pintura.',
+
+    LEVEL_147_TITLE: 'SEPARA LAS PELOTAS POR COLOR',
+    LEVEL_147_HINT_1: 'Cada cesta tiene un color.',
+    LEVEL_147_HINT_2: '¿Y la pelota gris?',
+    LEVEL_147_HINT_3: 'Pon cada pelota en la cesta de su color y pinta la gris de azul antes de guardarla.',
+
+    LEVEL_148_TITLE: '¿CUÁL VIENE DESPUÉS?',
+    LEVEL_148_HINT_1: 'Mira los colores.',
+    LEVEL_148_HINT_2: 'Mira también el tamaño.',
+    LEVEL_148_HINT_3: 'La secuencia pide un círculo azul y pequeño.',
+
+    LEVEL_149_TITLE: 'PINTA A RULI DE VERDE',
+    LEVEL_149_HINT_1: 'No hay pintura verde.',
+    LEVEL_149_HINT_2: 'Usa la paleta para mezclar.',
+    LEVEL_149_HINT_3: 'Lleva el azul y el amarillo a la paleta y luego la paleta hasta Ruli.',
+
+    LEVEL_150_TITLE: 'PINTA EL ARCOÍRIS',
+    LEVEL_150_HINT_1: 'Tres colores puros y tres mezclas.',
+    LEVEL_150_HINT_2: 'Toca la paleta para limpiarla.',
+    LEVEL_150_HINT_3: 'Pinta de izquierda a derecha: rojo, naranja (rojo + amarillo), amarillo, verde (azul + amarillo), azul y morado (rojo + azul).'
   }
 };

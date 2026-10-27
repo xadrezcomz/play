@@ -92,6 +92,27 @@ module.exports = ({ touch, sleep, center, board, tapXY, tap, dragXY, drag, dragB
       await walk('ruli', [[85, 77], [85, 97]], 5);
     }, 4000],
     139: ['INVISÍVEL', async () => { await walk('ruli', [[35, 47]]); await notWon(139, 'bater na parede invisível'); await walk('ruli', [[15.0,57.0],[15.0,67.0],[15.0,77.0],[25.0,77.0],[35.0,77.0],[45.0,77.0],[45.0,87.0],[45.0,97.0],[35.0,97.0],[25.0,97.0],[15.0,97.0]]); }],
-    140: ['LABIRINTO SEM SAÍDA', async () => { await walk('ruli', [[45, 100]]); await notWon(140, 'sem saída'); await dragToBoard('frame', 50, 30); await sleep(200); await walk('ruli', [[95, 67], [95, 107]]); }]
+    140: ['LABIRINTO SEM SAÍDA', async () => { await walk('ruli', [[45, 100]]); await notWon(140, 'sem saída'); await dragToBoard('frame', 50, 30); await sleep(200); await walk('ruli', [[95, 67], [95, 107]]); }],
+    141: ['PALAVRA AZUL', async () => { await tap('wb'); await notWon(141, 'tocar em AZUL'); await tap('wr'); }],
+    142: ['LARANJA', async () => { await dragTo('blue', 'c'); await sleep(300); await notWon(142, 'pintar de azul'); await dragTo('red', 'yellow'); await sleep(400); await dragTo('orange', 'c'); }],
+    143: ['TUDO ROXO', async () => {
+      for (const t of ['c1', 'c2', 'ruli']) { await dragTo('paint', t); await sleep(350); }
+      await notWon(143, 'sem a palavra TUDO'); await dragTo('paint', 'w_all');
+    }],
+    144: ['QUADRADOS IGUAIS', async () => { await tap('no'); await notWon(144, 'dizer que não'); await dragTo('q1', 'q2'); await tap('yes'); }],
+    145: ['ESCONDA O RULI', async () => { await dragTo('ruli', 'bushfill'); await sleep(400); await notWon(145, 'Ruli azul no arbusto'); await dragTo('pg', 'ruli'); await sleep(400); }],
+    146: ['CÍRCULO BRANCO', async () => { await dragTo('p2', 'c'); await sleep(300); await notWon(146, 'pintar de amarelo'); await rub('c', 20); }],
+    147: ['SEPARE AS CORES', async () => {
+      for (const [b, k] of [['r1', 'kr'], ['r2', 'kr'], ['y1', 'ky'], ['b1', 'kb']]) { await dragTo(b, k); await sleep(200); }
+      await notWon(147, 'sem a bola cinza'); await dragTo('pb', 'gray'); await sleep(400); await dragTo('gray', 'kb');
+    }],
+    148: ['QUAL VEM DEPOIS', async () => { await tap('o1'); await notWon(148, 'azul grande'); await tap('o3'); }],
+    149: ['RULI VERDE', async () => { await dragTo('pb', 'ruli'); await sleep(300); await notWon(149, 'Ruli azul'); await dragTo('pb', 'pal'); await sleep(300); await dragTo('py', 'pal'); await sleep(300); await dragTo('pal', 'ruli'); }],
+    150: ['ARCO-ÍRIS', async () => {
+      const mix = async (cols, target) => { await tap('pal'); await sleep(150); for (const c of cols) { await dragTo(c, 'pal'); await sleep(300); } await dragTo('pal', target); await sleep(400); };
+      await dragTo('pr', 'a0'); await sleep(350); await dragTo('py', 'a2'); await sleep(350); await dragTo('pb', 'a4'); await sleep(350);
+      await notWon(150, 'só as cores puras');
+      await mix(['pr', 'py'], 'a1'); await mix(['pb', 'py'], 'a3'); await mix(['pr', 'pb'], 'a5');
+    }, 4000]
   };
 };

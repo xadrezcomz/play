@@ -860,6 +860,70 @@ RULES.L10N['en-US'] = {
     LEVEL_140_TITLE: 'REACH THE FLAG',
     LEVEL_140_HINT_1: 'The maze has no exit.',
     LEVEL_140_HINT_2: 'What if the maze moves?',
-    LEVEL_140_HINT_3: 'Drag the maze floor away from Ruli, then take Ruli to the flag.'
+    LEVEL_140_HINT_3: 'Drag the maze floor away from Ruli, then take Ruli to the flag.',
+    CHAPTER_15: 'TRICKY COLORS',
+    COLOR_RED: 'RED',
+    COLOR_BLUE: 'BLUE',
+    COLOR_GREEN: 'GREEN',
+    COLOR_YELLOW: 'YELLOW',
+    UI_YES: 'YES',
+    UI_NO: 'NO',
+    FB_THATS_YELLOW: 'THAT WORD IS YELLOW...',
+    FB_NOT_ORANGE: 'IT\'S NOT ORANGE YET',
+    FB_NOT_ALL: 'THAT\'S NOT EVERYTHING YET...',
+    FB_LOOK_AGAIN: 'LOOK AGAIN...',
+    FB_NOT_WHITE: 'THAT\'S NOT WHITE',
+    FB_GRAY_LEFT: 'WHAT ABOUT THE GRAY ONE?',
+    FB_SIZE_TOO: 'SIZE MATTERS TOO',
+
+    LEVEL_141_TITLE: 'TAP THE BLUE WORD',
+    LEVEL_141_HINT_1: 'Read with your eyes, not your head.',
+    LEVEL_141_HINT_2: 'Which word is painted blue?',
+    LEVEL_141_HINT_3: 'Tap RED: it is written in blue.',
+
+    LEVEL_142_TITLE: 'PAINT THE CIRCLE ORANGE',
+    LEVEL_142_HINT_1: 'There\'s no orange paint.',
+    LEVEL_142_HINT_2: 'Two colors together make another.',
+    LEVEL_142_HINT_3: 'Join the red drop with the yellow one and bring the orange drop to the circle.',
+
+    LEVEL_143_TITLE: 'MAKE [[w_all|EVERYTHING]] PURPLE',
+    LEVEL_143_HINT_1: 'Everything means everything.',
+    LEVEL_143_HINT_2: 'Ruli too. And the sentence?',
+    LEVEL_143_HINT_3: 'Paint the circles, Ruli and the word EVERYTHING with the purple paint.',
+
+    LEVEL_144_TITLE: 'ARE THE TWO SQUARES THE SAME?',
+    LEVEL_144_HINT_1: 'The background is tricky.',
+    LEVEL_144_HINT_2: 'Put one next to the other.',
+    LEVEL_144_HINT_3: 'They are the same: tap YES.',
+
+    LEVEL_145_TITLE: 'HIDE RULI',
+    LEVEL_145_HINT_1: 'The bush is green.',
+    LEVEL_145_HINT_2: 'Ruli can be too.',
+    LEVEL_145_HINT_3: 'Paint Ruli green and put him in the middle of the bush.',
+
+    LEVEL_146_TITLE: 'MAKE THE CIRCLE WHITE',
+    LEVEL_146_HINT_1: 'There\'s no white paint.',
+    LEVEL_146_HINT_2: 'You can clean the paint off.',
+    LEVEL_146_HINT_3: 'Rub the circle with your finger until the paint comes off.',
+
+    LEVEL_147_TITLE: 'SORT THE BALLS BY COLOR',
+    LEVEL_147_HINT_1: 'Each basket has a color.',
+    LEVEL_147_HINT_2: 'What about the gray ball?',
+    LEVEL_147_HINT_3: 'Put each ball in the basket of its color and paint the gray one blue before putting it away.',
+
+    LEVEL_148_TITLE: 'WHAT COMES NEXT?',
+    LEVEL_148_HINT_1: 'Look at the colors.',
+    LEVEL_148_HINT_2: 'Look at the size too.',
+    LEVEL_148_HINT_3: 'The sequence needs a small blue circle.',
+
+    LEVEL_149_TITLE: 'PAINT RULI GREEN',
+    LEVEL_149_HINT_1: 'There\'s no green paint.',
+    LEVEL_149_HINT_2: 'Use the palette to mix.',
+    LEVEL_149_HINT_3: 'Bring blue and yellow to the palette, then the palette to Ruli.',
+
+    LEVEL_150_TITLE: 'PAINT THE RAINBOW',
+    LEVEL_150_HINT_1: 'Three pure colors and three mixes.',
+    LEVEL_150_HINT_2: 'Tap the palette to clean it.',
+    LEVEL_150_HINT_3: 'Paint from left to right: red, orange (red + yellow), yellow, green (blue + yellow), blue and purple (red + blue).'
   }
 };

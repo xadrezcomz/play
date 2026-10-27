@@ -547,6 +547,18 @@
   T.bar = { view: '0 0 10 10', stretch: true, svg: function (p) {
     return '<rect width="10" height="10" fill="' + col(p, '#8C7B9E') + '"/>';
   } };
+  // paleta de pintor: state.color é a tinta misturada no meio
+  T.palette = { view: '0 0 100 80', svg: function (p, o) {
+    var c = o.state.color ? (C[o.state.color] || o.state.color) : null;
+    return '<path d="M50 4 Q96 4 96 40 Q96 64 74 62 Q62 60 62 70 Q62 78 50 76 Q4 76 4 40 Q4 4 50 4Z" fill="' + C.wood + '"/>' +
+      '<circle cx="74" cy="44" r="7" fill="#F7F1E3"/>' +
+      (c ? '<ellipse cx="42" cy="38" rx="22" ry="17" fill="' + c + '"/>' : '<ellipse cx="42" cy="38" rx="22" ry="17" fill="#fff" opacity=".35"/>');
+  } };
+  T.bush = { view: '0 0 100 70', stretch: true, svg: function (p) {
+    var c = col(p, C.green);
+    return '<ellipse cx="24" cy="44" rx="24" ry="24" fill="' + c + '"/><ellipse cx="52" cy="32" rx="28" ry="30" fill="' + c + '"/><ellipse cx="78" cy="44" rx="22" ry="24" fill="' + c + '"/>' +
+      '<rect x="6" y="44" width="88" height="26" rx="10" fill="' + c + '"/><ellipse cx="40" cy="24" rx="8" ry="5" fill="#fff" opacity=".25"/>';
+  } };
   T.bin = { view: '0 0 80 100', svg: function (p, o) {
     var c = sc(p, o, '#9AA0B4');
     return '<rect x="30" y="2" width="20" height="8" rx="3" fill="' + shade(c, -30) + '"/><rect x="4" y="8" width="72" height="12" rx="5" fill="' + shade(c, -20) + '"/>' +
@@ -573,7 +585,7 @@
 
     // Só redesenha quando o desenho depende do estado (svg(props, obj)).
     usesState: function (obj) {
-      if (obj.type === 'word') return false;
+      if (obj.type === 'word') return true;   // palavras podem ser pintadas (state.color)
       if (obj.type === 'ruli') return true;
       var t = T[obj.type];
       return !!t && t.svg.length >= 2;
@@ -583,6 +595,7 @@
     draw: function (obj) {
       if (obj.type === 'word') {
         obj.inner.textContent = obj.text;
+        obj.inner.style.color = obj.state.color ? (C[obj.state.color] || obj.state.color) : '';
         return;
       }
       if (obj.type === 'ruli') {
