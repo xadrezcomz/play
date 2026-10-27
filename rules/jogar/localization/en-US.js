@@ -636,7 +636,6 @@ RULES.L10N['en-US'] = {
     LEVEL_100_HINT_1: 'Who said it is the last?',
     LEVEL_100_HINT_2: 'The sentence can change.',
     LEVEL_100_HINT_3: 'Take the word LAST out of the sentence.',
-    UI_DEMO_END_TITLE: 'YOU FINISHED ALL 100 LEVELS!',
     UI_DEMO_END_TEXT: 'MORE LEVELS COMING SOON',
     CHAPTER_11: 'NUMBERS LIE',
     FB_ITS_NINE: 'THAT\'S A 9...',
@@ -1790,6 +1789,70 @@ RULES.L10N['en-US'] = {
     LEVEL_290_TITLE: 'DO WHAT THE LAST HINT SAYS',
     LEVEL_290_HINT_1: 'Not this hint.',
     LEVEL_290_HINT_2: 'Not this one either.',
-    LEVEL_290_HINT_3: 'Tap the blue triangle.'
+    LEVEL_290_HINT_3: 'Tap the blue triangle.',
+    CHAPTER_30: 'THE END?',
+    LEVEL_293_TAP: 'TAP HERE',
+    LEVEL_298_LABEL: 'LEVEL [[a|2]][[b|9]][[c|8]]',
+    LEVEL_299_END: 'FINISH',
+    FB_KNOCK_KNOCK: 'KNOCK, KNOCK...',
+    FB_ANOTHER_DOOR: 'ANOTHER DOOR?!',
+    FB_FLY_AWAY: 'SHOO, FLY!',
+    FB_BURNT_OUT: 'THAT ONE IS BURNT OUT',
+    FB_WANTS_BALLOON: 'HE WANTS THE BALLOON',
+    FB_LOOK_UP: 'LOOK UP THERE',
+    FB_ALMOST_ENDED: 'YOU ALMOST FINISHED!',
+    FB_KEY_TOO_BIG: 'THE KEY IS TOO BIG',
+    FB_NOW_WAIT: 'NOW... WAIT',
+
+    LEVEL_291_TITLE: 'OPEN THE DOOR',
+    LEVEL_291_HINT_1: 'Doors open by dragging.',
+    LEVEL_291_HINT_2: 'Is there only one?',
+    LEVEL_291_HINT_3: 'Drag the door aside, then the next one, and the next one.',
+
+    LEVEL_292_TITLE: 'TAKE THE BALL TO THE BOX',
+    LEVEL_292_HINT_1: 'The ball is too heavy.',
+    LEVEL_292_HINT_2: 'Who said the ball has to move?',
+    LEVEL_292_HINT_3: 'Drag the box to the ball.',
+
+    LEVEL_293_TITLE: 'DON\'T TOUCH ANYTHING',
+    LEVEL_293_HINT_1: 'The button is a trap.',
+    LEVEL_293_HINT_2: 'So is the fly.',
+    LEVEL_293_HINT_3: 'Don\'t touch anything for 5 seconds.',
+
+    LEVEL_294_TITLE: 'TURN ON ALL THE LIGHTS',
+    LEVEL_294_HINT_1: 'One bulb won\'t light.',
+    LEVEL_294_HINT_2: 'There\'s a new bulb on the shelf.',
+    LEVEL_294_HINT_3: 'Bring the new bulb to the middle one and turn on all three.',
+
+    LEVEL_295_TITLE: 'FIND THE STAR',
+    LEVEL_295_HINT_1: 'The numbers are dots.',
+    LEVEL_295_HINT_2: 'Connect the dots.',
+    LEVEL_295_HINT_3: 'Draw a line through 1, 2, 3, 4, 5 and back to 1.',
+
+    LEVEL_296_TITLE: 'MAKE RULI SMILE',
+    LEVEL_296_HINT_1: 'He\'s sad for a reason.',
+    LEVEL_296_HINT_2: 'The balloon is getting away.',
+    LEVEL_296_HINT_3: 'Grab the balloon and drop it on Ruli.',
+
+    LEVEL_297_TITLE: 'REACH THE FLAG',
+    LEVEL_297_HINT_1: 'There\'s a hole in the way.',
+    LEVEL_297_HINT_2: 'And the door is locked.',
+    LEVEL_297_HINT_3: 'Put the plank over the hole, find the key under the rug and take it to the door.',
+
+    LEVEL_298_TITLE: 'CHANGE THE LEVEL NUMBER TO 300',
+    LEVEL_298_HINT_1: 'The number is up top.',
+    LEVEL_298_HINT_2: 'The digits change when tapped.',
+    LEVEL_298_HINT_3: 'Tap the 2 until it is 3, the 9 until it is 0 and the 8 until it is 0.',
+
+    LEVEL_299_TITLE: '[[w_not|DON\'T]] FINISH THIS LEVEL',
+    LEVEL_299_HINT_1: 'Pressing FINISH doesn\'t count... yet.',
+    LEVEL_299_HINT_2: 'The sentence can change.',
+    LEVEL_299_HINT_3: 'Take DON\'T out of the sentence, then tap FINISH.',
+
+    LEVEL_300_TITLE: 'USE THE [[w_key|KEY]] AND OPEN THE LAST DOOR',
+    LEVEL_300_HINT_1: 'There are three padlocks.',
+    LEVEL_300_HINT_2: 'One wants the word, one a small key, the last one patience.',
+    LEVEL_300_HINT_3: 'Bring the word KEY to the top padlock, shrink the key and bring it to the middle one, then wait 3 seconds.',
+    UI_DEMO_END_TITLE: 'YOU COMPLETED ALL 300 LEVELS!'
   }
 };

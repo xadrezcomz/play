@@ -636,7 +636,6 @@ RULES.L10N['pt-BR'] = {
     LEVEL_100_HINT_1: 'Quem disse que é a última?',
     LEVEL_100_HINT_2: 'A frase pode mudar.',
     LEVEL_100_HINT_3: 'Tire a palavra ÚLTIMA da frase.',
-    UI_DEMO_END_TITLE: 'VOCÊ COMPLETOU AS 100 FASES!',
     UI_DEMO_END_TEXT: 'MAIS FASES EM BREVE',
     CHAPTER_11: 'NÚMEROS MENTEM',
     FB_ITS_NINE: 'ISSO É UM 9...',
@@ -1790,6 +1789,70 @@ RULES.L10N['pt-BR'] = {
     LEVEL_290_TITLE: 'FAÇA O QUE A ÚLTIMA DICA DIZ',
     LEVEL_290_HINT_1: 'Não é esta dica.',
     LEVEL_290_HINT_2: 'Ainda não é esta.',
-    LEVEL_290_HINT_3: 'Toque no triângulo azul.'
+    LEVEL_290_HINT_3: 'Toque no triângulo azul.',
+    CHAPTER_30: 'O FIM?',
+    LEVEL_293_TAP: 'TOQUE AQUI',
+    LEVEL_298_LABEL: 'FASE [[a|2]][[b|9]][[c|8]]',
+    LEVEL_299_END: 'TERMINAR',
+    FB_KNOCK_KNOCK: 'TOC, TOC...',
+    FB_ANOTHER_DOOR: 'OUTRA PORTA?!',
+    FB_FLY_AWAY: 'XÔ, MOSCA!',
+    FB_BURNT_OUT: 'ESSA ESTÁ QUEIMADA',
+    FB_WANTS_BALLOON: 'ELE QUER O BALÃO',
+    FB_LOOK_UP: 'OLHE LÁ EM CIMA',
+    FB_ALMOST_ENDED: 'VOCÊ QUASE TERMINOU!',
+    FB_KEY_TOO_BIG: 'A CHAVE É GRANDE DEMAIS',
+    FB_NOW_WAIT: 'AGORA... ESPERE',
+
+    LEVEL_291_TITLE: 'ABRA A PORTA',
+    LEVEL_291_HINT_1: 'Porta se abre arrastando.',
+    LEVEL_291_HINT_2: 'Será que é só uma?',
+    LEVEL_291_HINT_3: 'Arraste a porta para o lado, depois a próxima, e a próxima.',
+
+    LEVEL_292_TITLE: 'LEVE A BOLA ATÉ A CAIXA',
+    LEVEL_292_HINT_1: 'A bola é pesada demais.',
+    LEVEL_292_HINT_2: 'Quem disse que a bola tem que se mexer?',
+    LEVEL_292_HINT_3: 'Arraste a caixa até a bola.',
+
+    LEVEL_293_TITLE: 'NÃO TOQUE EM NADA',
+    LEVEL_293_HINT_1: 'O botão é uma armadilha.',
+    LEVEL_293_HINT_2: 'A mosca também.',
+    LEVEL_293_HINT_3: 'Não toque em nada por 5 segundos.',
+
+    LEVEL_294_TITLE: 'ACENDA TODAS AS LUZES',
+    LEVEL_294_HINT_1: 'Uma lâmpada não acende.',
+    LEVEL_294_HINT_2: 'Tem uma lâmpada nova na prateleira.',
+    LEVEL_294_HINT_3: 'Leve a lâmpada nova até a do meio e acenda as três.',
+
+    LEVEL_295_TITLE: 'ENCONTRE A ESTRELA',
+    LEVEL_295_HINT_1: 'Os números são pontos.',
+    LEVEL_295_HINT_2: 'Ligue os pontos.',
+    LEVEL_295_HINT_3: 'Desenhe uma linha passando pelo 1, 2, 3, 4, 5 e de volta ao 1.',
+
+    LEVEL_296_TITLE: 'FAÇA O RULI SORRIR',
+    LEVEL_296_HINT_1: 'Ele está triste por um motivo.',
+    LEVEL_296_HINT_2: 'O balão está fugindo.',
+    LEVEL_296_HINT_3: 'Pegue o balão e solte em cima do Ruli.',
+
+    LEVEL_297_TITLE: 'CHEGUE À BANDEIRA',
+    LEVEL_297_HINT_1: 'Tem um buraco no caminho.',
+    LEVEL_297_HINT_2: 'E a porta está trancada.',
+    LEVEL_297_HINT_3: 'Ponha a tábua sobre o buraco, ache a chave embaixo do tapete e leve até a porta.',
+
+    LEVEL_298_TITLE: 'MUDE O NÚMERO DA FASE PARA 300',
+    LEVEL_298_HINT_1: 'O número está lá em cima.',
+    LEVEL_298_HINT_2: 'Os números mudam com toques.',
+    LEVEL_298_HINT_3: 'Toque no 2 até virar 3, no 9 até virar 0 e no 8 até virar 0.',
+
+    LEVEL_299_TITLE: '[[w_not|NÃO]] TERMINE ESTA FASE',
+    LEVEL_299_HINT_1: 'Apertar TERMINAR não vale... ainda.',
+    LEVEL_299_HINT_2: 'A frase pode mudar.',
+    LEVEL_299_HINT_3: 'Tire o NÃO da frase e depois toque em TERMINAR.',
+
+    LEVEL_300_TITLE: 'USE A [[w_key|CHAVE]] E ABRA A ÚLTIMA PORTA',
+    LEVEL_300_HINT_1: 'São três cadeados.',
+    LEVEL_300_HINT_2: 'Um pede a palavra, outro uma chave pequena, o último paciência.',
+    LEVEL_300_HINT_3: 'Leve a palavra CHAVE ao cadeado de cima, diminua a chave e leve ao do meio, e espere 3 segundos.',
+    UI_DEMO_END_TITLE: 'VOCÊ COMPLETOU AS 300 FASES!'
   }
 };

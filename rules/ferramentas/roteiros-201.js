@@ -219,6 +219,29 @@ module.exports = ({ unit, touch, sleep, center, board, tapXY, tap, dragXY, drag,
     }],
     289: ['FORA DO X', async () => { await tap('x'); await notWon(289, 'tocar no X');
       const t = await page.evaluate(() => { const r = document.querySelector('#instr-text').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }); await tapXY(t[0], t[1]); }],
-    290: ['ÚLTIMA DICA', async () => { await tap('s1'); await notWon(290, 'triângulo vermelho'); await tap('s2'); }]
+    290: ['ÚLTIMA DICA', async () => { await tap('s1'); await notWon(290, 'triângulo vermelho'); await tap('s2'); }],
+    291: ['PORTAS', async () => { await tap('door1'); await notWon(291, 'tocar na porta'); await dragBy('door1', 160, 0); await sleep(200); await notWon(291, 'só uma porta'); await dragBy('door2', -160, 0); await sleep(200); await dragBy('door3', 160, 0); }],
+    292: ['CAIXA ATÉ A BOLA', async () => { await dragTo('ball', 'box'); await notWon(292, 'arrastar a bola'); await dragTo('box', 'ball'); }],
+    293: ['NÃO TOQUE', async () => { await sleep(2000); await tap('btn'); await sleep(2000); await notWon(293, 'apertar o botão'); await sleep(4000); }, 4000],
+    294: ['LÂMPADA QUEIMADA', async () => {
+      await tap('s1'); await tap('s2'); await tap('s3'); await sleep(300); await notWon(294, 'lâmpada queimada');
+      await dragTo('spare', 'b2'); await sleep(400); await tap('s2');
+    }],
+    295: ['LIGUE OS PONTOS', async () => {
+      const P = []; for (const id of ['p1', 'p2', 'p3', 'p4', 'p5', 'p1']) { const o = await page.evaluate(id => { const x = RULES.Game.engine.get(id); return [x.x, x.y]; }, id); P.push(o); }
+      await drawPath([P[0], P[2], P[1]]); await notWon(295, 'ordem errada'); await drawPath(P);
+    }],
+    296: ['BALÃO', async () => { await rub('ruli', 12); await notWon(296, 'cócegas'); await dragTo('balloon', 'ruli'); }],
+    297: ['AVENTURA', async () => {
+      await walk('ruli', [[60, 92]]); await sleep(700); await notWon(297, 'cair no buraco');
+      await dragTo('plank', 'bridgeAt'); await sleep(200); await dragBy('rug', 0, -140); await sleep(200); await dragTo('key', 'door'); await sleep(300);
+      await walk('ruli', [[50, 92], [90, 92]]);
+    }],
+    298: ['300', async () => { await tap('goal'); await notWon(298, 'tocar no 300'); await tap('a'); await tap('b'); await tapN('c', 2); }],
+    299: ['NÃO TERMINE', async () => { await tap('end'); await notWon(299, 'apertar TERMINAR com o NÃO'); await dragBy('w_not', 0, 300); await sleep(200); await tap('end'); }],
+    300: ['ÚLTIMA PORTA', async () => {
+      await dragTo('key', 'l2'); await sleep(400); await notWon(300, 'chave grande');
+      await dragTo('w_key', 'l1'); await sleep(300); await pinch('key', 0.4); await sleep(200); await dragTo('key', 'l2'); await sleep(4200);
+    }, 6000]
   };
 };

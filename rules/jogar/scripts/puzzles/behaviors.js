@@ -48,6 +48,7 @@
 //   pairs      { cards:[ids], ms }               → jogo da memória: dois iguais ficam abertos (state.done no fim)
 //   hanoi      { pegs:[ids], discs:[menor→maior], base, h } → torre de Hanói (state.done quando tudo vai para o último pino)
 //   stickTo    { target:'id', side:'right'|'left'|'top', dx, dy } → fica grudado na borda de outro (que estica ou anda)
+//   textCycle  { values:[...] }                  → cada toque troca o texto da palavra pelo próximo valor
 //   wordSwap   { ids:[...], tol }                → solte uma palavra em cima de outra: as duas trocam de texto (evento 'swapped')
 //   follows    { target:'id', gap, speed }       → segue outro objeto, mantendo uma distância (fila)
 //   magnify    { targets:[ids], radius, scale }  → lupa: o que fica embaixo dela aparece maior (state.big)
@@ -1069,6 +1070,21 @@
         E.on('scale', function (e) { if (e.obj.id === cfg.target) upd(); });
         E.on('dragmove', function (e) { if (e.obj.id === cfg.target) upd(); });
         setTimeout(upd, 20);
+      }
+    },
+
+    textCycle: {
+      init: function (o, cfg, E) {
+        var vals = (cfg.values || '0123456789'.split('')).map(String);
+        E.on('tap', function (e) {
+          if (e.obj !== o) return;
+          var i = vals.indexOf(String(o.text).trim());
+          o.text = vals[(i + 1) % vals.length];
+          o.inner.textContent = o.text;
+          o.fx('squash');
+          R.Audio.play('tap');
+          E.emit('cycled', { obj: o, value: o.text });
+        });
       }
     },
 

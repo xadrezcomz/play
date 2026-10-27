@@ -636,8 +636,7 @@ RULES.L10N['es-ES'] = {
     LEVEL_100_HINT_1: '¿Quién dijo que es la última?',
     LEVEL_100_HINT_2: 'La frase puede cambiar.',
     LEVEL_100_HINT_3: 'Saca la palabra ÚLTIMA de la frase.',
-    UI_DEMO_END_TITLE: '¡COMPLETASTE LAS 100 FASES!',
-    UI_DEMO_END_TEXT: 'MÁS FASES MUY PRONTO',
+    UI_DEMO_END_TEXT: 'MÁS NIVELES MUY PRONTO',
     CHAPTER_11: 'LOS NÚMEROS MIENTEN',
     FB_ITS_NINE: 'ESO ES UN 9...',
     FB_TOO_MUCH: 'TE PASASTE...',
@@ -1790,6 +1789,70 @@ RULES.L10N['es-ES'] = {
     LEVEL_290_TITLE: 'HAZ LO QUE DICE LA ÚLTIMA PISTA',
     LEVEL_290_HINT_1: 'No es esta pista.',
     LEVEL_290_HINT_2: 'Tampoco es esta.',
-    LEVEL_290_HINT_3: 'Toca el triángulo azul.'
+    LEVEL_290_HINT_3: 'Toca el triángulo azul.',
+    CHAPTER_30: '¿EL FIN?',
+    LEVEL_293_TAP: 'TOCA AQUÍ',
+    LEVEL_298_LABEL: 'NIVEL [[a|2]][[b|9]][[c|8]]',
+    LEVEL_299_END: 'TERMINAR',
+    FB_KNOCK_KNOCK: 'TOC, TOC...',
+    FB_ANOTHER_DOOR: '¡¿OTRA PUERTA?!',
+    FB_FLY_AWAY: '¡FUERA, MOSCA!',
+    FB_BURNT_OUT: 'ESA ESTÁ FUNDIDA',
+    FB_WANTS_BALLOON: 'QUIERE EL GLOBO',
+    FB_LOOK_UP: 'MIRA ARRIBA',
+    FB_ALMOST_ENDED: '¡CASI TERMINAS!',
+    FB_KEY_TOO_BIG: 'LA LLAVE ES DEMASIADO GRANDE',
+    FB_NOW_WAIT: 'AHORA... ESPERA',
+
+    LEVEL_291_TITLE: 'ABRE LA PUERTA',
+    LEVEL_291_HINT_1: 'Las puertas se abren arrastrando.',
+    LEVEL_291_HINT_2: '¿Será solo una?',
+    LEVEL_291_HINT_3: 'Arrastra la puerta a un lado, luego la siguiente, y la siguiente.',
+
+    LEVEL_292_TITLE: 'LLEVA LA PELOTA HASTA LA CAJA',
+    LEVEL_292_HINT_1: 'La pelota pesa demasiado.',
+    LEVEL_292_HINT_2: '¿Quién dijo que la pelota tiene que moverse?',
+    LEVEL_292_HINT_3: 'Arrastra la caja hasta la pelota.',
+
+    LEVEL_293_TITLE: 'NO TOQUES NADA',
+    LEVEL_293_HINT_1: 'El botón es una trampa.',
+    LEVEL_293_HINT_2: 'La mosca también.',
+    LEVEL_293_HINT_3: 'No toques nada durante 5 segundos.',
+
+    LEVEL_294_TITLE: 'ENCIENDE TODAS LAS LUCES',
+    LEVEL_294_HINT_1: 'Una bombilla no se enciende.',
+    LEVEL_294_HINT_2: 'Hay una bombilla nueva en la repisa.',
+    LEVEL_294_HINT_3: 'Lleva la bombilla nueva a la del medio y enciende las tres.',
+
+    LEVEL_295_TITLE: 'ENCUENTRA LA ESTRELLA',
+    LEVEL_295_HINT_1: 'Los números son puntos.',
+    LEVEL_295_HINT_2: 'Une los puntos.',
+    LEVEL_295_HINT_3: 'Dibuja una línea por el 1, 2, 3, 4, 5 y de vuelta al 1.',
+
+    LEVEL_296_TITLE: 'HAZ SONREÍR A RULI',
+    LEVEL_296_HINT_1: 'Está triste por algo.',
+    LEVEL_296_HINT_2: 'El globo se escapa.',
+    LEVEL_296_HINT_3: 'Atrapa el globo y suéltalo encima de Ruli.',
+
+    LEVEL_297_TITLE: 'LLEGA A LA BANDERA',
+    LEVEL_297_HINT_1: 'Hay un agujero en el camino.',
+    LEVEL_297_HINT_2: 'Y la puerta está cerrada.',
+    LEVEL_297_HINT_3: 'Pon la tabla sobre el agujero, encuentra la llave debajo de la alfombra y llévala a la puerta.',
+
+    LEVEL_298_TITLE: 'CAMBIA EL NÚMERO DEL NIVEL A 300',
+    LEVEL_298_HINT_1: 'El número está arriba.',
+    LEVEL_298_HINT_2: 'Los números cambian al tocarlos.',
+    LEVEL_298_HINT_3: 'Toca el 2 hasta que sea 3, el 9 hasta que sea 0 y el 8 hasta que sea 0.',
+
+    LEVEL_299_TITLE: '[[w_not|NO]] TERMINES ESTE NIVEL',
+    LEVEL_299_HINT_1: 'Pulsar TERMINAR no vale... todavía.',
+    LEVEL_299_HINT_2: 'La frase puede cambiar.',
+    LEVEL_299_HINT_3: 'Quita el NO de la frase y luego toca TERMINAR.',
+
+    LEVEL_300_TITLE: 'USA LA [[w_key|LLAVE]] Y ABRE LA ÚLTIMA PUERTA',
+    LEVEL_300_HINT_1: 'Hay tres candados.',
+    LEVEL_300_HINT_2: 'Uno pide la palabra, otro una llave pequeña, el último paciencia.',
+    LEVEL_300_HINT_3: 'Lleva la palabra LLAVE al candado de arriba, achica la llave y llévala al del medio, y espera 3 segundos.',
+    UI_DEMO_END_TITLE: '¡COMPLETASTE LOS 300 NIVELES!'
   }
 };
