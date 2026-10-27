@@ -1476,6 +1476,70 @@ RULES.L10N['en-US'] = {
     LEVEL_240_TITLE: 'FIND ALL THE PAIRS',
     LEVEL_240_HINT_1: 'Eight cards.',
     LEVEL_240_HINT_2: 'Take it easy.',
-    LEVEL_240_HINT_3: 'Turn two at a time and use your memory until you find all four pairs.'
+    LEVEL_240_HINT_3: 'Turn two at a time and use your memory until you find all four pairs.',
+    CHAPTER_25: 'LOGIC',
+    LEVEL_242_SUM: 'EVERY LINE = 15',
+    LEVEL_245_EQ: '=',
+    LEVEL_245_Q: '?',
+    LEVEL_249_ANA: 'ANA',
+    LEVEL_249_BIA: 'BIA',
+    LEVEL_249_CRIS: 'CRIS',
+    LEVEL_249_S1: 'ANA IS TALLER THAN BIA',
+    LEVEL_249_S2: 'BIA IS TALLER THAN CRIS',
+    FB_THINK_AGAIN: 'THINK AGAIN...',
+    FB_ODD: 'IT\'S NOT EVEN',
+    FB_FOLLOW_LINE: 'FOLLOW THE WIRE...',
+    FB_BIGGER_ON_SMALLER: 'BIG DOESN\'T GO ON SMALL',
+    FB_TOP_ONLY: 'ONLY THE TOP ONE MOVES',
+
+    LEVEL_241_TITLE: 'WHAT COMES NEXT?',
+    LEVEL_241_HINT_1: 'Compare each number with the one before.',
+    LEVEL_241_HINT_2: 'Each one is double the last.',
+    LEVEL_241_HINT_3: '16 + 16 = 32.',
+
+    LEVEL_242_TITLE: 'COMPLETE THE SQUARE',
+    LEVEL_242_HINT_1: 'Add up each line.',
+    LEVEL_242_HINT_2: 'Every row and column makes 15.',
+    LEVEL_242_HINT_3: 'The middle number is 5: tap it until it shows 5.',
+
+    LEVEL_243_TITLE: 'PUT THE SAME NUMBER OF BALLS IN EACH BOX',
+    LEVEL_243_HINT_1: 'Five is odd.',
+    LEVEL_243_HINT_2: 'Nobody said all of them must go in.',
+    LEVEL_243_HINT_3: 'Put 2 balls in each box and leave one out.',
+
+    LEVEL_244_TITLE: 'WHICH ONE DOESN\'T BELONG?',
+    LEVEL_244_HINT_1: 'Three have something in common.',
+    LEVEL_244_HINT_2: 'Where does each one live?',
+    LEVEL_244_HINT_3: 'Sun, moon and star are in the sky. The fish isn\'t.',
+
+    LEVEL_245_TITLE: 'HOW MANY BALLS ARE WORTH A STAR?',
+    LEVEL_245_HINT_1: 'Read the sums from top to bottom.',
+    LEVEL_245_HINT_2: 'Swap each cube for two balls.',
+    LEVEL_245_HINT_3: '1 star = 2 cubes = 4 balls.',
+
+    LEVEL_246_TITLE: 'WHICH MOUSE REACHES THE CHEESE?',
+    LEVEL_246_HINT_1: 'Follow each wire.',
+    LEVEL_246_HINT_2: 'The wires cross.',
+    LEVEL_246_HINT_3: 'The red wire ends at the cheese.',
+
+    LEVEL_247_TITLE: 'IT\'S 10 O\'CLOCK. SHOW THE TIME 5 HOURS FROM NOW',
+    LEVEL_247_HINT_1: 'Add the hours.',
+    LEVEL_247_HINT_2: 'After 12 it goes back to 1.',
+    LEVEL_247_HINT_3: '10 + 5 = 3 o\'clock: turn the small hand to 3.',
+
+    LEVEL_248_TITLE: 'HOW MANY TRIANGLES ARE THERE?',
+    LEVEL_248_HINT_1: 'Not only the small ones.',
+    LEVEL_248_HINT_2: 'The whole drawing counts too.',
+    LEVEL_248_HINT_3: 'Two small ones and one big one: 3.',
+
+    LEVEL_249_TITLE: 'WHO IS THE TALLEST?',
+    LEVEL_249_HINT_1: 'The wall hides their height.',
+    LEVEL_249_HINT_2: 'Read the sentences.',
+    LEVEL_249_HINT_3: 'Ana is taller than Bia, who is taller than Cris: Ana.',
+
+    LEVEL_250_TITLE: 'MOVE THE TOWER TO THE LAST PEG',
+    LEVEL_250_HINT_1: 'One disc at a time.',
+    LEVEL_250_HINT_2: 'Never big on top of small.',
+    LEVEL_250_HINT_3: 'Small to 3, medium to 2, small to 2, big to 3, small to 1, medium to 3, small to 3.'
   }
 };

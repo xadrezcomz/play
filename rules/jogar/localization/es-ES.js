@@ -1476,6 +1476,70 @@ RULES.L10N['es-ES'] = {
     LEVEL_240_TITLE: 'ENCUENTRA TODAS LAS PAREJAS',
     LEVEL_240_HINT_1: 'Ocho cartas.',
     LEVEL_240_HINT_2: 'Con calma.',
-    LEVEL_240_HINT_3: 'Gira de dos en dos y usa la memoria hasta encontrar las cuatro parejas.'
+    LEVEL_240_HINT_3: 'Gira de dos en dos y usa la memoria hasta encontrar las cuatro parejas.',
+    CHAPTER_25: 'LÓGICA',
+    LEVEL_242_SUM: 'TODAS LAS LÍNEAS = 15',
+    LEVEL_245_EQ: '=',
+    LEVEL_245_Q: '?',
+    LEVEL_249_ANA: 'ANA',
+    LEVEL_249_BIA: 'BIA',
+    LEVEL_249_CRIS: 'CRIS',
+    LEVEL_249_S1: 'ANA ES MÁS ALTA QUE BIA',
+    LEVEL_249_S2: 'BIA ES MÁS ALTA QUE CRIS',
+    FB_THINK_AGAIN: 'PIENSA OTRA VEZ...',
+    FB_ODD: 'NO ESTÁ IGUAL',
+    FB_FOLLOW_LINE: 'SIGUE EL CABLE...',
+    FB_BIGGER_ON_SMALLER: 'EL GRANDE NO VA SOBRE EL PEQUEÑO',
+    FB_TOP_ONLY: 'SOLO SE MUEVE EL DE ARRIBA',
+
+    LEVEL_241_TITLE: '¿CUÁL ES EL SIGUIENTE?',
+    LEVEL_241_HINT_1: 'Compara cada número con el anterior.',
+    LEVEL_241_HINT_2: 'Cada uno es el doble del otro.',
+    LEVEL_241_HINT_3: '16 + 16 = 32.',
+
+    LEVEL_242_TITLE: 'COMPLETA EL CUADRADO',
+    LEVEL_242_HINT_1: 'Suma cada línea.',
+    LEVEL_242_HINT_2: 'Cada fila y columna suma 15.',
+    LEVEL_242_HINT_3: 'El número del medio es 5: tócalo hasta que muestre 5.',
+
+    LEVEL_243_TITLE: 'DEJA LAS CAJAS CON EL MISMO NÚMERO DE PELOTAS',
+    LEVEL_243_HINT_1: 'Cinco es impar.',
+    LEVEL_243_HINT_2: 'Nadie dijo que todas tengan que entrar.',
+    LEVEL_243_HINT_3: 'Pon 2 pelotas en cada caja y deja una fuera.',
+
+    LEVEL_244_TITLE: '¿CUÁL NO ENCAJA?',
+    LEVEL_244_HINT_1: 'Tres tienen algo en común.',
+    LEVEL_244_HINT_2: '¿Dónde vive cada uno?',
+    LEVEL_244_HINT_3: 'Sol, luna y estrella están en el cielo. El pez no.',
+
+    LEVEL_245_TITLE: '¿CUÁNTAS PELOTAS VALEN UNA ESTRELLA?',
+    LEVEL_245_HINT_1: 'Lee las cuentas de arriba abajo.',
+    LEVEL_245_HINT_2: 'Cambia cada cubo por dos pelotas.',
+    LEVEL_245_HINT_3: '1 estrella = 2 cubos = 4 pelotas.',
+
+    LEVEL_246_TITLE: '¿QUÉ RATÓN LLEGA AL QUESO?',
+    LEVEL_246_HINT_1: 'Sigue cada cable.',
+    LEVEL_246_HINT_2: 'Los cables se cruzan.',
+    LEVEL_246_HINT_3: 'El cable rojo termina en el queso.',
+
+    LEVEL_247_TITLE: 'SON LAS 10. MUESTRA LA HORA DENTRO DE 5 HORAS',
+    LEVEL_247_HINT_1: 'Suma las horas.',
+    LEVEL_247_HINT_2: 'Después del 12 vuelve al 1.',
+    LEVEL_247_HINT_3: '10 + 5 = las 3: gira la aguja pequeña hasta el 3.',
+
+    LEVEL_248_TITLE: '¿CUÁNTOS TRIÁNGULOS HAY?',
+    LEVEL_248_HINT_1: 'No solo los pequeños.',
+    LEVEL_248_HINT_2: 'El dibujo entero también cuenta.',
+    LEVEL_248_HINT_3: 'Dos pequeños y uno grande: 3.',
+
+    LEVEL_249_TITLE: '¿QUIÉN ES LA MÁS ALTA?',
+    LEVEL_249_HINT_1: 'El muro esconde su altura.',
+    LEVEL_249_HINT_2: 'Lee las frases.',
+    LEVEL_249_HINT_3: 'Ana es más alta que Bia, que es más alta que Cris: Ana.',
+
+    LEVEL_250_TITLE: 'LLEVA LA TORRE A LA ÚLTIMA VARILLA',
+    LEVEL_250_HINT_1: 'Un disco a la vez.',
+    LEVEL_250_HINT_2: 'Nunca uno grande sobre uno pequeño.',
+    LEVEL_250_HINT_3: 'Pequeño a la 3, mediano a la 2, pequeño a la 2, grande a la 3, pequeño a la 1, mediano a la 3, pequeño a la 3.'
   }
 };

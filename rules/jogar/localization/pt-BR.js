@@ -1476,6 +1476,70 @@ RULES.L10N['pt-BR'] = {
     LEVEL_240_TITLE: 'ENCONTRE TODOS OS PARES',
     LEVEL_240_HINT_1: 'Oito cartas.',
     LEVEL_240_HINT_2: 'Vá com calma.',
-    LEVEL_240_HINT_3: 'Vire de duas em duas e use a memória até achar os quatro pares.'
+    LEVEL_240_HINT_3: 'Vire de duas em duas e use a memória até achar os quatro pares.',
+    CHAPTER_25: 'LÓGICA',
+    LEVEL_242_SUM: 'TODAS AS LINHAS = 15',
+    LEVEL_245_EQ: '=',
+    LEVEL_245_Q: '?',
+    LEVEL_249_ANA: 'ANA',
+    LEVEL_249_BIA: 'BIA',
+    LEVEL_249_CRIS: 'CRIS',
+    LEVEL_249_S1: 'ANA É MAIS ALTA QUE BIA',
+    LEVEL_249_S2: 'BIA É MAIS ALTA QUE CRIS',
+    FB_THINK_AGAIN: 'PENSE DE NOVO...',
+    FB_ODD: 'NÃO ESTÁ IGUAL',
+    FB_FOLLOW_LINE: 'SIGA O FIO...',
+    FB_BIGGER_ON_SMALLER: 'GRANDE NÃO VAI EM CIMA DE PEQUENO',
+    FB_TOP_ONLY: 'SÓ O DE CIMA SE MEXE',
+
+    LEVEL_241_TITLE: 'QUAL É O PRÓXIMO?',
+    LEVEL_241_HINT_1: 'Compare cada número com o anterior.',
+    LEVEL_241_HINT_2: 'Cada um é o dobro do outro.',
+    LEVEL_241_HINT_3: '16 + 16 = 32.',
+
+    LEVEL_242_TITLE: 'COMPLETE O QUADRADO',
+    LEVEL_242_HINT_1: 'Some cada linha.',
+    LEVEL_242_HINT_2: 'Toda linha e coluna dá 15.',
+    LEVEL_242_HINT_3: 'O número do meio é 5: toque nele até mostrar 5.',
+
+    LEVEL_243_TITLE: 'DEIXE AS CAIXAS COM O MESMO NÚMERO DE BOLAS',
+    LEVEL_243_HINT_1: 'Cinco é ímpar.',
+    LEVEL_243_HINT_2: 'Ninguém disse que todas precisam entrar.',
+    LEVEL_243_HINT_3: 'Coloque 2 bolas em cada caixa e deixe uma de fora.',
+
+    LEVEL_244_TITLE: 'QUAL NÃO COMBINA?',
+    LEVEL_244_HINT_1: 'Três têm algo em comum.',
+    LEVEL_244_HINT_2: 'Onde cada um vive?',
+    LEVEL_244_HINT_3: 'Sol, lua e estrela estão no céu. O peixe não.',
+
+    LEVEL_245_TITLE: 'QUANTAS BOLAS VALEM UMA ESTRELA?',
+    LEVEL_245_HINT_1: 'Leia as contas de cima para baixo.',
+    LEVEL_245_HINT_2: 'Troque cada cubo por duas bolas.',
+    LEVEL_245_HINT_3: '1 estrela = 2 cubos = 4 bolas.',
+
+    LEVEL_246_TITLE: 'QUAL RATINHO CHEGA AO QUEIJO?',
+    LEVEL_246_HINT_1: 'Siga cada fio.',
+    LEVEL_246_HINT_2: 'Os fios se cruzam.',
+    LEVEL_246_HINT_3: 'O fio vermelho termina no queijo.',
+
+    LEVEL_247_TITLE: 'SÃO 10 HORAS. MOSTRE COMO ESTARÁ DAQUI A 5 HORAS',
+    LEVEL_247_HINT_1: 'Some as horas.',
+    LEVEL_247_HINT_2: 'Depois do 12, volta para o 1.',
+    LEVEL_247_HINT_3: '10 + 5 = 3 horas: gire o ponteiro pequeno até o 3.',
+
+    LEVEL_248_TITLE: 'QUANTOS TRIÂNGULOS EXISTEM?',
+    LEVEL_248_HINT_1: 'Não são só os pequenos.',
+    LEVEL_248_HINT_2: 'O desenho inteiro também conta.',
+    LEVEL_248_HINT_3: 'Dois pequenos e um grande: 3.',
+
+    LEVEL_249_TITLE: 'QUEM É A MAIS ALTA?',
+    LEVEL_249_HINT_1: 'O muro esconde a altura.',
+    LEVEL_249_HINT_2: 'Leia as frases.',
+    LEVEL_249_HINT_3: 'Ana é mais alta que Bia, que é mais alta que Cris: Ana.',
+
+    LEVEL_250_TITLE: 'LEVE A TORRE PARA O ÚLTIMO PINO',
+    LEVEL_250_HINT_1: 'Um disco por vez.',
+    LEVEL_250_HINT_2: 'Grande nunca em cima de pequeno.',
+    LEVEL_250_HINT_3: 'Pequeno no 3, médio no 2, pequeno no 2, grande no 3, pequeno no 1, médio no 3, pequeno no 3.'
   }
 };

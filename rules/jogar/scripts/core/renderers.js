@@ -591,6 +591,15 @@
     return '<rect x="2" y="2" width="56" height="76" rx="8" fill="#fff" stroke="' + (o.state.matched ? C.green : '#E3DDD2') + '" stroke-width="4"/>' +
       '<g transform="translate(' + (30 - v[2] * k / 2).toFixed(1) + ' ' + (40 - v[3] * k / 2).toFixed(1) + ') scale(' + k.toFixed(3) + ')">' + inner + '</g>';
   } };
+  // fio/cano desenhado por pontos (props.pts no espaço 0–100 do próprio objeto)
+  T.wire = { view: '0 0 100 100', stretch: true, svg: function (p) {
+    var pts = p.pts || [], d = pts.map(function (q, i) { return (i ? 'L' : 'M') + q[0] + ' ' + q[1]; }).join(' ');
+    return '<path d="' + d + '" fill="none" stroke="' + col(p, C.ink) + '" stroke-width="' + (p.width || 3) + '" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>';
+  } };
+  T.disc = { view: '0 0 100 20', stretch: true, svg: function (p) {
+    var c = col(p, C.coral);
+    return '<rect x="0" y="0" width="100" height="20" rx="10" fill="' + c + '"/><rect x="6" y="3" width="88" height="5" rx="2.5" fill="#fff" opacity=".3"/>';
+  } };
   T.bin = { view: '0 0 80 100', svg: function (p, o) {
     var c = sc(p, o, '#9AA0B4');
     return '<rect x="30" y="2" width="20" height="8" rx="3" fill="' + shade(c, -30) + '"/><rect x="4" y="8" width="72" height="12" rx="5" fill="' + shade(c, -20) + '"/>' +

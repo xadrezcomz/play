@@ -99,6 +99,24 @@ module.exports = ({ unit, touch, sleep, center, board, tapXY, tap, dragXY, drag,
     237: ['CAMINHO', async () => { await sleep(3800); for (const t of ['t0', 't4', 't5', 't8']) { await tap(t); await sleep(250); } }],
     238: ['QUANTAS ESTRELAS', async () => { await sleep(3000); await tapN('ans', 6); await tap('ok'); await notWon(238, 'contar 6'); await tapN('ans', 1); await tap('ok'); }],
     239: ['QUEM TROCOU', async () => { await sleep(3800); await tap('p0'); await notWon(239, 'o que não saiu'); await tap('p1'); }],
-    240: ['PARES 8', async () => { for (const [a, b] of [['m1', 'm3'], ['m0', 'm5'], ['m2', 'm6'], ['m4', 'm7']]) { await tap(a); await tap(b); await sleep(300); } }]
+    240: ['PARES 8', async () => { for (const [a, b] of [['m1', 'm3'], ['m0', 'm5'], ['m2', 'm6'], ['m4', 'm7']]) { await tap(a); await tap(b); await sleep(300); } }],
+    241: ['PRÓXIMO', async () => { await tap('o24'); await notWon(241, '24'); await tap('o32'); }],
+    242: ['QUADRADO MÁGICO', async () => { await tapN('mid', 4); await notWon(242, '4 no meio'); await tap('mid'); }],
+    243: ['MESMO NÚMERO', async () => {
+      for (const b of ['b0', 'b1', 'b2']) { await dragTo(b, 'A'); await sleep(150); }
+      for (const b of ['b3', 'b4']) { await dragTo(b, 'B'); await sleep(150); }
+      await sleep(300); await notWon(243, '3 e 2'); await dragBy('b0', 0, 200);
+    }],
+    244: ['NÃO COMBINA', async () => { await tap('moon'); await notWon(244, 'a lua'); await tap('fish'); }],
+    245: ['BOLAS E ESTRELA', async () => { await tapN('ans', 2); await tap('ok'); await notWon(245, 'responder 2'); await tapN('ans', 2); await tap('ok'); }],
+    246: ['FIOS', async () => { await tap('sc'); await notWon(246, 'ratinho verde'); await tap('sa'); }],
+    247: ['10 + 5', async () => { await spin('hour', 210 / 360); await sleep(300); await notWon(247, '5 horas'); await spin('hour', 300 / 360); }],
+    248: ['TRIÂNGULOS', async () => { await tapN('ans', 2); await tap('ok'); await notWon(248, 'contar 2'); await tap('ans'); await tap('ok'); }],
+    249: ['MAIS ALTA', async () => { await tap('bia'); await notWon(249, 'Bia'); await tap('ana'); }],
+    250: ['HANÓI', async () => {
+      const mv = async (d, x) => { await dragToBoard(d, x, 70); await sleep(350); };
+      await mv('d2', 80); await notWon(250, 'mexer no disco de baixo');
+      await mv('d1', 80); await mv('d2', 50); await mv('d1', 50); await mv('d3', 80); await mv('d1', 20); await mv('d2', 80); await mv('d1', 80);
+    }]
   };
 };

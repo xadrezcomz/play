@@ -46,6 +46,7 @@
 //   bake       { in:'id', ms, set }              → fica dentro de "in" por ms seguidos: liga os estados
 //   fragile    { max, carries:[ids] }            → arrastado rápido demais: evento 'spill' (e volta)
 //   pairs      { cards:[ids], ms }               → jogo da memória: dois iguais ficam abertos (state.done no fim)
+//   hanoi      { pegs:[ids], discs:[menor→maior], base, h } → torre de Hanói (state.done quando tudo vai para o último pino)
 //   encircle   { target:'id' }                   → um traço fechado em volta do alvo (state.done)
 //   palette    { from:[ids] }                    → mistura as cores soltas em cima (state.color); tocar limpa
 (function () {
@@ -997,6 +998,48 @@
           }
           busy = true;
           setTimeout(function () { a.setState('open', false); b.setState('open', false); busy = false; E.emit('unpaired', { obj: a, other: b }); }, cfg.ms || 750);
+        });
+      }
+    },
+
+    hanoi: {
+      init: function (o, cfg, E) {
+        var stacks = cfg.pegs.map(function () { return []; });
+        // começa tudo no primeiro pino, o maior embaixo
+        stacks[0] = cfg.discs.slice().reverse();
+        function place(peg, animate) {
+          var P = E.get(cfg.pegs[peg]);
+          stacks[peg].forEach(function (id, k) {
+            var d = E.get(id), y = cfg.base - (k + 0.5) * cfg.h;
+            d.z = 10 + k;
+            if (animate) d.moveTo(P.x, y, 160); else { d.x = d.x0 = P.x; d.y = d.y0 = y; d.layout(); }
+          });
+        }
+        function top(peg) { var s = stacks[peg]; return s.length ? s[s.length - 1] : null; }
+        cfg.pegs.forEach(function (_, i) { place(i, false); });
+        E.on('dragstart', function (e) {
+          var d = e.obj, i = cfg.discs.indexOf(d.id);
+          if (i < 0) return;
+          var peg = stacks.findIndex(function (s) { return s.indexOf(d.id) >= 0; });
+          if (top(peg) !== d.id) { E.input.cancel(d); d.moveTo(e.obj.x0, e.obj.y0, 150); E.emit('hanoiblocked', { obj: d }); }
+        });
+        E.on('drop', function (e) {
+          var d = e.obj, size = cfg.discs.indexOf(d.id);
+          if (size < 0) return;
+          e.handled = true;
+          var from = stacks.findIndex(function (s) { return s.indexOf(d.id) >= 0; });
+          var best = 0, bd = 1e9;
+          cfg.pegs.forEach(function (id, i) { var P = E.get(id), dd = Math.abs(P.x - d.x); if (dd < bd) { bd = dd; best = i; } });
+          var t = top(best);
+          if (best !== from && t && cfg.discs.indexOf(t) < size) {
+            place(from, true); d.fx('shake'); R.Audio.play('collision'); E.fail(cfg.failSay || 'FB_BIGGER_ON_SMALLER'); return;
+          }
+          stacks[from].splice(stacks[from].indexOf(d.id), 1);
+          stacks[best].push(d.id);
+          place(best, true);
+          R.Audio.play('pop');
+          o.setState('moves', (o.state.moves || 0) + (best !== from ? 1 : 0));
+          if (stacks[stacks.length - 1].length === cfg.discs.length) o.setState('done', true);
         });
       }
     },
