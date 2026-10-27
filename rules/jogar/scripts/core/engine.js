@@ -18,6 +18,7 @@
 //   { jump:'id', area:[x1,y1,x2,y2] } (pula para um lugar sorteado)
 //   { turn:'id', by:graus, ms } (gira e atualiza state.angle)
 //   { setText:'id', key } (troca o texto de uma palavra)
+//   { drop:'id' } (solta o objeto que está sendo arrastado)  { cls:'*' } = objeto do evento
 // Reações também filtram por dir (swipe), tool ('used'), key e value (evento 'state').
 // Extras de fase: label (rótulo "FASE NN" com palavras-objeto), draw:true
 // (desenhar com o dedo), objetos com minAttempt (só aparecem ao tentar de
@@ -433,8 +434,9 @@
       if (!o.inText && !o.def.w) E.measureWords();
       o.fx('pop');
     },
+    drop: function (a, e, E) { var o = E.get(a.drop); if (o) E.input.cancel(o); },
     cls: function (a, e, E) {
-      var o = E.get(a.cls);
+      var o = a.cls === '*' ? e.obj : E.get(a.cls);
       if (!o) return;
       if (a.add) o.el.classList.add(a.add);
       if (a.remove) o.el.classList.remove(a.remove);

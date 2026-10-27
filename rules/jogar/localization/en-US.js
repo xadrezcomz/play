@@ -807,6 +807,59 @@ RULES.L10N['en-US'] = {
     LEVEL_130_TITLE: 'TAKE THE BOXES TO THE X',
     LEVEL_130_HINT_1: 'The Xs are in nooks.',
     LEVEL_130_HINT_2: 'A box in a corner can\'t get out.',
-    LEVEL_130_HINT_3: 'Push each box sideways until it is under a nook, then push it up.'
+    LEVEL_130_HINT_3: 'Push each box sideways until it is under a nook, then push it up.',
+    CHAPTER_14: 'MAZES',
+    FB_TOO_TIGHT: 'TOO TIGHT...',
+    FB_CAT: 'THE CAT SAW YOU!',
+
+    LEVEL_131_TITLE: 'REACH THE FLAG',
+    LEVEL_131_HINT_1: 'Drag Ruli.',
+    LEVEL_131_HINT_2: 'Walls don\'t let you through.',
+    LEVEL_131_HINT_3: 'Follow the corridors to the flag in the bottom corner.',
+
+    LEVEL_132_TITLE: 'REACH THE FLAG',
+    LEVEL_132_HINT_1: 'There\'s no path to the flag.',
+    LEVEL_132_HINT_2: 'Who needs to move?',
+    LEVEL_132_HINT_3: 'Drag the flag to Ruli.',
+
+    LEVEL_133_TITLE: 'REACH THE FLAG',
+    LEVEL_133_HINT_1: 'One part of the wall is different.',
+    LEVEL_133_HINT_2: 'Look at the color.',
+    LEVEL_133_HINT_3: 'Drag the green block out and go through.',
+
+    LEVEL_134_TITLE: 'GET OUT OF THE MAZE',
+    LEVEL_134_HINT_1: 'There\'s an exit at the bottom.',
+    LEVEL_134_HINT_2: 'Ruli is too big for it.',
+    LEVEL_134_HINT_3: 'Shrink Ruli with two fingers (or the mouse wheel) and slip through the gap.',
+
+    LEVEL_135_TITLE: 'FIND THE FLAG IN THE DARK',
+    LEVEL_135_HINT_1: 'Ruli has a light.',
+    LEVEL_135_HINT_2: 'Explore calmly.',
+    LEVEL_135_HINT_3: 'Go down, right, up to the top, then down the last column and back through the middle.',
+
+    LEVEL_136_TITLE: 'REACH THE FLAG',
+    LEVEL_136_HINT_1: 'The padlock is locked.',
+    LEVEL_136_HINT_2: 'There\'s a key in the maze.',
+    LEVEL_136_HINT_3: 'Take Ruli to the key; the padlock disappears.',
+
+    LEVEL_137_TITLE: 'REACH THE FLAG',
+    LEVEL_137_HINT_1: 'Ruli is stuck in this room.',
+    LEVEL_137_HINT_2: 'The purple circle is special.',
+    LEVEL_137_HINT_3: 'Touch the purple circle with Ruli: he appears at the other circle.',
+
+    LEVEL_138_TITLE: 'TAKE THE MOUSE TO THE CHEESE',
+    LEVEL_138_HINT_1: 'Watch out for the cat.',
+    LEVEL_138_HINT_2: 'Wait for the right moment.',
+    LEVEL_138_HINT_3: 'When the cat is on the other side, cross the middle corridor.',
+
+    LEVEL_139_TITLE: 'REACH THE FLAG',
+    LEVEL_139_HINT_1: 'There are walls you can\'t see.',
+    LEVEL_139_HINT_2: 'Bumping into them shows where they are.',
+    LEVEL_139_HINT_3: 'Feel your way: walls appear when Ruli bumps into them.',
+
+    LEVEL_140_TITLE: 'REACH THE FLAG',
+    LEVEL_140_HINT_1: 'The maze has no exit.',
+    LEVEL_140_HINT_2: 'What if the maze moves?',
+    LEVEL_140_HINT_3: 'Drag the maze floor away from Ruli, then take Ruli to the flag.'
   }
 };

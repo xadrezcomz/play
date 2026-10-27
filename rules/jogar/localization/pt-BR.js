@@ -807,6 +807,59 @@ RULES.L10N['pt-BR'] = {
     LEVEL_130_TITLE: 'LEVE AS CAIXAS PARA OS X',
     LEVEL_130_HINT_1: 'Os X estão em nichos.',
     LEVEL_130_HINT_2: 'Caixa no canto não sai mais.',
-    LEVEL_130_HINT_3: 'Empurre cada caixa para o lado até ficar embaixo de um nicho e depois para cima.'
+    LEVEL_130_HINT_3: 'Empurre cada caixa para o lado até ficar embaixo de um nicho e depois para cima.',
+    CHAPTER_14: 'LABIRINTOS',
+    FB_TOO_TIGHT: 'APERTADO DEMAIS...',
+    FB_CAT: 'O GATO VIU!',
+
+    LEVEL_131_TITLE: 'CHEGUE À BANDEIRA',
+    LEVEL_131_HINT_1: 'Arraste o Ruli.',
+    LEVEL_131_HINT_2: 'As paredes não deixam passar.',
+    LEVEL_131_HINT_3: 'Siga os corredores até a bandeira, no canto de baixo.',
+
+    LEVEL_132_TITLE: 'CHEGUE À BANDEIRA',
+    LEVEL_132_HINT_1: 'Não existe caminho até a bandeira.',
+    LEVEL_132_HINT_2: 'Quem precisa se mexer?',
+    LEVEL_132_HINT_3: 'Arraste a bandeira até o Ruli.',
+
+    LEVEL_133_TITLE: 'CHEGUE À BANDEIRA',
+    LEVEL_133_HINT_1: 'Uma parte da parede é diferente.',
+    LEVEL_133_HINT_2: 'Olhe a cor.',
+    LEVEL_133_HINT_3: 'Arraste o bloco verde para fora e passe.',
+
+    LEVEL_134_TITLE: 'SAIA DO LABIRINTO',
+    LEVEL_134_HINT_1: 'Tem uma saída embaixo.',
+    LEVEL_134_HINT_2: 'O Ruli é grande demais para ela.',
+    LEVEL_134_HINT_3: 'Diminua o Ruli com dois dedos (ou a rodinha do mouse) e passe pela fresta.',
+
+    LEVEL_135_TITLE: 'ACHE A BANDEIRA NO ESCURO',
+    LEVEL_135_HINT_1: 'O Ruli tem luz.',
+    LEVEL_135_HINT_2: 'Explore com calma.',
+    LEVEL_135_HINT_3: 'Desça, vá pela direita até o topo e depois desça pela última coluna até voltar pelo meio.',
+
+    LEVEL_136_TITLE: 'CHEGUE À BANDEIRA',
+    LEVEL_136_HINT_1: 'O cadeado está trancado.',
+    LEVEL_136_HINT_2: 'Tem uma chave no labirinto.',
+    LEVEL_136_HINT_3: 'Leve o Ruli até a chave; o cadeado some.',
+
+    LEVEL_137_TITLE: 'CHEGUE À BANDEIRA',
+    LEVEL_137_HINT_1: 'O Ruli está preso nessa sala.',
+    LEVEL_137_HINT_2: 'O círculo roxo é especial.',
+    LEVEL_137_HINT_3: 'Encoste o Ruli no círculo roxo: ele aparece no outro círculo.',
+
+    LEVEL_138_TITLE: 'LEVE O RATINHO ATÉ O QUEIJO',
+    LEVEL_138_HINT_1: 'Cuidado com o gato.',
+    LEVEL_138_HINT_2: 'Espere a hora certa.',
+    LEVEL_138_HINT_3: 'Quando o gato estiver do outro lado, atravesse o corredor do meio.',
+
+    LEVEL_139_TITLE: 'CHEGUE À BANDEIRA',
+    LEVEL_139_HINT_1: 'Tem paredes que você não vê.',
+    LEVEL_139_HINT_2: 'Bater nelas mostra onde estão.',
+    LEVEL_139_HINT_3: 'Vá tateando: as paredes aparecem quando o Ruli bate.',
+
+    LEVEL_140_TITLE: 'CHEGUE À BANDEIRA',
+    LEVEL_140_HINT_1: 'O labirinto não tem saída.',
+    LEVEL_140_HINT_2: 'E se o labirinto se mexer?',
+    LEVEL_140_HINT_3: 'Arraste o chão do labirinto para longe do Ruli e depois leve o Ruli até a bandeira.'
   }
 };

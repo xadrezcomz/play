@@ -36,7 +36,7 @@
 //   drawZone   { from:'id', to:'id', spawn:'id', tol } → um traço de A até B faz aparecer algo
 //   connect    { dots:[ids], spawn:'id', tol }    → um traço que passa pelos pontos em ordem
 //   balance    { left:'id', right:'id', ids:[...] } → a barra inclina conforme o peso de cada prato
-//   pushes     { ids:[...], solids:[...] }       → ao ser arrastado, empurra "ids" e para nas paredes "solids"
+//   pushes     { ids:[...], solids:[...] }       → ao ser arrastado, empurra "ids" e para nas paredes "solids" (evento 'bump')
 //   cycle      { key:'n', values:[...], step }    → cada toque passa para o próximo valor
 //   multitap   { n:2, ms:450 }                   → n toques rápidos: evento 'multitap'
 //   patrol     { points:[[x,y]...], ms, pause }  → anda sozinho de ponto em ponto (para ao ser segurado)
@@ -752,12 +752,15 @@
     pushes: {
       init: function (o, cfg, E) {
         var lx = o.x, ly = o.y;
-        function hit(r, list, self) {
+        var bumped = {};
+        function hit(r, list, self, note) {
           return list.some(function (id) {
             var s = E.get(id);
             if (!s || s === self || s.hidden) return false;
             var q = s.rect();
-            return r.x1 < q.x2 - 0.2 && r.x2 > q.x1 + 0.2 && r.y1 < q.y2 - 0.2 && r.y2 > q.y1 + 0.2;
+            var h = r.x1 < q.x2 - 0.2 && r.x2 > q.x1 + 0.2 && r.y1 < q.y2 - 0.2 && r.y2 > q.y1 + 0.2;
+            if (h && note && !(U.now() - (bumped[id] || 0) < 500)) { bumped[id] = U.now(); E.emit('bump', { obj: s, by: o }); }
+            return h;
           });
         }
         function rectAt(x, y, ob) { return { x1: x - ob.sw / 2, y1: y - ob.sh / 2, x2: x + ob.sw / 2, y2: y + ob.sh / 2 }; }
@@ -765,16 +768,18 @@
         E.on('dragstart', function (e) { if (e.obj === o) { lx = o.x; ly = o.y; } });
         E.on('dragmove', function (e) {
           if (e.obj !== o) return;
-          var tx = o.x, ty = o.y, dx = tx - lx, dy = ty - ly, n = Math.max(1, Math.ceil(Math.hypot(dx, dy) / 0.8));
+          var dx = o.x - lx, dy = o.y - ly, n = Math.max(1, Math.ceil(Math.hypot(dx, dy) / 0.8));
           var x = lx, y = ly, moved = [];
+          // anda em passos pequenos a partir da última posição boa: nunca atravessa uma parede fina
           for (var i = 1; i <= n; i++) {
-            var nx = lx + dx * i / n, ny = ly + dy * i / n, sx = nx - x, sy = ny - y;
+            var sx = dx / n, sy = dy / n, nx = x + sx, ny = y + sy;
             var me = rectAt(nx, ny, o);
-            if (hit(me, solids, o)) {
+            if (hit(me, solids, o, true)) {
               // desliza pela parede: tenta só um dos eixos
-              if (!hit(rectAt(x + sx, y, o), solids, o)) { ny = y; sy = 0; me = rectAt(nx, ny, o); }
-              else if (!hit(rectAt(x, y + sy, o), solids, o)) { nx = x; sx = 0; me = rectAt(nx, ny, o); }
+              if (sx && !hit(rectAt(x + sx, y, o), solids, o)) { ny = y; sy = 0; }
+              else if (sy && !hit(rectAt(x, y + sy, o), solids, o)) { nx = x; sx = 0; }
               else break;
+              me = rectAt(nx, ny, o);
             }
             var ok = true;
             for (var k = 0; k < ids.length && ok; k++) {

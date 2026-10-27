@@ -78,6 +78,20 @@ module.exports = ({ touch, sleep, center, board, tapXY, tap, dragXY, drag, dragB
       await walk('ruli', [[38.75, 84], [30, 84], [30, 30]]);
       await walk('ruli', [[30, 60], [52, 60], [52, 90], [61.25, 90]]);
       await walk('ruli', [[61.25, 104], [70, 104], [70, 30]]);
-    }]
+    }],
+    131: ['LABIRINTO', async () => { await walk('ruli', [[15, 80]]); await notWon(131, 'bater na parede'); await walk('ruli', [[25.0,47.0],[35.0,47.0],[35.0,57.0],[35.0,67.0],[25.0,67.0],[15.0,67.0],[15.0,77.0],[15.0,87.0],[15.0,97.0],[25.0,97.0],[35.0,97.0],[35.0,87.0],[45.0,87.0],[55.0,87.0],[55.0,97.0],[65.0,97.0],[75.0,97.0],[85.0,97.0]]); }],
+    132: ['BANDEIRA FECHADA', async () => { await walk('ruli', [[85, 47], [85, 97]]); await notWon(132, 'rodear o labirinto'); await dragTo('flag', 'ruli'); }],
+    133: ['BLOCO SOLTO', async () => { await walk('ruli', [[35, 67], [70, 67]]); await notWon(133, 'parede no caminho'); await dragBy('mwall', 0, 200); await sleep(200); await walk('ruli', [[75, 67]]); }],
+    134: ['FRESTA', async () => { await walk('ruli', [[45, 118]]); await notWon(134, 'Ruli grande demais'); await pinch('ruli', 0.3); await sleep(200); await walk('ruli', [[45, 100], [45, 119]]); }],
+    135: ['ESCURO', async () => { await walk('ruli', [[15.0,57.0],[15.0,67.0],[15.0,77.0],[25.0,77.0],[35.0,77.0],[35.0,67.0],[35.0,57.0],[35.0,47.0],[45.0,47.0],[55.0,47.0],[65.0,47.0],[75.0,47.0],[85.0,47.0],[85.0,57.0],[85.0,67.0],[85.0,77.0],[85.0,87.0],[85.0,97.0],[75.0,97.0],[65.0,97.0],[55.0,97.0],[55.0,87.0],[55.0,77.0]]); }],
+    136: ['CHAVE', async () => { await walk('ruli', [[25.0,47.0],[35.0,47.0],[35.0,57.0],[35.0,67.0],[45.0,67.0],[55.0,67.0],[55.0,57.0],[55.0,47.0],[65.0,47.0],[75.0,47.0],[85.0,47.0],[85.0,57.0],[85.0,67.0],[75.0,67.0],[85.0,67.0],[85.0,77.0],[85.0,87.0],[85.0,97.0]]); }],
+    137: ['PORTAL', async () => { await walk('ruli', [[25.0,47.0],[35.0,47.0],[45.0,47.0]]); await sleep(300); await walk('ruli', [[25.0,87.0],[35.0,87.0],[45.0,87.0],[55.0,87.0],[65.0,87.0],[65.0,97.0],[75.0,97.0],[85.0,97.0],[85.0,87.0],[85.0,77.0],[85.0,67.0]]); }],
+    138: ['RATINHO', async () => {
+      await walk('ruli', [[85, 47], [85, 55]]);
+      for (let i = 0; i < 80; i++) { const c = await pos('cat'); if (c[0] < 30) break; await sleep(60); }
+      await walk('ruli', [[85, 77], [85, 97]], 5);
+    }, 4000],
+    139: ['INVISÍVEL', async () => { await walk('ruli', [[35, 47]]); await notWon(139, 'bater na parede invisível'); await walk('ruli', [[15.0,57.0],[15.0,67.0],[15.0,77.0],[25.0,77.0],[35.0,77.0],[45.0,77.0],[45.0,87.0],[45.0,97.0],[35.0,97.0],[25.0,97.0],[15.0,97.0]]); }],
+    140: ['LABIRINTO SEM SAÍDA', async () => { await walk('ruli', [[45, 100]]); await notWon(140, 'sem saída'); await dragToBoard('frame', 50, 30); await sleep(200); await walk('ruli', [[95, 67], [95, 107]]); }]
   };
 };

@@ -807,6 +807,59 @@ RULES.L10N['es-ES'] = {
     LEVEL_130_TITLE: 'LLEVA LAS CAJAS A LAS X',
     LEVEL_130_HINT_1: 'Las X están en huecos.',
     LEVEL_130_HINT_2: 'Una caja en la esquina ya no sale.',
-    LEVEL_130_HINT_3: 'Empuja cada caja hacia un lado hasta que quede debajo de un hueco y luego hacia arriba.'
+    LEVEL_130_HINT_3: 'Empuja cada caja hacia un lado hasta que quede debajo de un hueco y luego hacia arriba.',
+    CHAPTER_14: 'LABERINTOS',
+    FB_TOO_TIGHT: 'DEMASIADO ESTRECHO...',
+    FB_CAT: '¡EL GATO TE VIO!',
+
+    LEVEL_131_TITLE: 'LLEGA A LA BANDERA',
+    LEVEL_131_HINT_1: 'Arrastra a Ruli.',
+    LEVEL_131_HINT_2: 'Las paredes no dejan pasar.',
+    LEVEL_131_HINT_3: 'Sigue los pasillos hasta la bandera, en la esquina de abajo.',
+
+    LEVEL_132_TITLE: 'LLEGA A LA BANDERA',
+    LEVEL_132_HINT_1: 'No hay camino hasta la bandera.',
+    LEVEL_132_HINT_2: '¿Quién tiene que moverse?',
+    LEVEL_132_HINT_3: 'Arrastra la bandera hasta Ruli.',
+
+    LEVEL_133_TITLE: 'LLEGA A LA BANDERA',
+    LEVEL_133_HINT_1: 'Una parte de la pared es diferente.',
+    LEVEL_133_HINT_2: 'Mira el color.',
+    LEVEL_133_HINT_3: 'Arrastra el bloque verde fuera y pasa.',
+
+    LEVEL_134_TITLE: 'SAL DEL LABERINTO',
+    LEVEL_134_HINT_1: 'Hay una salida abajo.',
+    LEVEL_134_HINT_2: 'Ruli es demasiado grande para ella.',
+    LEVEL_134_HINT_3: 'Achica a Ruli con dos dedos (o la rueda del ratón) y pasa por la rendija.',
+
+    LEVEL_135_TITLE: 'ENCUENTRA LA BANDERA A OSCURAS',
+    LEVEL_135_HINT_1: 'Ruli tiene luz.',
+    LEVEL_135_HINT_2: 'Explora con calma.',
+    LEVEL_135_HINT_3: 'Baja, ve a la derecha hasta arriba, luego baja por la última columna y vuelve por el medio.',
+
+    LEVEL_136_TITLE: 'LLEGA A LA BANDERA',
+    LEVEL_136_HINT_1: 'El candado está cerrado.',
+    LEVEL_136_HINT_2: 'Hay una llave en el laberinto.',
+    LEVEL_136_HINT_3: 'Lleva a Ruli hasta la llave; el candado desaparece.',
+
+    LEVEL_137_TITLE: 'LLEGA A LA BANDERA',
+    LEVEL_137_HINT_1: 'Ruli está atrapado en esta sala.',
+    LEVEL_137_HINT_2: 'El círculo morado es especial.',
+    LEVEL_137_HINT_3: 'Toca el círculo morado con Ruli: aparece en el otro círculo.',
+
+    LEVEL_138_TITLE: 'LLEVA AL RATÓN HASTA EL QUESO',
+    LEVEL_138_HINT_1: 'Cuidado con el gato.',
+    LEVEL_138_HINT_2: 'Espera el momento justo.',
+    LEVEL_138_HINT_3: 'Cuando el gato esté al otro lado, cruza el pasillo del medio.',
+
+    LEVEL_139_TITLE: 'LLEGA A LA BANDERA',
+    LEVEL_139_HINT_1: 'Hay paredes que no ves.',
+    LEVEL_139_HINT_2: 'Chocar con ellas muestra dónde están.',
+    LEVEL_139_HINT_3: 'Ve tanteando: las paredes aparecen cuando Ruli choca.',
+
+    LEVEL_140_TITLE: 'LLEGA A LA BANDERA',
+    LEVEL_140_HINT_1: 'El laberinto no tiene salida.',
+    LEVEL_140_HINT_2: '¿Y si el laberinto se mueve?',
+    LEVEL_140_HINT_3: 'Arrastra el suelo del laberinto lejos de Ruli y luego lleva a Ruli hasta la bandera.'
   }
 };
