@@ -16,7 +16,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', e => errors.push('pageerror: ' + e.message));
-  page.on('console', m => { if (m.type() === 'error' && !/ERR_TUNNEL|ERR_CONNECTION|ERR_NAME/.test(m.text())) errors.push('console: ' + m.text()); });
+  page.on('console', m => { if (m.type() === 'error' && !/ERR_TUNNEL|ERR_CONNECTION|ERR_NAME|ERR_CERT/.test(m.text())) errors.push('console: ' + m.text()); });
   const cdp = await ctx.newCDPSession(page);
 
   await page.goto(URL);
@@ -395,14 +395,20 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     }]
   };
 
+  // roteiros das fases 101+ ficam em arquivos roteiros-*.js (recebem os ajudantes)
+  const H = { page, sleep, center, board, unit, touch, tapXY, tap, dragXY, drag, dragBy, dragTo, pinch, rub, tapTogether, state, obj, notWon, restart, pinchAt, spin, drawPath, dragToBoard };
+  for (const f of require('fs').readdirSync(__dirname).filter(f => /^roteiros-.*\.js$/.test(f)).sort()) Object.assign(LEVELS, require('./' + f)(H));
+
   // START=40 node testa-fases.js → começa da fase 40 (as anteriores contam como feitas)
+  // END=60 → para depois da fase 60
   const START = parseInt(process.env.START || '1', 10);
   if (START > 1) {
     await page.evaluate(n => { const c = {}; for (let i = 1; i < n; i++) c[i] = true; localStorage.setItem('rules.save.v1', JSON.stringify({ completed: c })); }, START);
     await page.reload(); await sleep(400);
   }
   await page.click('#btn-play');
-  const ids = (await page.evaluate(() => RULES.Levels.order())).filter(id => id >= START);
+  const END = parseInt(process.env.END || '99999', 10);
+  const ids = (await page.evaluate(() => RULES.Levels.order())).filter(id => id >= START && id <= END);
   for (const id of ids) {
     const L = LEVELS[id];
     if (!L) throw new Error('sem roteiro de teste para a fase ' + id);
@@ -420,6 +426,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     }
   }
 
+  if (END < 99999) { console.log(errors.length ? 'ERROS:\n' + errors.join('\n') : 'sem erros no console'); await browser.close(); process.exit(errors.length ? 1 : 0); }
   await sleep(1400);
   console.log('tela final:', (await state()).screen);
   await page.screenshot({ path: SHOTS + 'end.png' });

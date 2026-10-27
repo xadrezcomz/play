@@ -1,6 +1,6 @@
 // Ruli: o personagem. Um SVG simples com expressões trocáveis.
 // Expressões: normal, thinking, surprised, happy, confused, serious, sleepy.
-// Cores: teal (o Ruli), pink, yellow, purple (amigos).
+// Cores: teal (o Ruli), pink, yellow, purple (amigos), green, blue, coral, orange.
 (function () {
   'use strict';
   var R = window.RULES;
@@ -8,7 +8,8 @@
   var INK = '#2B2D42';
   var COLORS = {
     teal: ['#2EC4B6', '#1C8F86'], pink: ['#FF8FB1', '#D9628A'],
-    yellow: ['#FFC94A', '#D99A1E'], purple: ['#9B7BFF', '#6E50D6']
+    yellow: ['#FFC94A', '#D99A1E'], purple: ['#9B7BFF', '#6E50D6'],
+    green: ['#6BCB77', '#3E9A4B'], blue: ['#4D96FF', '#2E6BCC'], coral: ['#FF6B6B', '#D24545'], orange: ['#FF9F45', '#CC7322']
   };
 
   var EXPR = {

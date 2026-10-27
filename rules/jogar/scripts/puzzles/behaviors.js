@@ -18,7 +18,7 @@
 //   pourer     { target:'id', range, rate }       → segurado em cima do alvo, despeja e enche (fill → full)
 //   gravity    { delay, g, solids:[ids] }         → cai; pousa em cima de "solids"; se cair da tela, volta
 //   snap       { to:[ids], tol, fitScale }        → solto perto de um lugar, encaixa (state.at = id)
-//   receives   { from:[ids], set, consume, requires, copyColor, returnTool, failSay } → ferramenta solta em cima
+//   receives   { from:[ids], set, consume, requires, toolRequires, copyColor, returnTool, failSay } → ferramenta solta em cima
 //   rubbable   { count, decayMs, progress, set }  → esfregar (ou passar algo por cima) várias vezes
 //   carries    { ids:[...] }                      → ao ser arrastado, leva esses objetos junto
 //   stackPress { key }                            → tocar num objeto empilhado aciona também os de baixo
@@ -36,9 +36,24 @@
 //   drawZone   { from:'id', to:'id', spawn:'id', tol } → um traço de A até B faz aparecer algo
 //   connect    { dots:[ids], spawn:'id', tol }    → um traço que passa pelos pontos em ordem
 //   balance    { left:'id', right:'id', ids:[...] } → a barra inclina conforme o peso de cada prato
+//   pushes     { ids:[...], solids:[...] }       → ao ser arrastado, empurra "ids" e para nas paredes "solids"
+//   cycle      { key:'n', values:[...], step }    → cada toque passa para o próximo valor
+//   multitap   { n:2, ms:450 }                   → n toques rápidos: evento 'multitap'
+//   patrol     { points:[[x,y]...], ms, pause }  → anda sozinho de ponto em ponto (para ao ser segurado)
+//   spinner    { speed }                         → gira sozinho até state.stopped (aí grava state.angle)
+//   sumDisplay { container, ids:[...] }          → state.n = soma dos números dentro do container
 (function () {
   'use strict';
   var R = window.RULES, U = R.util;
+
+  // Valor de uma peça com número: 6 e 9 trocam quando a peça está de cabeça para baixo.
+  R.numValue = function (o) {
+    var n = o.state.n != null ? o.state.n : (o.def.props || {}).n;
+    n = +n || 0;
+    var a = Math.round(((o.rot % 360) + 360) % 360);
+    if (a === 180 && (n === 6 || n === 9)) n = 15 - n;
+    return n;
+  };
 
   R.Behaviors = {
     draggable: {},
@@ -310,8 +325,9 @@
           if (e.handled || t === o || (cfg.from || []).indexOf(t.id) < 0) return;
           if (!U.overlap(t.rect(), o.rect())) return;
           e.handled = true;
-          var req = cfg.requires;
-          if (req && !Object.keys(req).every(function (k) { return o.state[k] === req[k]; })) {
+          var req = cfg.requires, treq = cfg.toolRequires;
+          if ((req && !Object.keys(req).every(function (k) { return o.state[k] === req[k]; })) ||
+              (treq && !Object.keys(treq).every(function (k) { return t.state[k] === treq[k]; }))) {
             t.moveTo(e.fromX, e.fromY, 300, 'cubic-bezier(.34,1.56,.64,1)');
             o.fx('shake'); R.Audio.play('collision');
             E.fail(cfg.failSay);
@@ -730,6 +746,131 @@
         E.on('drop', function () { setTimeout(upd, 180); });
         E.on('dragstart', function () { setTimeout(upd, 0); });
         setTimeout(upd, 50);
+      }
+    },
+
+    pushes: {
+      init: function (o, cfg, E) {
+        var lx = o.x, ly = o.y;
+        function hit(r, list, self) {
+          return list.some(function (id) {
+            var s = E.get(id);
+            if (!s || s === self || s.hidden) return false;
+            var q = s.rect();
+            return r.x1 < q.x2 - 0.2 && r.x2 > q.x1 + 0.2 && r.y1 < q.y2 - 0.2 && r.y2 > q.y1 + 0.2;
+          });
+        }
+        function rectAt(x, y, ob) { return { x1: x - ob.sw / 2, y1: y - ob.sh / 2, x2: x + ob.sw / 2, y2: y + ob.sh / 2 }; }
+        var solids = cfg.solids || [], ids = cfg.ids || [];
+        E.on('dragstart', function (e) { if (e.obj === o) { lx = o.x; ly = o.y; } });
+        E.on('dragmove', function (e) {
+          if (e.obj !== o) return;
+          var tx = o.x, ty = o.y, dx = tx - lx, dy = ty - ly, n = Math.max(1, Math.ceil(Math.hypot(dx, dy) / 0.8));
+          var x = lx, y = ly, moved = [];
+          for (var i = 1; i <= n; i++) {
+            var nx = lx + dx * i / n, ny = ly + dy * i / n, sx = nx - x, sy = ny - y;
+            var me = rectAt(nx, ny, o);
+            if (hit(me, solids, o)) {
+              // desliza pela parede: tenta só um dos eixos
+              if (!hit(rectAt(x + sx, y, o), solids, o)) { ny = y; sy = 0; me = rectAt(nx, ny, o); }
+              else if (!hit(rectAt(x, y + sy, o), solids, o)) { nx = x; sx = 0; me = rectAt(nx, ny, o); }
+              else break;
+            }
+            var ok = true;
+            for (var k = 0; k < ids.length && ok; k++) {
+              var b = E.get(ids[k]);
+              if (!b || b.hidden || !hit(me, [b.id], o)) continue;
+              var bx = b.x + sx, by = b.y + sy, br = rectAt(bx, by, b);
+              var bb = E.boardBounds(b, 1);
+              if (bx < bb.x1 || bx > bb.x2 || by < bb.y1 || by > bb.y2 || hit(br, solids, b) || hit(br, ids, b)) { ok = false; break; }
+              b.x = bx; b.y = by;
+              if (moved.indexOf(b) < 0) moved.push(b);
+            }
+            if (!ok) break;
+            x = nx; y = ny;
+          }
+          o.x = lx = x; o.y = ly = y;
+          o.layout();
+          moved.forEach(function (b) { b.layout(); E.emit('pushed', { obj: b, by: o }); });
+        });
+      }
+    },
+
+    cycle: {
+      init: function (o, cfg, E) {
+        var key = cfg.key || 'n', vals = cfg.values || [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+        if (o.state[key] === undefined) o.state[key] = vals[0];
+        E.on('tap', function (e) {
+          if (e.obj !== o || (cfg.requires && !Object.keys(cfg.requires).every(function (k) { return o.state[k] === cfg.requires[k]; }))) return;
+          var i = vals.indexOf(o.state[key]);
+          o.setState(key, vals[(i + (cfg.step || 1) + vals.length) % vals.length]);
+          o.fx(cfg.fx || 'squash');
+          R.Audio.play(cfg.sound || 'tap');
+          E.emit('cycled', { obj: o, value: o.state[key] });
+        });
+      }
+    },
+
+    multitap: {
+      init: function (o, cfg, E) {
+        var n = 0, last = 0, need = cfg.n || 2, ms = cfg.ms || 450;
+        E.on('tap', function (e) {
+          if (e.obj !== o) return;
+          var now = U.now();
+          n = now - last <= ms ? n + 1 : 1;
+          last = now;
+          if (n >= need) { n = 0; E.emit('multitap', { obj: o }); }
+        });
+      }
+    },
+
+    patrol: {
+      init: function (o, cfg, E) {
+        var tok = E.token, pts = cfg.points || [], i = 0, ms = cfg.ms || 1200;
+        function next() {
+          if (E.token !== tok || !pts.length) return;
+          if (E.completed || o.state.stopped) return;
+          if (E.paused || o.el.classList.contains('dragging')) { setTimeout(next, 200); return; }
+          i = (i + 1) % pts.length;
+          o.moveTo(pts[i][0], pts[i][1], ms, 'linear').then(function () { setTimeout(next, cfg.pause || 0); });
+        }
+        setTimeout(next, cfg.delay || 300);
+        E.on('state', function (e) { if (e.obj === o && e.key === 'stopped' && !e.value) setTimeout(next, 50); });
+      }
+    },
+
+    spinner: {
+      init: function (o, cfg, E) {
+        var tok = E.token, sp = cfg.speed || 2;
+        function frame() {
+          if (E.token !== tok) return;
+          requestAnimationFrame(frame);
+          if (E.paused || E.completed || o.state.stopped || o.el.classList.contains('dragging')) return;
+          o.rot = (o.rot + sp) % 360;
+          o.layout();
+        }
+        requestAnimationFrame(frame);
+        E.on('state', function (e) {
+          if (e.obj !== o || e.key !== 'stopped' || !e.value) return;
+          o.setState('angle', Math.round(((o.rot % 360) + 360) % 360));
+        });
+      }
+    },
+
+    sumDisplay: {
+      init: function (o, cfg, E) {
+        function upd() {
+          var box = E.get(cfg.container), sum = 0, any = false;
+          if (!box) return;
+          (cfg.ids || []).forEach(function (id) {
+            var x = E.get(id);
+            if (x && !x.hidden && E.isInside(x, box)) { sum += R.numValue(x); any = true; }
+          });
+          o.setState('n', any ? sum : (cfg.empty != null ? cfg.empty : 0));
+        }
+        E.on('drop', function () { setTimeout(upd, 200); });
+        E.on('rotated', function () { setTimeout(upd, 50); });
+        setTimeout(upd, 30);
       }
     },
 

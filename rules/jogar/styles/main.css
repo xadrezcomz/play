@@ -459,3 +459,13 @@ button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-c
 .land .end-text { grid-area: text; margin: 0; }
 .land #scr-end .menu-buttons { grid-area: buttons; max-width: calc(var(--W) * 1); justify-self: center; }
 .land .chapter-card, .land .finale { padding: 0 15%; }
+
+/* fases 101+: palavras coloridas (teste de cores) */
+.word-red .obj-inner { color: var(--coral, #FF6B6B); }
+.word-yellow .obj-inner { color: #E5A92E; }
+.word-green .obj-inner { color: #3E9A4B; }
+.word-purple .obj-inner { color: #9B7BFF; }
+.word-orange .obj-inner { color: #FF9F45; }
+.word-pink .obj-inner { color: #FF8FB1; }
+.obj-word.tiny-word .obj-inner { font-size: .55em; }
+.obj-word.huge-word .obj-inner { font-size: 1.8em; }

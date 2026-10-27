@@ -637,6 +637,122 @@ RULES.L10N['en-US'] = {
     LEVEL_100_HINT_2: 'The sentence can change.',
     LEVEL_100_HINT_3: 'Take the word LAST out of the sentence.',
     UI_DEMO_END_TITLE: 'YOU FINISHED ALL 100 LEVELS!',
-    UI_DEMO_END_TEXT: 'MORE LEVELS COMING SOON'
+    UI_DEMO_END_TEXT: 'MORE LEVELS COMING SOON',
+    CHAPTER_11: 'NUMBERS LIE',
+    FB_ITS_NINE: 'THAT\'S A 9...',
+    FB_TOO_MUCH: 'TOO MUCH...',
+    FB_TWO_SMALL: 'THE 2 IS STILL SMALL',
+    FB_ONE_LEFT: 'THERE\'S STILL AN ODD ONE...',
+    FB_EVEN: 'THAT ONE\'S EVEN',
+    FB_SMALLER: 'THERE\'S A SMALLER ONE...',
+    FB_THREE_THIRTY: 'THAT\'S HALF PAST 3...',
+    LEVEL_106_LABEL: 'LEVEL [[d1|1]]06',
+
+    LEVEL_101_TITLE: 'MAKE A 6',
+    LEVEL_101_HINT_1: 'There\'s no 6 here.',
+    LEVEL_101_HINT_2: 'Look at the 9 from another angle.',
+    LEVEL_101_HINT_3: 'Turn the 9 with your finger until it is upside down.',
+
+    LEVEL_102_TITLE: 'ADD UP TO 10',
+    LEVEL_102_HINT_1: 'The 9 can\'t leave the tray.',
+    LEVEL_102_HINT_2: 'Remember the last level?',
+    LEVEL_102_HINT_3: 'Turn the 9 into a 6 and put the 4 in the tray: 6 + 4 = 10.',
+
+    LEVEL_103_TITLE: 'MAKE THE 2 BIGGER THAN THE 8',
+    LEVEL_103_HINT_1: 'Bigger isn\'t only value.',
+    LEVEL_103_HINT_2: 'Size counts too.',
+    LEVEL_103_HINT_3: 'Make the 2 bigger with two fingers (or the mouse wheel) until it is larger than the 8.',
+
+    LEVEL_104_TITLE: 'HOW MANY BALLS ARE THERE?',
+    LEVEL_104_HINT_1: 'Count again.',
+    LEVEL_104_HINT_2: 'Something is hidden.',
+    LEVEL_104_HINT_3: 'Move the box: there are 6 balls. Set 6 and press the button.',
+
+    LEVEL_105_TITLE: 'MAKE AN 8',
+    LEVEL_105_HINT_1: 'There are only two zeros.',
+    LEVEL_105_HINT_2: 'An 8 looks like two zeros...',
+    LEVEL_105_HINT_3: 'Put one zero on top of the other.',
+
+    LEVEL_106_TITLE: 'KEEP ONLY THE EVEN ONES',
+    LEVEL_106_HINT_1: 'Odd numbers go in the bin.',
+    LEVEL_106_HINT_2: 'Every number on the screen.',
+    LEVEL_106_HINT_3: 'Throw away the 3, the 5, the 7 and also the 1 in "LEVEL 106", up top.',
+
+    LEVEL_107_TITLE: 'TAP FROM LOWEST T[[w0|O]] HIGHEST',
+    LEVEL_107_HINT_1: 'What\'s the lowest number?',
+    LEVEL_107_HINT_2: 'There\'s a zero hidden in the sentence.',
+    LEVEL_107_HINT_3: 'Tap the O in the sentence (it is a zero), then 1, 2 and 3.',
+
+    LEVEL_108_TITLE: 'OPEN THE LOCK',
+    LEVEL_108_HINT_1: 'The code is in the pictures.',
+    LEVEL_108_HINT_2: 'Count each kind of picture.',
+    LEVEL_108_HINT_3: '2 apples, 5 stars (one behind the cloud) and 1 moon: 2, 5, 1.',
+
+    LEVEL_109_TITLE: 'SET THE CLOCK TO 3 O\'CLOCK',
+    LEVEL_109_HINT_1: 'A clock has two hands.',
+    LEVEL_109_HINT_2: 'The big one matters too.',
+    LEVEL_109_HINT_3: 'Small hand on 3, big hand on 12. Turn both.',
+
+    LEVEL_110_TITLE: 'HOW MANY SQUARES ARE THERE?',
+    LEVEL_110_HINT_1: 'Not only the small ones.',
+    LEVEL_110_HINT_2: 'Look at the whole drawing.',
+    LEVEL_110_HINT_3: '4 small ones and 1 big one: 5.',
+    CHAPTER_12: 'ON AND OFF',
+    FB_NOTHING_HAPPENS: 'NOTHING HAPPENED...',
+    FB_NO_CHARGE: 'THE BATTERY IS EMPTY',
+    FB_NO_BATTERY: 'NO BATTERY...',
+    FB_NEEDS_FIRE: 'IT NEEDS FIRE',
+    FB_STILL_LIGHT: 'THERE\'S STILL LIGHT HERE...',
+    FB_ONE_MORE_LIGHT: 'ONE LIGHT TO GO...',
+
+    LEVEL_111_TITLE: 'TURN ON THE 3 LIGHTS',
+    LEVEL_111_HINT_1: 'The wires are mixed up.',
+    LEVEL_111_HINT_2: 'Each switch controls different bulbs.',
+    LEVEL_111_HINT_3: 'Use the first and the last switch.',
+
+    LEVEL_112_TITLE: 'TURN OFF ALL THE LIGHTS',
+    LEVEL_112_HINT_1: 'Each bulb changes its neighbors.',
+    LEVEL_112_HINT_2: 'Start at the ends.',
+    LEVEL_112_HINT_3: 'Tap only the first and the last bulb.',
+
+    LEVEL_113_TITLE: 'TURN ON THE LIGHT',
+    LEVEL_113_HINT_1: 'The switch isn\'t the problem.',
+    LEVEL_113_HINT_2: 'Where does the wire go?',
+    LEVEL_113_HINT_3: 'Plug the wire into the socket with the switch on.',
+
+    LEVEL_114_TITLE: 'TURN ON THE LIGHT',
+    LEVEL_114_HINT_1: 'One switch is not enough.',
+    LEVEL_114_HINT_2: 'There\'s something behind the paper.',
+    LEVEL_114_HINT_3: 'Move the paper and turn on both switches.',
+
+    LEVEL_115_TITLE: 'TURN ON THE RADIO',
+    LEVEL_115_HINT_1: 'The radio needs a battery.',
+    LEVEL_115_HINT_2: 'The battery is empty. Who has a lot of energy?',
+    LEVEL_115_HINT_3: 'Bring the sun to the battery, then the battery to the radio.',
+
+    LEVEL_116_TITLE: 'LIGHT ALL THE CANDLES',
+    LEVEL_116_HINT_1: 'Fire first.',
+    LEVEL_116_HINT_2: 'Rub the firewood.',
+    LEVEL_116_HINT_3: 'Rub the wood until it catches fire, bring a candle there, then touch the lit candle to the others.',
+
+    LEVEL_117_TITLE: 'TURN ON ALL THE LIGHTS',
+    LEVEL_117_HINT_1: 'Each bulb changes its neighbors in a cross.',
+    LEVEL_117_HINT_2: 'The corners matter.',
+    LEVEL_117_HINT_3: 'Tap the 4 corners and the center.',
+
+    LEVEL_118_TITLE: 'LEAVE ONLY ONE LIGHT ON',
+    LEVEL_118_HINT_1: 'Each bulb changes its two neighbors.',
+    LEVEL_118_HINT_2: 'Pick the bulb that will stay on.',
+    LEVEL_118_HINT_3: 'Tap the two neighbors of one bulb (skipping it).',
+
+    LEVEL_119_TITLE: 'TURN OFF ALL THE LIGHTS',
+    LEVEL_119_HINT_1: 'Bulbs aren\'t the only lights.',
+    LEVEL_119_HINT_2: 'Look out the window.',
+    LEVEL_119_HINT_3: 'Turn off both bulbs and tap the curtain to close it.',
+
+    LEVEL_120_TITLE: 'TURN ON ALL THE LIGHTS',
+    LEVEL_120_HINT_1: 'How many bulbs are on the screen?',
+    LEVEL_120_HINT_2: 'There\'s a bulb down below.',
+    LEVEL_120_HINT_3: 'Turn on all three and use the bulb on the hint button (you just did!).'
   }
 };

@@ -637,6 +637,122 @@ RULES.L10N['pt-BR'] = {
     LEVEL_100_HINT_2: 'A frase pode mudar.',
     LEVEL_100_HINT_3: 'Tire a palavra ÚLTIMA da frase.',
     UI_DEMO_END_TITLE: 'VOCÊ COMPLETOU AS 100 FASES!',
-    UI_DEMO_END_TEXT: 'MAIS FASES EM BREVE'
+    UI_DEMO_END_TEXT: 'MAIS FASES EM BREVE',
+    CHAPTER_11: 'NÚMEROS MENTEM',
+    FB_ITS_NINE: 'ISSO É UM 9...',
+    FB_TOO_MUCH: 'PASSOU...',
+    FB_TWO_SMALL: 'O 2 CONTINUA PEQUENO',
+    FB_ONE_LEFT: 'AINDA TEM UM ÍMPAR...',
+    FB_EVEN: 'ESSE É PAR',
+    FB_SMALLER: 'TEM UM MENOR...',
+    FB_THREE_THIRTY: 'ISSO É 3 E MEIA...',
+    LEVEL_106_LABEL: 'FASE [[d1|1]]06',
+
+    LEVEL_101_TITLE: 'FAÇA UM 6',
+    LEVEL_101_HINT_1: 'Não tem nenhum 6 aqui.',
+    LEVEL_101_HINT_2: 'Olhe o 9 de outro ângulo.',
+    LEVEL_101_HINT_3: 'Gire o 9 com o dedo até ele ficar de cabeça para baixo.',
+
+    LEVEL_102_TITLE: 'SOME 10',
+    LEVEL_102_HINT_1: 'O 9 não sai da bandeja.',
+    LEVEL_102_HINT_2: 'Lembra da fase anterior?',
+    LEVEL_102_HINT_3: 'Gire o 9 para virar 6 e coloque o 4 na bandeja: 6 + 4 = 10.',
+
+    LEVEL_103_TITLE: 'DEIXE O 2 MAIOR QUE O 8',
+    LEVEL_103_HINT_1: 'Maior não é só valor.',
+    LEVEL_103_HINT_2: 'Tamanho também conta.',
+    LEVEL_103_HINT_3: 'Aumente o 2 com dois dedos (ou a rodinha do mouse) até ele ficar maior que o 8.',
+
+    LEVEL_104_TITLE: 'QUANTAS BOLAS EXISTEM?',
+    LEVEL_104_HINT_1: 'Conte de novo.',
+    LEVEL_104_HINT_2: 'Tem coisa escondida.',
+    LEVEL_104_HINT_3: 'Tire a caixa da frente: são 6 bolas. Marque 6 e aperte o botão.',
+
+    LEVEL_105_TITLE: 'FAÇA UM 8',
+    LEVEL_105_HINT_1: 'Só tem dois zeros.',
+    LEVEL_105_HINT_2: 'Um 8 parece dois zeros...',
+    LEVEL_105_HINT_3: 'Coloque um zero em cima do outro.',
+
+    LEVEL_106_TITLE: 'DEIXE SÓ OS PARES',
+    LEVEL_106_HINT_1: 'Os ímpares vão para o lixo.',
+    LEVEL_106_HINT_2: 'Todos os números da tela.',
+    LEVEL_106_HINT_3: 'Jogue no lixo o 3, o 5, o 7 e também o 1 do "FASE 106", lá em cima.',
+
+    LEVEL_107_TITLE: 'TOQUE DO MENOR PARA [[w0|O]] MAIOR',
+    LEVEL_107_HINT_1: 'Qual é o menor número?',
+    LEVEL_107_HINT_2: 'Tem um zero escondido na frase.',
+    LEVEL_107_HINT_3: 'Toque no O da frase (ele é um zero), depois no 1, no 2 e no 3.',
+
+    LEVEL_108_TITLE: 'ABRA O CADEADO',
+    LEVEL_108_HINT_1: 'A senha está nos desenhos.',
+    LEVEL_108_HINT_2: 'Conte cada tipo de desenho.',
+    LEVEL_108_HINT_3: 'São 2 maçãs, 5 estrelas (uma atrás da nuvem) e 1 lua: 2, 5, 1.',
+
+    LEVEL_109_TITLE: 'COLOQUE O RELÓGIO NAS 3 HORAS',
+    LEVEL_109_HINT_1: 'Um relógio tem dois ponteiros.',
+    LEVEL_109_HINT_2: 'O grande também importa.',
+    LEVEL_109_HINT_3: 'O ponteiro pequeno no 3 e o grande no 12. Gire os dois.',
+
+    LEVEL_110_TITLE: 'QUANTOS QUADRADOS EXISTEM?',
+    LEVEL_110_HINT_1: 'Não são só os pequenos.',
+    LEVEL_110_HINT_2: 'Olhe o desenho inteiro.',
+    LEVEL_110_HINT_3: 'São 4 pequenos e 1 grande: 5.',
+    CHAPTER_12: 'LIGA E DESLIGA',
+    FB_NOTHING_HAPPENS: 'NADA ACONTECEU...',
+    FB_NO_CHARGE: 'A PILHA ESTÁ SEM CARGA',
+    FB_NO_BATTERY: 'SEM PILHA...',
+    FB_NEEDS_FIRE: 'PRECISA DE FOGO',
+    FB_STILL_LIGHT: 'AINDA TEM LUZ AQUI...',
+    FB_ONE_MORE_LIGHT: 'FALTA UMA LUZ...',
+
+    LEVEL_111_TITLE: 'ACENDA AS 3 LUZES',
+    LEVEL_111_HINT_1: 'Os fios estão trocados.',
+    LEVEL_111_HINT_2: 'Cada interruptor mexe em lâmpadas diferentes.',
+    LEVEL_111_HINT_3: 'Use o primeiro e o último interruptor.',
+
+    LEVEL_112_TITLE: 'APAGUE TODAS AS LUZES',
+    LEVEL_112_HINT_1: 'Cada lâmpada mexe nas vizinhas.',
+    LEVEL_112_HINT_2: 'Comece pelas pontas.',
+    LEVEL_112_HINT_3: 'Toque só na primeira e na última lâmpada.',
+
+    LEVEL_113_TITLE: 'ACENDA A LUZ',
+    LEVEL_113_HINT_1: 'O interruptor não é o problema.',
+    LEVEL_113_HINT_2: 'Para onde vai o fio?',
+    LEVEL_113_HINT_3: 'Ligue o fio na tomada com o interruptor ligado.',
+
+    LEVEL_114_TITLE: 'ACENDA A LUZ',
+    LEVEL_114_HINT_1: 'Um interruptor só não basta.',
+    LEVEL_114_HINT_2: 'Tem algo atrás do papel.',
+    LEVEL_114_HINT_3: 'Tire o papel e ligue os dois interruptores.',
+
+    LEVEL_115_TITLE: 'LIGUE O RÁDIO',
+    LEVEL_115_HINT_1: 'O rádio precisa de pilha.',
+    LEVEL_115_HINT_2: 'A pilha está fraca. Quem tem muita energia?',
+    LEVEL_115_HINT_3: 'Leve o sol até a pilha e depois a pilha até o rádio.',
+
+    LEVEL_116_TITLE: 'ACENDA TODAS AS VELAS',
+    LEVEL_116_HINT_1: 'Primeiro, fogo.',
+    LEVEL_116_HINT_2: 'Esfregue a lenha.',
+    LEVEL_116_HINT_3: 'Esfregue a lenha até pegar fogo, leve uma vela até lá e depois encoste a vela acesa nas outras.',
+
+    LEVEL_117_TITLE: 'ACENDA TODAS AS LUZES',
+    LEVEL_117_HINT_1: 'Cada lâmpada mexe nas vizinhas em cruz.',
+    LEVEL_117_HINT_2: 'Os cantos são importantes.',
+    LEVEL_117_HINT_3: 'Toque nos 4 cantos e no centro.',
+
+    LEVEL_118_TITLE: 'DEIXE SÓ UMA LUZ ACESA',
+    LEVEL_118_HINT_1: 'Cada lâmpada mexe nas duas vizinhas.',
+    LEVEL_118_HINT_2: 'Escolha uma lâmpada que vai ficar acesa.',
+    LEVEL_118_HINT_3: 'Toque nas duas vizinhas de uma lâmpada (pulando ela).',
+
+    LEVEL_119_TITLE: 'APAGUE TODAS AS LUZES',
+    LEVEL_119_HINT_1: 'As lâmpadas não são as únicas luzes.',
+    LEVEL_119_HINT_2: 'Olhe pela janela.',
+    LEVEL_119_HINT_3: 'Apague as duas lâmpadas e toque na cortina para fechá-la.',
+
+    LEVEL_120_TITLE: 'ACENDA TODAS AS LUZES',
+    LEVEL_120_HINT_1: 'Quantas lâmpadas existem na tela?',
+    LEVEL_120_HINT_2: 'Tem uma lâmpada lá embaixo.',
+    LEVEL_120_HINT_3: 'Acenda as três e use a lâmpada do botão de dica (você acabou de usar!).'
   }
 };

@@ -14,6 +14,11 @@
 //   { move:'id', to:[x,y] | toObj:'id', offset:[dx,dy] | by:[dx,dy], ms, await:true }
 //   { reset:'id' } { hide:'id' } { show:'id' } { state:'id', key, value } { toggle:'id', key }
 //   { vibrate:ms } { forget:'id' } { swap:['a','b'], ms } { cls:'id', add, remove }
+//   { add:'id', key, by, min, max, wrap } (soma num estado numérico)
+//   { jump:'id', area:[x1,y1,x2,y2] } (pula para um lugar sorteado)
+//   { turn:'id', by:graus, ms } (gira e atualiza state.angle)
+//   { setText:'id', key } (troca o texto de uma palavra)
+// Reações também filtram por dir (swipe), tool ('used'), key e value (evento 'state').
 // Extras de fase: label (rótulo "FASE NN" com palavras-objeto), draw:true
 // (desenhar com o dedo), objetos com minAttempt (só aparecem ao tentar de
 // novo) e finale:'mid'|'end' (finais especiais).
@@ -234,6 +239,10 @@
       else if (r.target !== '*' && !(e.obj && e.obj.id === r.target)) return;
     }
     if (r.unhandled && e.handled) return;
+    if (r.dir && e.dir !== r.dir) return;
+    if (r.tool && !(e.tool && e.tool.id === r.tool)) return;     // 'used': qual ferramenta                         // swipe: 'left' | 'right' | 'up' | 'down'
+    if (r.key && e.key !== r.key) return;                         // state: só esta chave...
+    if ('value' in r && e.value !== r.value) return;              // ...e este valor
     if (r.when && !R.Conditions.test(r.when, this)) return;
     if (r.unless && R.Conditions.test(r.unless, this)) return;
     var now = U.now();
@@ -390,6 +399,39 @@
         if (!o.inText) { o.scale = o.scale0; o.moveTo(o.x0, o.y0, 260); }
         o.fx('pop');
       });
+    },
+    add: function (a, e, E) {
+      var o = E.get(a.add), k = a.key || 'n';
+      if (!o) return;
+      var v = (o.state[k] || 0) + (a.by != null ? a.by : 1);
+      if (a.wrap != null && v >= a.wrap) v = v % a.wrap;
+      if (a.max != null) v = Math.min(a.max, v);
+      if (a.min != null) v = Math.max(a.min, v);
+      o.setState(k, v);
+    },
+    jump: function (a, e, E) {
+      var o = E.get(a.jump), r = a.area || [15, 30, 85, 105];
+      if (!o) return;
+      var x, y, n = 0;
+      do { x = r[0] + Math.random() * (r[2] - r[0]); y = r[1] + Math.random() * (r[3] - r[1]); n++; }
+      while (n < 12 && U.dist(x, y, o.x, o.y) < 25);
+      return o.moveTo(x, y, a.ms != null ? a.ms : 220);
+    },
+    turn: function (a, e, E) {
+      var o = E.get(a.turn);
+      if (!o) return;
+      o.rot += a.by || 90;
+      var ang = Math.round(((o.rot % 360) + 360) % 360) % 360;
+      o.setState('angle', ang);
+      return o.animate(function () { o.layout(); }, a.ms != null ? a.ms : 220);
+    },
+    setText: function (a, e, E) {
+      var o = E.get(a.setText);
+      if (!o) return;
+      o.text = R.i18n.plain(a.key);
+      o.inner.textContent = o.text;
+      if (!o.inText && !o.def.w) E.measureWords();
+      o.fx('pop');
     },
     cls: function (a, e, E) {
       var o = E.get(a.cls);

@@ -13,6 +13,13 @@
 //   { type:'same', ids:[...], key?, scaleTol? } → mesmo estado e/ou mesmo tamanho
 //   { type:'balanced', left, right, ids:[...] } → mesmo peso (props.weight) em dois pratos
 //   { type:'split', divider, ids:[...] }   → mesma quantidade dos dois lados da divisória
+//   { type:'count', objects:[ids], container, min, max } → quantos estão dentro
+//   { type:'sorted', ids:[...], axis:'x'|'y' }  → em ordem (esquerda → direita / cima → baixo)
+//   { type:'bigger', a, b }                → a está maior que b (tamanho na tela)
+//   { type:'attempt', min }                → número da tentativa (reiniciar conta)
+//   { type:'value', target, equals }       → número de uma peça (o 9 de cabeça para baixo vale 6)
+//   { type:'sum', container, ids:[...], equals } → soma dos números dentro do container
+//   { type:'countState', ids:[...], key, equals|min|max } → quantos têm o estado ligado
 //   state também aceita min/max (números)
 //   { type:'all'|'any', of:[...] }, { type:'not', of: cond }
 (function () {
@@ -108,6 +115,43 @@
       if (!d) return false;
       c.ids.forEach(function (id) { var o = E.get(id); if (o) { if (o.x < d.x) l++; else r++; } });
       return l === r;
+    },
+
+    countState: function (c, E) {
+      var n = 0, k = c.key || 'on';
+      c.ids.forEach(function (id) { var o = E.get(id); if (o && o.state[k]) n++; });
+      if (c.equals != null) return n === c.equals;
+      return n >= (c.min != null ? c.min : 0) && n <= (c.max != null ? c.max : Infinity);
+    },
+
+    count: function (c, E) {
+      var box = E.get(c.container), n = 0;
+      if (!box) return false;
+      c.objects.forEach(function (id) { var o = E.get(id); if (o && !o.hidden && E.isInside(o, box)) n++; });
+      return n >= (c.min != null ? c.min : 0) && n <= (c.max != null ? c.max : Infinity);
+    },
+
+    sorted: function (c, E) {
+      var k = c.axis || 'x', os = c.ids.map(function (id) { return E.get(id); });
+      if (os.some(function (o) { return !o || o.hidden; })) return false;
+      for (var i = 1; i < os.length; i++) if (os[i].center()[k === 'x' ? 0 : 1] <= os[i - 1].center()[k === 'x' ? 0 : 1] + (c.gap || 1)) return false;
+      return true;
+    },
+
+    bigger: function (c, E) {
+      var a = E.get(c.a), b = E.get(c.b);
+      return !!a && !!b && a.sw * (a.sh || 1) > b.sw * (b.sh || 1) * (c.ratio || 1);
+    },
+
+    attempt: function (c, E) { return E.attempt >= (c.min || 1); },
+
+    value: function (c, E) { var o = E.get(c.target); return !!o && R.numValue(o) === c.equals; },
+
+    sum: function (c, E) {
+      var box = E.get(c.container), s = 0;
+      if (!box) return false;
+      c.ids.forEach(function (id) { var o = E.get(id); if (o && !o.hidden && E.isInside(o, box)) s += R.numValue(o); });
+      return s === c.equals;
     },
 
     scale: function (c, E) {
