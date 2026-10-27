@@ -924,6 +924,66 @@ RULES.L10N['es-ES'] = {
     LEVEL_150_TITLE: 'PINTA EL ARCOÍRIS',
     LEVEL_150_HINT_1: 'Tres colores puros y tres mezclas.',
     LEVEL_150_HINT_2: 'Toca la paleta para limpiarla.',
-    LEVEL_150_HINT_3: 'Pinta de izquierda a derecha: rojo, naranja (rojo + amarillo), amarillo, verde (azul + amarillo), azul y morado (rojo + azul).'
+    LEVEL_150_HINT_3: 'Pinta de izquierda a derecha: rojo, naranja (rojo + amarillo), amarillo, verde (azul + amarillo), azul y morado (rojo + azul).',
+    CHAPTER_16: 'GESTOS',
+    FB_JUST_A_PUFF: 'SOLO UN SOPLIDO...',
+    FB_FASTER: '¡MÁS RÁPIDO!',
+    FB_TOO_HIGH_UP: 'DEMASIADO ALTO...',
+    FB_PULL: '¡TIRA!',
+    FB_KEY_STUCK: 'LA LLAVE NO SALE',
+    FB_WOOF: '¡GUAU!',
+    FB_NOT_HUNGRY: 'NO TIENE HAMBRE',
+    FB_WET: 'CUÁNTA LLUVIA...',
+    FB_CLOUD_STAYS: 'LA NUBE NO SE MUEVE',
+
+    LEVEL_151_TITLE: 'INFLA EL GLOBO',
+    LEVEL_151_HINT_1: 'Un toque es solo un soplido.',
+    LEVEL_151_HINT_2: 'No sueltes tan rápido.',
+    LEVEL_151_HINT_3: 'Mantén apretado el inflador un momento.',
+
+    LEVEL_152_TITLE: 'AYUDA AL POLLITO A SALIR',
+    LEVEL_152_HINT_1: 'El huevo es duro.',
+    LEVEL_152_HINT_2: 'Un toque no basta.',
+    LEVEL_152_HINT_3: 'Toca el huevo tres veces muy rápido.',
+
+    LEVEL_153_TITLE: 'PON LA MANZANA EN LA CESTA',
+    LEVEL_153_HINT_1: 'La manzana está demasiado alta.',
+    LEVEL_153_HINT_2: 'Los árboles se pueden sacudir.',
+    LEVEL_153_HINT_3: 'Frota el árbol de un lado a otro; la manzana cae y luego llévala a la cesta.',
+
+    LEVEL_154_TITLE: 'APAGA LA VELA',
+    LEVEL_154_HINT_1: 'Tocar quema.',
+    LEVEL_154_HINT_2: '¿Cómo se apaga una vela?',
+    LEVEL_154_HINT_3: 'Sopla: desliza el dedo rápido por encima de la vela.',
+
+    LEVEL_155_TITLE: 'ENCUENTRA LA ESTRELLA',
+    LEVEL_155_HINT_1: 'Los libros tienen varias páginas.',
+    LEVEL_155_HINT_2: '¿Cómo se pasa la página?',
+    LEVEL_155_HINT_3: 'Desliza el dedo a la izquierda sobre el libro hasta la última página.',
+
+    LEVEL_156_TITLE: 'EMPIEZA EL SHOW',
+    LEVEL_156_HINT_1: 'La cortina no se abre con la mano.',
+    LEVEL_156_HINT_2: 'Hay una cuerda al lado.',
+    LEVEL_156_HINT_3: 'Tira de la cuerda hacia abajo.',
+
+    LEVEL_157_TITLE: 'ENFRÍA LA SARTÉN',
+    LEVEL_157_HINT_1: 'No se puede tocar: está caliente.',
+    LEVEL_157_HINT_2: '¿Cómo se enfría algo caliente?',
+    LEVEL_157_HINT_3: 'Abanica: frota el dedo de un lado a otro sobre la sartén.',
+
+    LEVEL_158_TITLE: 'ABRE LA PUERTA',
+    LEVEL_158_HINT_1: 'La llave ya está ahí.',
+    LEVEL_158_HINT_2: 'Las llaves giran.',
+    LEVEL_158_HINT_3: 'Gira la llave con el dedo.',
+
+    LEVEL_159_TITLE: 'HAZ FELIZ AL PERRO',
+    LEVEL_159_HINT_1: 'No quiere el hueso.',
+    LEVEL_159_HINT_2: '¿Qué le gusta a un perro?',
+    LEVEL_159_HINT_3: 'Acarícialo: frota al perro.',
+
+    LEVEL_160_TITLE: 'PROTEGE A RULI DE LA LLUVIA',
+    LEVEL_160_HINT_1: 'La nube no se mueve.',
+    LEVEL_160_HINT_2: 'Dibuja una protección.',
+    LEVEL_160_HINT_3: 'Dibuja un círculo alrededor de Ruli, empezando y terminando en el mismo sitio.'
   }
 };

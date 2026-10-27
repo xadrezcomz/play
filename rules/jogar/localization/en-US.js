@@ -924,6 +924,66 @@ RULES.L10N['en-US'] = {
     LEVEL_150_TITLE: 'PAINT THE RAINBOW',
     LEVEL_150_HINT_1: 'Three pure colors and three mixes.',
     LEVEL_150_HINT_2: 'Tap the palette to clean it.',
-    LEVEL_150_HINT_3: 'Paint from left to right: red, orange (red + yellow), yellow, green (blue + yellow), blue and purple (red + blue).'
+    LEVEL_150_HINT_3: 'Paint from left to right: red, orange (red + yellow), yellow, green (blue + yellow), blue and purple (red + blue).',
+    CHAPTER_16: 'GESTURES',
+    FB_JUST_A_PUFF: 'JUST A LITTLE PUFF...',
+    FB_FASTER: 'FASTER!',
+    FB_TOO_HIGH_UP: 'TOO HIGH...',
+    FB_PULL: 'PULL!',
+    FB_KEY_STUCK: 'THE KEY WON\'T COME OUT',
+    FB_WOOF: 'WOOF!',
+    FB_NOT_HUNGRY: 'HE\'S NOT HUNGRY',
+    FB_WET: 'SO MUCH RAIN...',
+    FB_CLOUD_STAYS: 'THE CLOUD WON\'T MOVE',
+
+    LEVEL_151_TITLE: 'BLOW UP THE BALLOON',
+    LEVEL_151_HINT_1: 'A tap is just a little puff.',
+    LEVEL_151_HINT_2: 'Don\'t let go so fast.',
+    LEVEL_151_HINT_3: 'Hold the pump down for a moment.',
+
+    LEVEL_152_TITLE: 'HELP THE CHICK GET OUT',
+    LEVEL_152_HINT_1: 'The egg is hard.',
+    LEVEL_152_HINT_2: 'One tap is not enough.',
+    LEVEL_152_HINT_3: 'Tap the egg three times very fast.',
+
+    LEVEL_153_TITLE: 'PUT THE APPLE IN THE BASKET',
+    LEVEL_153_HINT_1: 'The apple is too high.',
+    LEVEL_153_HINT_2: 'Trees can be shaken.',
+    LEVEL_153_HINT_3: 'Rub the tree back and forth; the apple falls, then take it to the basket.',
+
+    LEVEL_154_TITLE: 'BLOW OUT THE CANDLE',
+    LEVEL_154_HINT_1: 'Touching burns.',
+    LEVEL_154_HINT_2: 'How do you put out a candle?',
+    LEVEL_154_HINT_3: 'Blow: swipe your finger quickly across the candle.',
+
+    LEVEL_155_TITLE: 'FIND THE STAR',
+    LEVEL_155_HINT_1: 'Books have many pages.',
+    LEVEL_155_HINT_2: 'How do you turn a page?',
+    LEVEL_155_HINT_3: 'Swipe left on the book until the last page.',
+
+    LEVEL_156_TITLE: 'START THE SHOW',
+    LEVEL_156_HINT_1: 'The curtain doesn\'t open by hand.',
+    LEVEL_156_HINT_2: 'There\'s a rope on the side.',
+    LEVEL_156_HINT_3: 'Pull the rope down.',
+
+    LEVEL_157_TITLE: 'COOL DOWN THE PAN',
+    LEVEL_157_HINT_1: 'You can\'t hold it: it\'s hot.',
+    LEVEL_157_HINT_2: 'How do you cool something hot?',
+    LEVEL_157_HINT_3: 'Fan it: rub your finger back and forth over the pan.',
+
+    LEVEL_158_TITLE: 'OPEN THE DOOR',
+    LEVEL_158_HINT_1: 'The key is already there.',
+    LEVEL_158_HINT_2: 'Keys turn.',
+    LEVEL_158_HINT_3: 'Turn the key with your finger.',
+
+    LEVEL_159_TITLE: 'MAKE THE DOG HAPPY',
+    LEVEL_159_HINT_1: 'He doesn\'t want the bone.',
+    LEVEL_159_HINT_2: 'What do dogs like?',
+    LEVEL_159_HINT_3: 'Pet him: rub the dog.',
+
+    LEVEL_160_TITLE: 'PROTECT RULI FROM THE RAIN',
+    LEVEL_160_HINT_1: 'The cloud won\'t move.',
+    LEVEL_160_HINT_2: 'Draw some protection.',
+    LEVEL_160_HINT_3: 'Draw a circle around Ruli, starting and ending at the same spot.'
   }
 };

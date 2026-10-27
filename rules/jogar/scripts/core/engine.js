@@ -18,7 +18,7 @@
 //   { jump:'id', area:[x1,y1,x2,y2] } (pula para um lugar sorteado)
 //   { turn:'id', by:graus, ms } (gira e atualiza state.angle)
 //   { setText:'id', key } (troca o texto de uma palavra)
-//   { drop:'id' } (solta o objeto que está sendo arrastado)  { cls:'*' } = objeto do evento
+//   { drop:'id' } (solta o objeto que está sendo arrastado)  { grow:'id', to|by, ms } (muda a escala)  { cls:'*' } = objeto do evento
 // Reações também filtram por dir (swipe), tool ('used'), key e value (evento 'state').
 // Extras de fase: label (rótulo "FASE NN" com palavras-objeto), draw:true
 // (desenhar com o dedo), objetos com minAttempt (só aparecem ao tentar de
@@ -433,6 +433,20 @@
       o.inner.textContent = o.text;
       if (!o.inText && !o.def.w) E.measureWords();
       o.fx('pop');
+    },
+    grow: function (a, e, E) {
+      var o = E.get(a.grow);
+      if (!o) return;
+      var from = o.scale, to = a.to != null ? a.to : o.scale * (a.by || 1.3), ms = a.ms != null ? a.ms : 300;
+      if (!ms || R.reduceMotion) { E.setScale(o, to); return; }
+      var t0 = U.now();
+      return new Promise(function (res) {
+        (function step() {
+          var k = Math.min(1, (U.now() - t0) / ms);
+          E.setScale(o, from + (to - from) * k);
+          if (k < 1) requestAnimationFrame(step); else res();
+        })();
+      });
     },
     drop: function (a, e, E) { var o = E.get(a.drop); if (o) E.input.cancel(o); },
     cls: function (a, e, E) {

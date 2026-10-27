@@ -924,6 +924,66 @@ RULES.L10N['pt-BR'] = {
     LEVEL_150_TITLE: 'PINTE O ARCO-ÍRIS',
     LEVEL_150_HINT_1: 'Três cores puras e três misturas.',
     LEVEL_150_HINT_2: 'Toque na paleta para limpá-la.',
-    LEVEL_150_HINT_3: 'Pinte da esquerda para a direita: vermelho, laranja (vermelho + amarelo), amarelo, verde (azul + amarelo), azul e roxo (vermelho + azul).'
+    LEVEL_150_HINT_3: 'Pinte da esquerda para a direita: vermelho, laranja (vermelho + amarelo), amarelo, verde (azul + amarelo), azul e roxo (vermelho + azul).',
+    CHAPTER_16: 'GESTOS',
+    FB_JUST_A_PUFF: 'SÓ UM SOPRINHO...',
+    FB_FASTER: 'MAIS RÁPIDO!',
+    FB_TOO_HIGH_UP: 'ALTO DEMAIS...',
+    FB_PULL: 'PUXE!',
+    FB_KEY_STUCK: 'A CHAVE NÃO SAI',
+    FB_WOOF: 'AU!',
+    FB_NOT_HUNGRY: 'ELE NÃO ESTÁ COM FOME',
+    FB_WET: 'QUE CHUVA...',
+    FB_CLOUD_STAYS: 'A NUVEM NÃO SAI DAÍ',
+
+    LEVEL_151_TITLE: 'ENCHA O BALÃO',
+    LEVEL_151_HINT_1: 'Um toque é só um soprinho.',
+    LEVEL_151_HINT_2: 'Não solte tão rápido.',
+    LEVEL_151_HINT_3: 'Segure a bomba apertada por um instante.',
+
+    LEVEL_152_TITLE: 'AJUDE O PINTINHO A SAIR',
+    LEVEL_152_HINT_1: 'O ovo é duro.',
+    LEVEL_152_HINT_2: 'Um toque só não basta.',
+    LEVEL_152_HINT_3: 'Toque três vezes bem rápido no ovo.',
+
+    LEVEL_153_TITLE: 'COLOQUE A MAÇÃ NA CESTA',
+    LEVEL_153_HINT_1: 'A maçã está alta demais.',
+    LEVEL_153_HINT_2: 'Árvores podem ser sacudidas.',
+    LEVEL_153_HINT_3: 'Esfregue a árvore de um lado para o outro; a maçã cai e aí é só levar até a cesta.',
+
+    LEVEL_154_TITLE: 'APAGUE A VELA',
+    LEVEL_154_HINT_1: 'Tocar queima.',
+    LEVEL_154_HINT_2: 'Como se apaga uma vela?',
+    LEVEL_154_HINT_3: 'Sopre: deslize o dedo rápido por cima da vela.',
+
+    LEVEL_155_TITLE: 'ENCONTRE A ESTRELA',
+    LEVEL_155_HINT_1: 'Livros têm várias páginas.',
+    LEVEL_155_HINT_2: 'Como se vira a página?',
+    LEVEL_155_HINT_3: 'Deslize o dedo para a esquerda em cima do livro até a última página.',
+
+    LEVEL_156_TITLE: 'COMECE O SHOW',
+    LEVEL_156_HINT_1: 'A cortina não abre com a mão.',
+    LEVEL_156_HINT_2: 'Tem uma corda ali do lado.',
+    LEVEL_156_HINT_3: 'Puxe a corda para baixo.',
+
+    LEVEL_157_TITLE: 'ESFRIE A PANELA',
+    LEVEL_157_HINT_1: 'Não dá para pegar: está quente.',
+    LEVEL_157_HINT_2: 'Como esfriar algo quente?',
+    LEVEL_157_HINT_3: 'Abane: esfregue o dedo de um lado para o outro em cima da panela.',
+
+    LEVEL_158_TITLE: 'ABRA A PORTA',
+    LEVEL_158_HINT_1: 'A chave já está lá.',
+    LEVEL_158_HINT_2: 'Chaves giram.',
+    LEVEL_158_HINT_3: 'Gire a chave com o dedo.',
+
+    LEVEL_159_TITLE: 'DEIXE O CACHORRO FELIZ',
+    LEVEL_159_HINT_1: 'Ele não quer o osso.',
+    LEVEL_159_HINT_2: 'O que cachorro gosta?',
+    LEVEL_159_HINT_3: 'Faça carinho: esfregue o cachorro.',
+
+    LEVEL_160_TITLE: 'PROTEJA O RULI DA CHUVA',
+    LEVEL_160_HINT_1: 'A nuvem não sai.',
+    LEVEL_160_HINT_2: 'Desenhe uma proteção.',
+    LEVEL_160_HINT_3: 'Desenhe um círculo em volta do Ruli, começando e terminando no mesmo lugar.'
   }
 };

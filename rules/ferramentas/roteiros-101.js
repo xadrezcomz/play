@@ -113,6 +113,21 @@ module.exports = ({ touch, sleep, center, board, tapXY, tap, dragXY, drag, dragB
       await dragTo('pr', 'a0'); await sleep(350); await dragTo('py', 'a2'); await sleep(350); await dragTo('pb', 'a4'); await sleep(350);
       await notWon(150, 'só as cores puras');
       await mix(['pr', 'py'], 'a1'); await mix(['pb', 'py'], 'a3'); await mix(['pr', 'pb'], 'a5');
-    }, 4000]
+    }, 4000],
+    151: ['BALÃO', async () => { await tap('pump'); await notWon(151, 'um toque'); const c = await center('pump'); await touch('touchStart', [[c[0], c[1]]]); await sleep(1600); await touch('touchEnd', []); await sleep(900); }],
+    152: ['PINTINHO', async () => { await tap('egg'); await sleep(700); await tap('egg'); await sleep(700); await notWon(152, 'toques lentos');
+      const c = await center('egg'); for (let i = 0; i < 3; i++) { await tapXY(c[0], c[1]); } }],
+    153: ['MAÇÃ', async () => { await dragTo('apple', 'basket'); await notWon(153, 'arrastar a maçã no alto'); await rub('tree', 14, 40); await sleep(1800); await dragTo('apple', 'basket'); }, 4000],
+    154: ['VELA', async () => { await tap('candle'); await notWon(154, 'tocar na vela'); const c = await center('candle'); await dragXY(c[0] - 10, c[1], c[0] + 110, c[1] - 20, 5); }],
+    155: ['LIVRO', async () => { await tap('book'); await notWon(155, 'tocar no livro');
+      for (let i = 0; i < 2; i++) { const c = await center('book'); await dragXY(c[0] + 60, c[1] + 40, c[0] - 80, c[1] + 40, 5); await sleep(300); }
+      await tap('star'); }],
+    156: ['CORTINA', async () => { await tap('curtain'); await notWon(156, 'tocar na cortina'); await dragBy('rope', 0, 120); }],
+    157: ['PANELA', async () => { await tap('pan'); await notWon(157, 'tocar na panela'); await rub('pan', 18, 40); }],
+    158: ['CHAVE', async () => { await tap('key'); await notWon(158, 'tocar na chave'); await spin('key', 0.3); }],
+    159: ['CACHORRO', async () => { await dragTo('bone', 'dog'); await sleep(300); await notWon(159, 'dar o osso'); await rub('dog', 18, 40); }],
+    160: ['CÍRCULO', async () => { await tap('ruli'); await notWon(160, 'tocar no Ruli');
+      const pts = []; for (let i = 0; i <= 26; i++) { const a = i / 24 * Math.PI * 2; pts.push([50 + 20 * Math.cos(a), 80 + 20 * Math.sin(a)]); }
+      await drawPath(pts); }]
   };
 };

@@ -42,6 +42,7 @@
 //   patrol     { points:[[x,y]...], ms, pause }  → anda sozinho de ponto em ponto (para ao ser segurado)
 //   spinner    { speed }                         → gira sozinho até state.stopped (aí grava state.angle)
 //   sumDisplay { container, ids:[...] }          → state.n = soma dos números dentro do container
+//   encircle   { target:'id' }                   → um traço fechado em volta do alvo (state.done)
 //   palette    { from:[ids] }                    → mistura as cores soltas em cima (state.color); tocar limpa
 (function () {
   'use strict';
@@ -877,6 +878,33 @@
         E.on('drop', function () { setTimeout(upd, 200); });
         E.on('rotated', function () { setTimeout(upd, 50); });
         setTimeout(upd, 30);
+      }
+    },
+
+    encircle: {
+      init: function (o, cfg, E) {
+        E.on('drawn', function (e) {
+          var t = E.get(cfg.target), pts = e.points;
+          if (!t || pts.length < 8 || o.state.done) return;
+          var p0 = pts[0], p1 = pts[pts.length - 1], c = t.center();
+          var span = 0;
+          pts.forEach(function (p) { span = Math.max(span, U.dist(p[0], p[1], p0[0], p0[1])); });
+          // fechado: o fim volta perto do começo
+          if (U.dist(p0[0], p0[1], p1[0], p1[1]) > Math.max(12, span * 0.35)) { E.fail(cfg.failSay); return; }
+          // em volta: o ângulo visto do alvo dá quase uma volta inteira
+          var tot = 0;
+          for (var i = 1; i < pts.length; i++) {
+            var a = Math.atan2(pts[i - 1][1] - c[1], pts[i - 1][0] - c[0]), b = Math.atan2(pts[i][1] - c[1], pts[i][0] - c[0]), d = b - a;
+            if (d > Math.PI) d -= 2 * Math.PI;
+            if (d < -Math.PI) d += 2 * Math.PI;
+            tot += d;
+          }
+          if (Math.abs(tot) < Math.PI * 1.6) { E.fail(cfg.failSay); return; }
+          e.handled = true;
+          o.setState('done', true);
+          R.Audio.play('pop');
+          E.emit('encircled', { obj: o, target: t });
+        });
       }
     },
 

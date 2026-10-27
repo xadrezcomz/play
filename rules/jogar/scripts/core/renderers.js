@@ -559,6 +559,16 @@
     return '<ellipse cx="24" cy="44" rx="24" ry="24" fill="' + c + '"/><ellipse cx="52" cy="32" rx="28" ry="30" fill="' + c + '"/><ellipse cx="78" cy="44" rx="22" ry="24" fill="' + c + '"/>' +
       '<rect x="6" y="44" width="88" height="26" rx="10" fill="' + c + '"/><ellipse cx="40" cy="24" rx="8" ry="5" fill="#fff" opacity=".25"/>';
   } };
+  T.bubble = { view: '0 0 100 100', svg: function () {
+    return '<circle cx="50" cy="50" r="46" fill="#BDE3FF" fill-opacity=".35" stroke="#7FC1F5" stroke-width="3"/><ellipse cx="32" cy="26" rx="12" ry="7" fill="#fff" opacity=".7" transform="rotate(-30 32 26)"/>';
+  } };
+  T.rope = { view: '0 0 20 100', stretch: true, svg: function () {
+    return '<rect x="7" y="0" width="6" height="86" rx="3" fill="' + C.wood + '"/><circle cx="10" cy="90" r="8" fill="' + C.coral + '"/>';
+  } };
+  T.book = { view: '0 0 120 80', svg: function (p, o) {
+    return '<rect x="2" y="6" width="116" height="72" rx="6" fill="' + C.blue + '"/><rect x="8" y="2" width="50" height="70" rx="3" fill="#FFFDF5"/><rect x="62" y="2" width="50" height="70" rx="3" fill="#FFFDF5"/>' +
+      '<path d="M60 4 L60 72" stroke="#E3DDD2" stroke-width="3"/><path d="M70 64 L104 64" stroke="#E3DDD2" stroke-width="3"/><text x="98" y="16" font-size="9" font-weight="900" fill="#B8BFCC" font-family="sans-serif">' + (o.state.page || 1) + '</text>';
+  } };
   T.bin = { view: '0 0 80 100', svg: function (p, o) {
     var c = sc(p, o, '#9AA0B4');
     return '<rect x="30" y="2" width="20" height="8" rx="3" fill="' + shade(c, -30) + '"/><rect x="4" y="8" width="72" height="12" rx="5" fill="' + shade(c, -20) + '"/>' +
