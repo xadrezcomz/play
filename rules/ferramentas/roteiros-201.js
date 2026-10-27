@@ -89,6 +89,16 @@ module.exports = ({ unit, touch, sleep, center, board, tapXY, tap, dragXY, drag,
     }],
     228: ['GATO', async () => { const o = await board(30, 100); await tapXY(o[0], o[1]); await notWon(228, 'tocar no vazio'); await tap('cat'); }],
     229: ['ESTRELA GIGANTE', async () => { await tap('star'); await notWon(229, 'tocar no amarelo'); for (let i = 0; i < 4; i++) { await pinch('star', 0.25); await sleep(150); } await tap('star'); }],
-    230: ['RULI NA MULTIDÃO', async () => { await tap('p0'); await notWon(230, 'tocar num amigo'); await tap('ruli'); }]
+    230: ['RULI NA MULTIDÃO', async () => { await tap('p0'); await notWon(230, 'tocar num amigo'); await tap('ruli'); }],
+    231: ['ESTRELA NO COPO', async () => { await sleep(2900); await tap('k1'); await sleep(700); await notWon(231, 'copo do meio'); await tap('k0'); }],
+    232: ['JOGO DOS COPOS', async () => { await sleep(6800); await tap('k0'); await sleep(700); await notWon(232, 'copo errado'); await tap('k1'); }, 4000],
+    233: ['PARES 4', async () => { await tap('m0'); await tap('m1'); await sleep(1000); for (const [a, b] of [['m0', 'm2'], ['m1', 'm3']]) { await tap(a); await tap(b); await sleep(300); } }],
+    234: ['PARES 6', async () => { for (const [a, b] of [['m1', 'm3'], ['m2', 'm4'], ['m0', 'm5']]) { await tap(a); await tap(b); await sleep(300); } }],
+    235: ['O QUE SUMIU', async () => { await sleep(3900); await tap('o_moon'); await notWon(235, 'escolher a lua'); await tap('o_star'); }],
+    236: ['COR DA PORTA', async () => { await sleep(3000); await tap('c_purple'); await notWon(236, 'roxo'); await tap('c_blue'); }],
+    237: ['CAMINHO', async () => { await sleep(3800); for (const t of ['t0', 't4', 't5', 't8']) { await tap(t); await sleep(250); } }],
+    238: ['QUANTAS ESTRELAS', async () => { await sleep(3000); await tapN('ans', 6); await tap('ok'); await notWon(238, 'contar 6'); await tapN('ans', 1); await tap('ok'); }],
+    239: ['QUEM TROCOU', async () => { await sleep(3800); await tap('p0'); await notWon(239, 'o que não saiu'); await tap('p1'); }],
+    240: ['PARES 8', async () => { for (const [a, b] of [['m1', 'm3'], ['m0', 'm5'], ['m2', 'm6'], ['m4', 'm7']]) { await tap(a); await tap(b); await sleep(300); } }]
   };
 };

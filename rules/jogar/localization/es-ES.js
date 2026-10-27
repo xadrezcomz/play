@@ -1422,6 +1422,60 @@ RULES.L10N['es-ES'] = {
     LEVEL_230_TITLE: 'ENCUENTRA A RULI',
     LEVEL_230_HINT_1: 'Ruli es verde azulado.',
     LEVEL_230_HINT_2: 'Está cerca de un borde.',
-    LEVEL_230_HINT_3: 'Ruli está en el borde derecho, a media altura.'
+    LEVEL_230_HINT_3: 'Ruli está en el borde derecho, a media altura.',
+    CHAPTER_24: 'MEMORIA',
+    FB_WASNT_THERE: 'ESE NI SIQUIERA ESTABA',
+    FB_OTHER_COLOR: 'ERA DE OTRO COLOR',
+    FB_DIDNT_MOVE: 'ESE NO SE MOVIÓ',
+
+    LEVEL_231_TITLE: '¿DÓNDE ESTÁ LA ESTRELLA?',
+    LEVEL_231_HINT_1: 'Mira antes de que bajen los vasos.',
+    LEVEL_231_HINT_2: 'No se mueve.',
+    LEVEL_231_HINT_3: 'La estrella está debajo del vaso de la izquierda.',
+
+    LEVEL_232_TITLE: '¿DÓNDE ESTÁ LA PELOTA?',
+    LEVEL_232_HINT_1: 'No le quites el ojo al vaso.',
+    LEVEL_232_HINT_2: 'Sigue solo el vaso de la pelota.',
+    LEVEL_232_HINT_3: 'Sigue el vaso que bajó sobre la pelota hasta que paren y tócalo.',
+
+    LEVEL_233_TITLE: 'ENCUENTRA LAS PAREJAS',
+    LEVEL_233_HINT_1: 'Da la vuelta a dos cartas.',
+    LEVEL_233_HINT_2: 'Recuerda lo que viste.',
+    LEVEL_233_HINT_3: 'Gira las cartas de dos en dos y recuerda dónde está cada dibujo.',
+
+    LEVEL_234_TITLE: 'ENCUENTRA LAS PAREJAS',
+    LEVEL_234_HINT_1: 'Ahora son seis.',
+    LEVEL_234_HINT_2: 'Los errores ayudan a recordar.',
+    LEVEL_234_HINT_3: 'Gira de dos en dos y usa lo que ya viste para encontrar las parejas.',
+
+    LEVEL_235_TITLE: '¿QUÉ DESAPARECIÓ?',
+    LEVEL_235_HINT_1: 'Memoriza los cinco dibujos.',
+    LEVEL_235_HINT_2: 'Uno no vuelve.',
+    LEVEL_235_HINT_3: 'Desapareció la estrella: tócala abajo.',
+
+    LEVEL_236_TITLE: '¿DE QUÉ COLOR ERA LA PUERTA?',
+    LEVEL_236_HINT_1: 'Mira la puerta antes de que cambie.',
+    LEVEL_236_HINT_2: 'La luz se apagó después.',
+    LEVEL_236_HINT_3: 'La puerta era azul.',
+
+    LEVEL_237_TITLE: 'REPITE EL CAMINO',
+    LEVEL_237_HINT_1: 'La luz pasa por cuatro botones.',
+    LEVEL_237_HINT_2: 'El orden importa.',
+    LEVEL_237_HINT_3: 'Esquina de arriba a la izquierda, centro, medio de la derecha y esquina de abajo a la derecha.',
+
+    LEVEL_238_TITLE: '¿CUÁNTAS ESTRELLAS VISTE?',
+    LEVEL_238_HINT_1: 'Cuenta rápido.',
+    LEVEL_238_HINT_2: 'La nube las tapa después.',
+    LEVEL_238_HINT_3: 'Eran 7 estrellas: marca 7 y pulsa el botón.',
+
+    LEVEL_239_TITLE: '¿QUIÉN CAMBIÓ DE LUGAR?',
+    LEVEL_239_HINT_1: 'Recuerda el orden de los colores.',
+    LEVEL_239_HINT_2: 'Compara antes y después.',
+    LEVEL_239_HINT_3: 'El rosa y el morado cambiaron: toca cualquiera de los dos.',
+
+    LEVEL_240_TITLE: 'ENCUENTRA TODAS LAS PAREJAS',
+    LEVEL_240_HINT_1: 'Ocho cartas.',
+    LEVEL_240_HINT_2: 'Con calma.',
+    LEVEL_240_HINT_3: 'Gira de dos en dos y usa la memoria hasta encontrar las cuatro parejas.'
   }
 };

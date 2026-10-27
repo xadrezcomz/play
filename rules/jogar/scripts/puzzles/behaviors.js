@@ -45,6 +45,7 @@
 //   sumDisplay { container, ids:[...] }          → state.n = soma dos números dentro do container
 //   bake       { in:'id', ms, set }              → fica dentro de "in" por ms seguidos: liga os estados
 //   fragile    { max, carries:[ids] }            → arrastado rápido demais: evento 'spill' (e volta)
+//   pairs      { cards:[ids], ms }               → jogo da memória: dois iguais ficam abertos (state.done no fim)
 //   encircle   { target:'id' }                   → um traço fechado em volta do alvo (state.done)
 //   palette    { from:[ids] }                    → mistura as cores soltas em cima (state.color); tocar limpa
 (function () {
@@ -972,6 +973,30 @@
           var v = U.dist(o.x, o.y, rx, ry) / (now - rt);
           rx = o.x; ry = o.y; rt = now;
           if (v > (cfg.max || 0.12)) { st = null; spill(); }
+        });
+      }
+    },
+
+    pairs: {
+      init: function (o, cfg, E) {
+        var open = [], busy = false;
+        E.on('tap', function (e) {
+          var c = e.obj;
+          if (!c || cfg.cards.indexOf(c.id) < 0 || busy || c.state.open || c.state.matched) return;
+          c.setState('open', true); c.fx('squash'); R.Audio.play('tap');
+          open.push(c);
+          if (open.length < 2) return;
+          var a = open[0], b = open[1];
+          open = [];
+          if ((a.def.props || {}).sym === (b.def.props || {}).sym && (a.def.props || {}).symColor === (b.def.props || {}).symColor) {
+            a.setState('matched', true); b.setState('matched', true);
+            a.fx('pop'); b.fx('pop'); R.Audio.play('pop');
+            E.emit('paired', { obj: a, other: b });
+            if (cfg.cards.every(function (id) { var x = E.get(id); return x && x.state.matched; })) o.setState('done', true);
+            return;
+          }
+          busy = true;
+          setTimeout(function () { a.setState('open', false); b.setState('open', false); busy = false; E.emit('unpaired', { obj: a, other: b }); }, cfg.ms || 750);
         });
       }
     },

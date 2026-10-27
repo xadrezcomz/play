@@ -1422,6 +1422,60 @@ RULES.L10N['pt-BR'] = {
     LEVEL_230_TITLE: 'ENCONTRE O RULI',
     LEVEL_230_HINT_1: 'O Ruli é verde-azulado.',
     LEVEL_230_HINT_2: 'Ele está perto de uma beirada.',
-    LEVEL_230_HINT_3: 'O Ruli está na beirada da direita, no meio da altura.'
+    LEVEL_230_HINT_3: 'O Ruli está na beirada da direita, no meio da altura.',
+    CHAPTER_24: 'MEMÓRIA',
+    FB_WASNT_THERE: 'ESSE NEM ESTAVA LÁ',
+    FB_OTHER_COLOR: 'ERA DE OUTRA COR',
+    FB_DIDNT_MOVE: 'ESSE NÃO SAIU DO LUGAR',
+
+    LEVEL_231_TITLE: 'ONDE ESTÁ A ESTRELA?',
+    LEVEL_231_HINT_1: 'Olhe antes dos copos descerem.',
+    LEVEL_231_HINT_2: 'Ela não se mexe.',
+    LEVEL_231_HINT_3: 'A estrela ficou embaixo do copo da esquerda.',
+
+    LEVEL_232_TITLE: 'ONDE ESTÁ A BOLA?',
+    LEVEL_232_HINT_1: 'Não tire o olho do copo.',
+    LEVEL_232_HINT_2: 'Siga só o copo da bola.',
+    LEVEL_232_HINT_3: 'Acompanhe o copo que desceu sobre a bola até os copos pararem e toque nele.',
+
+    LEVEL_233_TITLE: 'ENCONTRE OS PARES',
+    LEVEL_233_HINT_1: 'Vire duas cartas.',
+    LEVEL_233_HINT_2: 'Lembre o que viu.',
+    LEVEL_233_HINT_3: 'Vire as cartas de duas em duas e lembre onde está cada desenho.',
+
+    LEVEL_234_TITLE: 'ENCONTRE OS PARES',
+    LEVEL_234_HINT_1: 'Agora são seis.',
+    LEVEL_234_HINT_2: 'Erros ajudam a lembrar.',
+    LEVEL_234_HINT_3: 'Vire de duas em duas e use o que já viu para achar os pares.',
+
+    LEVEL_235_TITLE: 'O QUE SUMIU?',
+    LEVEL_235_HINT_1: 'Decore os cinco desenhos.',
+    LEVEL_235_HINT_2: 'Um deles não volta.',
+    LEVEL_235_HINT_3: 'Quem sumiu foi a estrela: toque nela embaixo.',
+
+    LEVEL_236_TITLE: 'DE QUE COR ERA A PORTA?',
+    LEVEL_236_HINT_1: 'Olhe a porta antes que ela mude.',
+    LEVEL_236_HINT_2: 'A luz apagou depois.',
+    LEVEL_236_HINT_3: 'A porta era azul.',
+
+    LEVEL_237_TITLE: 'REPITA O CAMINHO',
+    LEVEL_237_HINT_1: 'A luz passa por quatro botões.',
+    LEVEL_237_HINT_2: 'A ordem importa.',
+    LEVEL_237_HINT_3: 'Canto de cima à esquerda, centro, meio da direita e canto de baixo à direita.',
+
+    LEVEL_238_TITLE: 'QUANTAS ESTRELAS VOCÊ VIU?',
+    LEVEL_238_HINT_1: 'Conte rápido.',
+    LEVEL_238_HINT_2: 'A nuvem esconde depois.',
+    LEVEL_238_HINT_3: 'Eram 7 estrelas: marque 7 e aperte o botão.',
+
+    LEVEL_239_TITLE: 'QUEM TROCOU DE LUGAR?',
+    LEVEL_239_HINT_1: 'Lembre a ordem das cores.',
+    LEVEL_239_HINT_2: 'Compare antes e depois.',
+    LEVEL_239_HINT_3: 'O rosa e o roxo trocaram: toque em qualquer um dos dois.',
+
+    LEVEL_240_TITLE: 'ENCONTRE TODOS OS PARES',
+    LEVEL_240_HINT_1: 'Oito cartas.',
+    LEVEL_240_HINT_2: 'Vá com calma.',
+    LEVEL_240_HINT_3: 'Vire de duas em duas e use a memória até achar os quatro pares.'
   }
 };

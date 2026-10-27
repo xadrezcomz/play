@@ -581,6 +581,16 @@
     cols.forEach(function (c, i) { var r = 56 - i * 6; t += '<path d="M' + (60 - r) + ' 62 A' + r + ' ' + r + ' 0 0 1 ' + (60 + r) + ' 62" fill="none" stroke="' + c + '" stroke-width="6.5"/>'; });
     return t;
   } };
+  // carta do jogo da memória: virada (state.open) mostra o desenho props.sym
+  T.mcard = { view: '0 0 60 80', svg: function (p, o) {
+    if (!o.state.open && !o.state.matched) {
+      return '<rect x="2" y="2" width="56" height="76" rx="8" fill="' + C.purple + '"/><rect x="8" y="8" width="44" height="64" rx="5" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="6 5" opacity=".6"/><circle cx="30" cy="40" r="7" fill="#fff" opacity=".5"/>';
+    }
+    var t = T[p.sym] || T.circle, inner = t.svg({ color: p.symColor }, { state: {}, def: { props: {} } });
+    var v = t.view.split(' ').map(Number), k = Math.min(40 / v[2], 44 / v[3]);
+    return '<rect x="2" y="2" width="56" height="76" rx="8" fill="#fff" stroke="' + (o.state.matched ? C.green : '#E3DDD2') + '" stroke-width="4"/>' +
+      '<g transform="translate(' + (30 - v[2] * k / 2).toFixed(1) + ' ' + (40 - v[3] * k / 2).toFixed(1) + ') scale(' + k.toFixed(3) + ')">' + inner + '</g>';
+  } };
   T.bin = { view: '0 0 80 100', svg: function (p, o) {
     var c = sc(p, o, '#9AA0B4');
     return '<rect x="30" y="2" width="20" height="8" rx="3" fill="' + shade(c, -30) + '"/><rect x="4" y="8" width="72" height="12" rx="5" fill="' + shade(c, -20) + '"/>' +

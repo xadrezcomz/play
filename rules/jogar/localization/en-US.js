@@ -1422,6 +1422,60 @@ RULES.L10N['en-US'] = {
     LEVEL_230_TITLE: 'FIND RULI',
     LEVEL_230_HINT_1: 'Ruli is teal.',
     LEVEL_230_HINT_2: 'He is near an edge.',
-    LEVEL_230_HINT_3: 'Ruli is on the right edge, halfway down.'
+    LEVEL_230_HINT_3: 'Ruli is on the right edge, halfway down.',
+    CHAPTER_24: 'MEMORY',
+    FB_WASNT_THERE: 'THAT WASN\'T EVEN THERE',
+    FB_OTHER_COLOR: 'IT WAS ANOTHER COLOR',
+    FB_DIDNT_MOVE: 'THAT ONE DIDN\'T MOVE',
+
+    LEVEL_231_TITLE: 'WHERE IS THE STAR?',
+    LEVEL_231_HINT_1: 'Look before the cups come down.',
+    LEVEL_231_HINT_2: 'It doesn\'t move.',
+    LEVEL_231_HINT_3: 'The star is under the left cup.',
+
+    LEVEL_232_TITLE: 'WHERE IS THE BALL?',
+    LEVEL_232_HINT_1: 'Keep your eye on the cup.',
+    LEVEL_232_HINT_2: 'Follow only the ball\'s cup.',
+    LEVEL_232_HINT_3: 'Follow the cup that came down on the ball until the cups stop, then tap it.',
+
+    LEVEL_233_TITLE: 'FIND THE PAIRS',
+    LEVEL_233_HINT_1: 'Turn over two cards.',
+    LEVEL_233_HINT_2: 'Remember what you saw.',
+    LEVEL_233_HINT_3: 'Turn the cards two at a time and remember where each picture is.',
+
+    LEVEL_234_TITLE: 'FIND THE PAIRS',
+    LEVEL_234_HINT_1: 'Now there are six.',
+    LEVEL_234_HINT_2: 'Mistakes help you remember.',
+    LEVEL_234_HINT_3: 'Turn two at a time and use what you\'ve seen to find the pairs.',
+
+    LEVEL_235_TITLE: 'WHAT DISAPPEARED?',
+    LEVEL_235_HINT_1: 'Memorize the five pictures.',
+    LEVEL_235_HINT_2: 'One of them doesn\'t come back.',
+    LEVEL_235_HINT_3: 'The star disappeared: tap it below.',
+
+    LEVEL_236_TITLE: 'WHAT COLOR WAS THE DOOR?',
+    LEVEL_236_HINT_1: 'Look at the door before it changes.',
+    LEVEL_236_HINT_2: 'The light went out afterwards.',
+    LEVEL_236_HINT_3: 'The door was blue.',
+
+    LEVEL_237_TITLE: 'REPEAT THE PATH',
+    LEVEL_237_HINT_1: 'The light goes through four buttons.',
+    LEVEL_237_HINT_2: 'The order matters.',
+    LEVEL_237_HINT_3: 'Top left corner, center, middle right and bottom right corner.',
+
+    LEVEL_238_TITLE: 'HOW MANY STARS DID YOU SEE?',
+    LEVEL_238_HINT_1: 'Count fast.',
+    LEVEL_238_HINT_2: 'The cloud hides them afterwards.',
+    LEVEL_238_HINT_3: 'There were 7 stars: set 7 and press the button.',
+
+    LEVEL_239_TITLE: 'WHO SWITCHED PLACES?',
+    LEVEL_239_HINT_1: 'Remember the order of the colors.',
+    LEVEL_239_HINT_2: 'Compare before and after.',
+    LEVEL_239_HINT_3: 'Pink and purple switched: tap either one.',
+
+    LEVEL_240_TITLE: 'FIND ALL THE PAIRS',
+    LEVEL_240_HINT_1: 'Eight cards.',
+    LEVEL_240_HINT_2: 'Take it easy.',
+    LEVEL_240_HINT_3: 'Turn two at a time and use your memory until you find all four pairs.'
   }
 };
