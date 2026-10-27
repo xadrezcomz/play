@@ -1041,6 +1041,66 @@ RULES.L10N['pt-BR'] = {
     LEVEL_170_TITLE: 'ESPERE O NÚMERO CHEGAR A 0',
     LEVEL_170_HINT_1: 'Vai demorar...',
     LEVEL_170_HINT_2: 'Dá para adiantar o tempo?',
-    LEVEL_170_HINT_3: 'Gire o ponteiro do relógio várias vezes: o tempo passa mais rápido.'
+    LEVEL_170_HINT_3: 'Gire o ponteiro do relógio várias vezes: o tempo passa mais rápido.',
+    CHAPTER_18: 'PESO E EQUILÍBRIO',
+    LEVEL_173_KG: '1 kg',
+    LEVEL_173_SAME: 'PESAM IGUAL',
+    FB_TOO_HEAVY_SIDE: 'PESADO DEMAIS DESSE LADO',
+    FB_READ_AGAIN: 'LEIA DE NOVO...',
+    FB_SAME_WEIGHT: 'ESSA PESA O MESMO QUE AS OUTRAS?',
+    FB_TAP_TO_EMPTY: 'TOQUE NO COPO PARA ESVAZIAR',
+    FB_FLOATS: 'ELA BOIA...',
+    FB_ROCK_ALONE: 'A PEDRA AFUNDOU SOZINHA...',
+    FB_TOO_LIGHT: 'LEVE DEMAIS...',
+
+    LEVEL_171_TITLE: 'EQUILIBRE A BALANÇA',
+    LEVEL_171_HINT_1: 'A estrela é pesada.',
+    LEVEL_171_HINT_2: 'Some os pesos do outro lado.',
+    LEVEL_171_HINT_3: 'Coloque as duas bolas e o cubo do outro lado (a pena não pesa nada).',
+
+    LEVEL_172_TITLE: 'PESE O SACO DE 5',
+    LEVEL_172_HINT_1: 'Os números são os pesos.',
+    LEVEL_172_HINT_2: 'Não precisa usar todos.',
+    LEVEL_172_HINT_3: 'Coloque o 1 e o 4 do outro lado: 1 + 4 = 5.',
+
+    LEVEL_173_TITLE: 'O QUE PESA MAIS?',
+    LEVEL_173_HINT_1: 'Leia as etiquetas.',
+    LEVEL_173_HINT_2: 'Um quilo é um quilo.',
+    LEVEL_173_HINT_3: 'Os dois têm 1 kg: toque em PESAM IGUAL.',
+
+    LEVEL_174_TITLE: 'LEVANTE A PEDRA',
+    LEVEL_174_HINT_1: 'É uma alavanca.',
+    LEVEL_174_HINT_2: 'Peso na outra ponta levanta a pedra.',
+    LEVEL_174_HINT_3: 'Solte o Ruli e a bola na ponta da direita: juntos pesam mais que a pedra.',
+
+    LEVEL_175_TITLE: 'TOQUE NA MOEDA MAIS LEVE',
+    LEVEL_175_HINT_1: 'Elas parecem iguais.',
+    LEVEL_175_HINT_2: 'A balança mostra a diferença.',
+    LEVEL_175_HINT_3: 'Compare duas de cada vez na balança: a mais leve é a terceira.',
+
+    LEVEL_176_TITLE: 'ENCHA O COPO ATÉ A METADE',
+    LEVEL_176_HINT_1: 'Segure a jarra em cima do copo.',
+    LEVEL_176_HINT_2: 'Solte na hora certa.',
+    LEVEL_176_HINT_3: 'Segure a jarra sobre o copo e solte quando a água chegar na linha vermelha. Tocar no copo esvazia.',
+
+    LEVEL_177_TITLE: 'FAÇA A ESTRELA CAIR NA CESTA',
+    LEVEL_177_HINT_1: 'A estrela está na prateleira.',
+    LEVEL_177_HINT_2: 'O que segura a estrela?',
+    LEVEL_177_HINT_3: 'Leve a cesta para baixo da estrela e depois tire a prateleira.',
+
+    LEVEL_178_TITLE: 'EMPILHE DO MAIOR PARA O MENOR',
+    LEVEL_178_HINT_1: 'Uma torre.',
+    LEVEL_178_HINT_2: 'O maior fica embaixo.',
+    LEVEL_178_HINT_3: 'Coloque o médio em cima do grande e o pequeno em cima do médio.',
+
+    LEVEL_179_TITLE: 'AFUNDE A BOLA',
+    LEVEL_179_HINT_1: 'Bolas boiam.',
+    LEVEL_179_HINT_2: 'Algo pesado ajuda.',
+    LEVEL_179_HINT_3: 'Solte a pedra em cima da bola: ela fica presa e as duas afundam.',
+
+    LEVEL_180_TITLE: 'MANDE A BOLA PARA A CESTA',
+    LEVEL_180_HINT_1: 'É uma gangorra.',
+    LEVEL_180_HINT_2: 'Leve demais não adianta.',
+    LEVEL_180_HINT_3: 'Solte a pedra na ponta direita da gangorra.'
   }
 };

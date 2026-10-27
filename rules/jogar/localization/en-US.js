@@ -1041,6 +1041,66 @@ RULES.L10N['en-US'] = {
     LEVEL_170_TITLE: 'WAIT FOR THE NUMBER TO REACH 0',
     LEVEL_170_HINT_1: 'This will take a while...',
     LEVEL_170_HINT_2: 'Can you speed up time?',
-    LEVEL_170_HINT_3: 'Turn the clock hand several times: time goes faster.'
+    LEVEL_170_HINT_3: 'Turn the clock hand several times: time goes faster.',
+    CHAPTER_18: 'WEIGHT AND BALANCE',
+    LEVEL_173_KG: '1 kg',
+    LEVEL_173_SAME: 'SAME WEIGHT',
+    FB_TOO_HEAVY_SIDE: 'TOO HEAVY ON THIS SIDE',
+    FB_READ_AGAIN: 'READ AGAIN...',
+    FB_SAME_WEIGHT: 'DOES IT WEIGH THE SAME AS THE OTHERS?',
+    FB_TAP_TO_EMPTY: 'TAP THE GLASS TO EMPTY IT',
+    FB_FLOATS: 'IT FLOATS...',
+    FB_ROCK_ALONE: 'THE ROCK SANK ALONE...',
+    FB_TOO_LIGHT: 'TOO LIGHT...',
+
+    LEVEL_171_TITLE: 'BALANCE THE SCALE',
+    LEVEL_171_HINT_1: 'The star is heavy.',
+    LEVEL_171_HINT_2: 'Add up the weights on the other side.',
+    LEVEL_171_HINT_3: 'Put both balls and the cube on the other side (the feather weighs nothing).',
+
+    LEVEL_172_TITLE: 'WEIGH THE BAG OF 5',
+    LEVEL_172_HINT_1: 'The numbers are the weights.',
+    LEVEL_172_HINT_2: 'You don\'t need all of them.',
+    LEVEL_172_HINT_3: 'Put the 1 and the 4 on the other side: 1 + 4 = 5.',
+
+    LEVEL_173_TITLE: 'WHICH IS HEAVIER?',
+    LEVEL_173_HINT_1: 'Read the labels.',
+    LEVEL_173_HINT_2: 'A kilo is a kilo.',
+    LEVEL_173_HINT_3: 'Both are 1 kg: tap SAME WEIGHT.',
+
+    LEVEL_174_TITLE: 'LIFT THE ROCK',
+    LEVEL_174_HINT_1: 'It\'s a lever.',
+    LEVEL_174_HINT_2: 'Weight on the other end lifts the rock.',
+    LEVEL_174_HINT_3: 'Drop Ruli and the ball on the right end: together they weigh more than the rock.',
+
+    LEVEL_175_TITLE: 'TAP THE LIGHTEST COIN',
+    LEVEL_175_HINT_1: 'They look the same.',
+    LEVEL_175_HINT_2: 'The scale shows the difference.',
+    LEVEL_175_HINT_3: 'Compare two at a time on the scale: the lightest is the third one.',
+
+    LEVEL_176_TITLE: 'FILL THE GLASS HALFWAY',
+    LEVEL_176_HINT_1: 'Hold the jug over the glass.',
+    LEVEL_176_HINT_2: 'Let go at the right moment.',
+    LEVEL_176_HINT_3: 'Hold the jug over the glass and let go when the water reaches the red line. Tapping the glass empties it.',
+
+    LEVEL_177_TITLE: 'MAKE THE STAR FALL INTO THE BASKET',
+    LEVEL_177_HINT_1: 'The star is on the shelf.',
+    LEVEL_177_HINT_2: 'What holds the star up?',
+    LEVEL_177_HINT_3: 'Move the basket under the star, then take the shelf away.',
+
+    LEVEL_178_TITLE: 'STACK FROM BIGGEST TO SMALLEST',
+    LEVEL_178_HINT_1: 'A tower.',
+    LEVEL_178_HINT_2: 'The biggest goes at the bottom.',
+    LEVEL_178_HINT_3: 'Put the medium one on the big one and the small one on the medium one.',
+
+    LEVEL_179_TITLE: 'SINK THE BALL',
+    LEVEL_179_HINT_1: 'Balls float.',
+    LEVEL_179_HINT_2: 'Something heavy helps.',
+    LEVEL_179_HINT_3: 'Drop the rock on the ball: it sticks and both sink.',
+
+    LEVEL_180_TITLE: 'SEND THE BALL INTO THE BASKET',
+    LEVEL_180_HINT_1: 'It\'s a seesaw.',
+    LEVEL_180_HINT_2: 'Too light won\'t work.',
+    LEVEL_180_HINT_3: 'Drop the rock on the right end of the seesaw.'
   }
 };

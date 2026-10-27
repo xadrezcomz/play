@@ -1041,6 +1041,66 @@ RULES.L10N['es-ES'] = {
     LEVEL_170_TITLE: 'ESPERA A QUE EL NÚMERO LLEGUE A 0',
     LEVEL_170_HINT_1: 'Va a tardar...',
     LEVEL_170_HINT_2: '¿Se puede adelantar el tiempo?',
-    LEVEL_170_HINT_3: 'Gira la aguja del reloj varias veces: el tiempo pasa más rápido.'
+    LEVEL_170_HINT_3: 'Gira la aguja del reloj varias veces: el tiempo pasa más rápido.',
+    CHAPTER_18: 'PESO Y EQUILIBRIO',
+    LEVEL_173_KG: '1 kg',
+    LEVEL_173_SAME: 'PESAN IGUAL',
+    FB_TOO_HEAVY_SIDE: 'DEMASIADO PESO DE ESTE LADO',
+    FB_READ_AGAIN: 'LEE OTRA VEZ...',
+    FB_SAME_WEIGHT: '¿PESA LO MISMO QUE LAS OTRAS?',
+    FB_TAP_TO_EMPTY: 'TOCA EL VASO PARA VACIARLO',
+    FB_FLOATS: 'FLOTA...',
+    FB_ROCK_ALONE: 'LA PIEDRA SE HUNDIÓ SOLA...',
+    FB_TOO_LIGHT: 'DEMASIADO LIGERO...',
+
+    LEVEL_171_TITLE: 'EQUILIBRA LA BALANZA',
+    LEVEL_171_HINT_1: 'La estrella pesa mucho.',
+    LEVEL_171_HINT_2: 'Suma los pesos del otro lado.',
+    LEVEL_171_HINT_3: 'Pon las dos pelotas y el cubo del otro lado (la pluma no pesa nada).',
+
+    LEVEL_172_TITLE: 'PESA EL SACO DE 5',
+    LEVEL_172_HINT_1: 'Los números son los pesos.',
+    LEVEL_172_HINT_2: 'No hace falta usarlos todos.',
+    LEVEL_172_HINT_3: 'Pon el 1 y el 4 del otro lado: 1 + 4 = 5.',
+
+    LEVEL_173_TITLE: '¿QUÉ PESA MÁS?',
+    LEVEL_173_HINT_1: 'Lee las etiquetas.',
+    LEVEL_173_HINT_2: 'Un kilo es un kilo.',
+    LEVEL_173_HINT_3: 'Los dos tienen 1 kg: toca PESAN IGUAL.',
+
+    LEVEL_174_TITLE: 'LEVANTA LA PIEDRA',
+    LEVEL_174_HINT_1: 'Es una palanca.',
+    LEVEL_174_HINT_2: 'Peso en el otro extremo levanta la piedra.',
+    LEVEL_174_HINT_3: 'Suelta a Ruli y la pelota en el extremo derecho: juntos pesan más que la piedra.',
+
+    LEVEL_175_TITLE: 'TOCA LA MONEDA MÁS LIGERA',
+    LEVEL_175_HINT_1: 'Parecen iguales.',
+    LEVEL_175_HINT_2: 'La balanza muestra la diferencia.',
+    LEVEL_175_HINT_3: 'Compara dos a la vez en la balanza: la más ligera es la tercera.',
+
+    LEVEL_176_TITLE: 'LLENA EL VASO HASTA LA MITAD',
+    LEVEL_176_HINT_1: 'Sostén la jarra encima del vaso.',
+    LEVEL_176_HINT_2: 'Suelta en el momento justo.',
+    LEVEL_176_HINT_3: 'Sostén la jarra sobre el vaso y suelta cuando el agua llegue a la línea roja. Tocar el vaso lo vacía.',
+
+    LEVEL_177_TITLE: 'HAZ QUE LA ESTRELLA CAIGA EN LA CESTA',
+    LEVEL_177_HINT_1: 'La estrella está en la repisa.',
+    LEVEL_177_HINT_2: '¿Qué sostiene la estrella?',
+    LEVEL_177_HINT_3: 'Lleva la cesta debajo de la estrella y luego quita la repisa.',
+
+    LEVEL_178_TITLE: 'APILA DEL MAYOR AL MENOR',
+    LEVEL_178_HINT_1: 'Una torre.',
+    LEVEL_178_HINT_2: 'El mayor va abajo.',
+    LEVEL_178_HINT_3: 'Pon el mediano encima del grande y el pequeño encima del mediano.',
+
+    LEVEL_179_TITLE: 'HUNDE LA PELOTA',
+    LEVEL_179_HINT_1: 'Las pelotas flotan.',
+    LEVEL_179_HINT_2: 'Algo pesado ayuda.',
+    LEVEL_179_HINT_3: 'Suelta la piedra encima de la pelota: se queda pegada y las dos se hunden.',
+
+    LEVEL_180_TITLE: 'MANDA LA PELOTA A LA CESTA',
+    LEVEL_180_HINT_1: 'Es un balancín.',
+    LEVEL_180_HINT_2: 'Algo ligero no sirve.',
+    LEVEL_180_HINT_3: 'Suelta la piedra en el extremo derecho del balancín.'
   }
 };

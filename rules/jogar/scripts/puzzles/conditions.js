@@ -20,6 +20,7 @@
 //   { type:'value', target, equals }       → número de uma peça (o 9 de cabeça para baixo vale 6)
 //   { type:'sum', container, ids:[...], equals } → soma dos números dentro do container
 //   { type:'countState', ids:[...], key, equals|min|max } → quantos têm o estado ligado
+//   { type:'stacked', ids:[...] }          → empilhados, de cima para baixo, um apoiado no outro
 //   state também aceita min/max (números)
 //   { type:'all'|'any', of:[...] }, { type:'not', of: cond }
 (function () {
@@ -122,6 +123,16 @@
       c.ids.forEach(function (id) { var o = E.get(id); if (o && o.state[k]) n++; });
       if (c.equals != null) return n === c.equals;
       return n >= (c.min != null ? c.min : 0) && n <= (c.max != null ? c.max : Infinity);
+    },
+
+    stacked: function (c, E) {
+      for (var i = 0; i + 1 < c.ids.length; i++) {
+        var a = E.get(c.ids[i]), b = E.get(c.ids[i + 1]);
+        if (!a || !b) return false;
+        if (Math.abs(a.x - b.x) > b.sw / 2) return false;
+        if (Math.abs((a.y + a.sh / 2) - (b.y - b.sh / 2)) > 3) return false;
+      }
+      return true;
     },
 
     count: function (c, E) {

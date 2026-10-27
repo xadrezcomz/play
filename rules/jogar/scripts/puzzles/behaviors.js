@@ -248,7 +248,10 @@
             var s = E.get(id);
             if (!s || s === o || s.hidden) return;
             var r = s.rect();
-            if (o.x < r.x1 - 1 || o.x > r.x2 + 1 || r.y1 < bottom - 3) return;
+            if (o.x < r.x1 - 1 || o.x > r.x2 + 1) return;
+            // solto "dentro" de outro objeto (o que foi solto por último fica na frente): sobe e fica em cima dele
+            var into = r.y1 < bottom - 3 && r.y1 > o.y - o.sh && s.z < o.z && !o.el.classList.contains('dragging');
+            if (r.y1 < bottom - 3 && !into) return;
             if (!best || r.y1 < best.y1) best = r;
           });
           return best;
@@ -265,7 +268,7 @@
           }
           vy = Math.min(vy + g, 3);
           var nb = bottom + vy;
-          if (r && nb >= r.y1) {
+          if (r && (nb >= r.y1 || bottom > r.y1)) {
             o.y = r.y1 - o.sh / 2; vy = 0;
             o.setState('landed', true);
             o.fx('squash');

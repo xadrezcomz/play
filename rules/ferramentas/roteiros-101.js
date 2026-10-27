@@ -1,5 +1,5 @@
 // Roteiros de teste das fases 101–200 (usados por testa-fases.js).
-module.exports = ({ touch, sleep, center, board, tapXY, tap, dragXY, drag, dragBy, dragTo, pinch, rub, tapTogether, obj, notWon, restart, pinchAt, spin, drawPath, dragToBoard, page }) => {
+module.exports = ({ unit, touch, sleep, center, board, tapXY, tap, dragXY, drag, dragBy, dragTo, pinch, rub, tapTogether, obj, notWon, restart, pinchAt, spin, drawPath, dragToBoard, page }) => {
   const tapN = async (id, n) => { for (let i = 0; i < n; i++) { await tap(id); await sleep(90); } };
   // arrasta um objeto passando por pontos do tabuleiro (para empurrar e andar em labirintos)
   const walk = async (id, pts, sub = 10) => {
@@ -165,6 +165,40 @@ module.exports = ({ touch, sleep, center, board, tapXY, tap, dragXY, drag, dragB
         await sleep(30);
       }
     }],
-    170: ['ADIANTE O RELÓGIO', async () => { await spin('hand', 3); await sleep(200); await spin('hand', 3); await sleep(200); await spin('hand', 3); }]
+    170: ['ADIANTE O RELÓGIO', async () => { await spin('hand', 3); await sleep(200); await spin('hand', 3); await sleep(200); await spin('hand', 3); }],
+    171: ['BALANÇA', async () => {
+      await dragTo('b1', 'panR'); await sleep(200); await dragTo('b2', 'panR'); await sleep(500); await notWon(171, 'só duas bolas');
+      await dragTo('cube', 'panR'); await sleep(600);
+    }],
+    172: ['PESE 5', async () => {
+      for (const w of ['w1', 'w2', 'w4']) { await dragTo(w, 'panR'); await sleep(300); }
+      await sleep(400); await notWon(172, 'os três pesos'); await dragToBoard('w2', 50, 104); await sleep(600);
+    }],
+    173: ['1 KG', async () => { await tap('sackB'); await notWon(173, 'escolher as pedras'); await tap('same'); }],
+    174: ['ALAVANCA', async () => {
+      await dragToBoard('ruli', 76, 84); await sleep(600); await notWon(174, 'só o Ruli (equilibra)');
+      await dragToBoard('ball', 80, 84); await sleep(700);
+    }],
+    175: ['MOEDA LEVE', async () => {
+      await dragTo('c1', 'panL'); await dragTo('c3', 'panR'); await sleep(600);
+      await tap('c1'); await notWon(175, 'tocar numa moeda normal'); await tap('c3');
+    }],
+    176: ['METADE', async () => {
+      const c = await center('cup'), s = await unit();
+      await drag('jug', c[0], c[1] - 24 * s, 12, 3600); await sleep(300); await notWon(176, 'copo cheio demais');
+      await dragBy('jug', 90, -120); await tap('cup'); await sleep(200);
+      await drag('jug', c[0], c[1] - 24 * s, 12, 1700); await sleep(300);
+    }],
+    177: ['ESTRELA NA CESTA', async () => {
+      await dragBy('shelf', -40, 260); await sleep(1500); await notWon(177, 'tirar a prateleira sem a cesta');
+      await restart(); await dragToBoard('basket', 62, 98); await sleep(300); await dragBy('shelf', 80, 260); await sleep(1600);
+    }, 4000],
+    178: ['TORRE', async () => {
+      await dragTo('s', 'b'); await sleep(900); const b = await center('b'); await notWon(178, 'pequeno no grande');
+      await dragToBoard('s', 84, 80); await sleep(1200);
+      await dragTo('m', 'b'); await sleep(1200); await dragTo('s', 'm'); await sleep(1200);
+    }, 4000],
+    179: ['AFUNDE', async () => { await dragToBoard('rock', 30, 96); await sleep(400); await notWon(179, 'pedra sozinha'); await dragTo('rock', 'ball'); }, 4000],
+    180: ['GANGORRA', async () => { await dragTo('feather', 'end'); await sleep(700); await notWon(180, 'pena leve demais'); await dragTo('rock', 'end'); await sleep(1300); }, 4000]
   };
 };
