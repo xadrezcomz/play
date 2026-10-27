@@ -3,7 +3,7 @@
 (function () {
   'use strict';
   var R = window.RULES;
-  R.LAST_LEVEL = 120;
+  R.LAST_LEVEL = 130;
 
   // Todas as fases que existem, na ordem (1, 2, 3...).
   R.LEVEL_ORDER = [];
@@ -21,6 +21,7 @@
     { id: 9, title: 'CHAPTER_9', theme: 'ch4' },
     { id: 10, title: 'CHAPTER_10', theme: 'ch5' },
     { id: 11, title: 'CHAPTER_11', theme: 'ch1' },
-    { id: 12, title: 'CHAPTER_12', theme: 'ch2' }
+    { id: 12, title: 'CHAPTER_12', theme: 'ch2' },
+    { id: 13, title: 'CHAPTER_13', theme: 'ch3' }
   ];
 })();

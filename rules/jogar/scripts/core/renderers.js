@@ -387,7 +387,7 @@
   } };
   T.xmark = { view: '0 0 100 100', svg: function (p, o) {
     var a = 1 - (o.state.erase || 0);
-    return '<path d="M16 16 L84 84 M84 16 L16 84" stroke="' + C.coral + '" stroke-width="16" stroke-linecap="round" opacity="' + a.toFixed(2) + '"/>';
+    return '<path d="M16 16 L84 84 M84 16 L16 84" stroke="' + col(p, C.coral) + '" stroke-width="16" stroke-linecap="round" opacity="' + a.toFixed(2) + '"/>';
   } };
   T.mirrorline = { view: '0 0 10 100', stretch: true, svg: function () {
     return '<rect x="2" y="0" width="6" height="100" fill="#BDE3FF"/><rect x="4" y="0" width="2" height="100" fill="#fff"/>';
@@ -542,6 +542,10 @@
     var n = o.state.n != null ? o.state.n : (p.n != null ? p.n : 0);
     return '<rect x="2" y="2" width="116" height="56" rx="10" fill="' + C.ink + '"/><rect x="8" y="8" width="104" height="44" rx="6" fill="#1E2033"/>' +
       '<text x="60" y="45" text-anchor="middle" font-size="38" font-weight="900" fill="' + (p.color ? col(p) : '#7CF29A') + '" font-family="ui-monospace, Menlo, monospace">' + n + '</text>';
+  } };
+  // parede fina de labirinto (estica sem deformar o desenho)
+  T.bar = { view: '0 0 10 10', stretch: true, svg: function (p) {
+    return '<rect width="10" height="10" fill="' + col(p, '#8C7B9E') + '"/>';
   } };
   T.bin = { view: '0 0 80 100', svg: function (p, o) {
     var c = sc(p, o, '#9AA0B4');

@@ -753,6 +753,60 @@ RULES.L10N['en-US'] = {
     LEVEL_120_TITLE: 'TURN ON ALL THE LIGHTS',
     LEVEL_120_HINT_1: 'How many bulbs are on the screen?',
     LEVEL_120_HINT_2: 'There\'s a bulb down below.',
-    LEVEL_120_HINT_3: 'Turn on all three and use the bulb on the hint button (you just did!).'
+    LEVEL_120_HINT_3: 'Turn on all three and use the bulb on the hint button (you just did!).',
+    CHAPTER_13: 'PUSH IT',
+    FB_HEAVY_PUSH: 'TOO HEAVY TO LIFT',
+    FB_RULI_STAYS: 'RULI DOESN\'T WANT TO WALK',
+    FB_MISSED_ONE: 'ONE IS MISSING...',
+
+    LEVEL_121_TITLE: 'PUSH THE BOX TO THE X',
+    LEVEL_121_HINT_1: 'The box is too heavy to lift.',
+    LEVEL_121_HINT_2: 'Who can push it?',
+    LEVEL_121_HINT_3: 'Drag Ruli against the box until it reaches the X.',
+
+    LEVEL_122_TITLE: 'TAKE THE BOX TO THE X',
+    LEVEL_122_HINT_1: 'Push from below to go up.',
+    LEVEL_122_HINT_2: 'Then from the side.',
+    LEVEL_122_HINT_3: 'With Ruli under the box, push up; then go to its left and push right.',
+
+    LEVEL_123_TITLE: 'PUT THE BALL IN THE HOLE',
+    LEVEL_123_HINT_1: 'The ball can\'t be dragged.',
+    LEVEL_123_HINT_2: 'Ruli can push.',
+    LEVEL_123_HINT_3: 'Push the ball with Ruli into the hole.',
+
+    LEVEL_124_TITLE: 'TAKE THE [[w_box|BOX]] TO THE X',
+    LEVEL_124_HINT_1: 'The box is stuck in the corner.',
+    LEVEL_124_HINT_2: 'You can\'t push it. Now what?',
+    LEVEL_124_HINT_3: 'Drag the word BOX to the X.',
+
+    LEVEL_125_TITLE: 'PUT EACH BOX ON ITS X',
+    LEVEL_125_HINT_1: 'Each box has an X of the same color.',
+    LEVEL_125_HINT_2: 'Think about the order.',
+    LEVEL_125_HINT_3: 'Push the blue one up to the blue X and the red one right to the red X.',
+
+    LEVEL_126_TITLE: 'TAKE RULI TO THE DOOR',
+    LEVEL_126_HINT_1: 'Ruli doesn\'t want to walk.',
+    LEVEL_126_HINT_2: 'Something can push him.',
+    LEVEL_126_HINT_3: 'Drag the ball against Ruli until he reaches the door.',
+
+    LEVEL_127_TITLE: 'ALL BOXES ON THE RUG',
+    LEVEL_127_HINT_1: 'One at a time.',
+    LEVEL_127_HINT_2: 'Push from top to bottom.',
+    LEVEL_127_HINT_3: 'Stand above each box and push it onto the rug.',
+
+    LEVEL_128_TITLE: 'KNOCK DOWN ALL THE PIECES',
+    LEVEL_128_HINT_1: 'One piece is out of place.',
+    LEVEL_128_HINT_2: 'Stand it up at the end of the row.',
+    LEVEL_128_HINT_3: 'Drag the lying piece to the end of the row, then push the first one with Ruli.',
+
+    LEVEL_129_TITLE: 'GET THE BOX OUT OF THE ROOM',
+    LEVEL_129_HINT_1: 'There\'s an opening in the wall.',
+    LEVEL_129_HINT_2: 'Push towards it.',
+    LEVEL_129_HINT_3: 'Push the box to the right, through the opening in the wall.',
+
+    LEVEL_130_TITLE: 'TAKE THE BOXES TO THE X',
+    LEVEL_130_HINT_1: 'The Xs are in nooks.',
+    LEVEL_130_HINT_2: 'A box in a corner can\'t get out.',
+    LEVEL_130_HINT_3: 'Push each box sideways until it is under a nook, then push it up.'
   }
 };

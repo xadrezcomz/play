@@ -753,6 +753,60 @@ RULES.L10N['pt-BR'] = {
     LEVEL_120_TITLE: 'ACENDA TODAS AS LUZES',
     LEVEL_120_HINT_1: 'Quantas lâmpadas existem na tela?',
     LEVEL_120_HINT_2: 'Tem uma lâmpada lá embaixo.',
-    LEVEL_120_HINT_3: 'Acenda as três e use a lâmpada do botão de dica (você acabou de usar!).'
+    LEVEL_120_HINT_3: 'Acenda as três e use a lâmpada do botão de dica (você acabou de usar!).',
+    CHAPTER_13: 'EMPURRE',
+    FB_HEAVY_PUSH: 'PESADA DEMAIS PARA LEVANTAR',
+    FB_RULI_STAYS: 'RULI NÃO QUER ANDAR',
+    FB_MISSED_ONE: 'FALTOU UMA...',
+
+    LEVEL_121_TITLE: 'EMPURRE A CAIXA ATÉ O X',
+    LEVEL_121_HINT_1: 'A caixa é pesada demais para levantar.',
+    LEVEL_121_HINT_2: 'Quem pode empurrar?',
+    LEVEL_121_HINT_3: 'Arraste o Ruli contra a caixa até ela chegar no X.',
+
+    LEVEL_122_TITLE: 'LEVE A CAIXA ATÉ O X',
+    LEVEL_122_HINT_1: 'Empurre de baixo para subir.',
+    LEVEL_122_HINT_2: 'Depois, pelo lado.',
+    LEVEL_122_HINT_3: 'Com o Ruli embaixo da caixa, empurre para cima; depois vá para a esquerda dela e empurre para a direita.',
+
+    LEVEL_123_TITLE: 'COLOQUE A BOLA NO BURACO',
+    LEVEL_123_HINT_1: 'A bola não se arrasta.',
+    LEVEL_123_HINT_2: 'O Ruli pode empurrar.',
+    LEVEL_123_HINT_3: 'Empurre a bola com o Ruli até o buraco.',
+
+    LEVEL_124_TITLE: 'LEVE A [[w_box|CAIXA]] ATÉ O X',
+    LEVEL_124_HINT_1: 'A caixa está presa no canto.',
+    LEVEL_124_HINT_2: 'Não dá para empurrar. E agora?',
+    LEVEL_124_HINT_3: 'Arraste a palavra CAIXA até o X.',
+
+    LEVEL_125_TITLE: 'COLOQUE CADA CAIXA NO SEU X',
+    LEVEL_125_HINT_1: 'Cada caixa tem um X da mesma cor.',
+    LEVEL_125_HINT_2: 'Pense na ordem.',
+    LEVEL_125_HINT_3: 'Empurre a azul para cima até o X azul e a vermelha para a direita até o X vermelho.',
+
+    LEVEL_126_TITLE: 'LEVE O RULI ATÉ A PORTA',
+    LEVEL_126_HINT_1: 'O Ruli não quer andar.',
+    LEVEL_126_HINT_2: 'Algo pode empurrar ele.',
+    LEVEL_126_HINT_3: 'Arraste a bola contra o Ruli até ele chegar na porta.',
+
+    LEVEL_127_TITLE: 'TODAS AS CAIXAS NO TAPETE',
+    LEVEL_127_HINT_1: 'Uma de cada vez.',
+    LEVEL_127_HINT_2: 'Empurre de cima para baixo.',
+    LEVEL_127_HINT_3: 'Fique acima de cada caixa e empurre até o tapete.',
+
+    LEVEL_128_TITLE: 'DERRUBE TODAS AS PEÇAS',
+    LEVEL_128_HINT_1: 'Uma peça está fora do lugar.',
+    LEVEL_128_HINT_2: 'Coloque-a em pé no fim da fila.',
+    LEVEL_128_HINT_3: 'Arraste a peça deitada para o fim da fila e depois empurre a primeira com o Ruli.',
+
+    LEVEL_129_TITLE: 'TIRE A CAIXA DA SALA',
+    LEVEL_129_HINT_1: 'Tem uma abertura na parede.',
+    LEVEL_129_HINT_2: 'Empurre na direção dela.',
+    LEVEL_129_HINT_3: 'Empurre a caixa para a direita, pela abertura da parede.',
+
+    LEVEL_130_TITLE: 'LEVE AS CAIXAS PARA OS X',
+    LEVEL_130_HINT_1: 'Os X estão em nichos.',
+    LEVEL_130_HINT_2: 'Caixa no canto não sai mais.',
+    LEVEL_130_HINT_3: 'Empurre cada caixa para o lado até ficar embaixo de um nicho e depois para cima.'
   }
 };

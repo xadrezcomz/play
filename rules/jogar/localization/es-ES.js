@@ -753,6 +753,60 @@ RULES.L10N['es-ES'] = {
     LEVEL_120_TITLE: 'ENCIENDE TODAS LAS LUCES',
     LEVEL_120_HINT_1: '¿Cuántas bombillas hay en la pantalla?',
     LEVEL_120_HINT_2: 'Hay una bombilla abajo.',
-    LEVEL_120_HINT_3: 'Enciende las tres y usa la bombilla del botón de pista (¡acabas de usarla!).'
+    LEVEL_120_HINT_3: 'Enciende las tres y usa la bombilla del botón de pista (¡acabas de usarla!).',
+    CHAPTER_13: 'EMPUJA',
+    FB_HEAVY_PUSH: 'DEMASIADO PESADA PARA LEVANTARLA',
+    FB_RULI_STAYS: 'RULI NO QUIERE CAMINAR',
+    FB_MISSED_ONE: 'FALTÓ UNA...',
+
+    LEVEL_121_TITLE: 'EMPUJA LA CAJA HASTA LA X',
+    LEVEL_121_HINT_1: 'La caja es demasiado pesada para levantarla.',
+    LEVEL_121_HINT_2: '¿Quién puede empujar?',
+    LEVEL_121_HINT_3: 'Arrastra a Ruli contra la caja hasta que llegue a la X.',
+
+    LEVEL_122_TITLE: 'LLEVA LA CAJA HASTA LA X',
+    LEVEL_122_HINT_1: 'Empuja desde abajo para subir.',
+    LEVEL_122_HINT_2: 'Luego, desde el lado.',
+    LEVEL_122_HINT_3: 'Con Ruli debajo de la caja, empuja hacia arriba; luego ve a su izquierda y empuja a la derecha.',
+
+    LEVEL_123_TITLE: 'METE LA PELOTA EN EL AGUJERO',
+    LEVEL_123_HINT_1: 'La pelota no se arrastra.',
+    LEVEL_123_HINT_2: 'Ruli puede empujar.',
+    LEVEL_123_HINT_3: 'Empuja la pelota con Ruli hasta el agujero.',
+
+    LEVEL_124_TITLE: 'LLEVA LA [[w_box|CAJA]] HASTA LA X',
+    LEVEL_124_HINT_1: 'La caja está atascada en la esquina.',
+    LEVEL_124_HINT_2: 'No se puede empujar. ¿Y ahora?',
+    LEVEL_124_HINT_3: 'Arrastra la palabra CAJA hasta la X.',
+
+    LEVEL_125_TITLE: 'PON CADA CAJA EN SU X',
+    LEVEL_125_HINT_1: 'Cada caja tiene una X del mismo color.',
+    LEVEL_125_HINT_2: 'Piensa en el orden.',
+    LEVEL_125_HINT_3: 'Empuja la azul hacia arriba hasta la X azul y la roja a la derecha hasta la X roja.',
+
+    LEVEL_126_TITLE: 'LLEVA A RULI HASTA LA PUERTA',
+    LEVEL_126_HINT_1: 'Ruli no quiere caminar.',
+    LEVEL_126_HINT_2: 'Algo puede empujarlo.',
+    LEVEL_126_HINT_3: 'Arrastra la pelota contra Ruli hasta que llegue a la puerta.',
+
+    LEVEL_127_TITLE: 'TODAS LAS CAJAS EN LA ALFOMBRA',
+    LEVEL_127_HINT_1: 'Una a la vez.',
+    LEVEL_127_HINT_2: 'Empuja de arriba abajo.',
+    LEVEL_127_HINT_3: 'Ponte encima de cada caja y empújala hasta la alfombra.',
+
+    LEVEL_128_TITLE: 'DERRIBA TODAS LAS PIEZAS',
+    LEVEL_128_HINT_1: 'Una pieza está fuera de lugar.',
+    LEVEL_128_HINT_2: 'Ponla de pie al final de la fila.',
+    LEVEL_128_HINT_3: 'Arrastra la pieza tumbada al final de la fila y luego empuja la primera con Ruli.',
+
+    LEVEL_129_TITLE: 'SACA LA CAJA DE LA SALA',
+    LEVEL_129_HINT_1: 'Hay una abertura en la pared.',
+    LEVEL_129_HINT_2: 'Empuja hacia ella.',
+    LEVEL_129_HINT_3: 'Empuja la caja a la derecha, por la abertura de la pared.',
+
+    LEVEL_130_TITLE: 'LLEVA LAS CAJAS A LAS X',
+    LEVEL_130_HINT_1: 'Las X están en huecos.',
+    LEVEL_130_HINT_2: 'Una caja en la esquina ya no sale.',
+    LEVEL_130_HINT_3: 'Empuja cada caja hacia un lado hasta que quede debajo de un hueco y luego hacia arriba.'
   }
 };
