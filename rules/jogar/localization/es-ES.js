@@ -1235,6 +1235,66 @@ RULES.L10N['es-ES'] = {
     LEVEL_200_TITLE: '[[t1|ESTA]] [[t2|FRASE]] [[t3|TIENE]] [[t4|TRES]] [[t5|PALABRAS]]',
     LEVEL_200_HINT_1: '¿Es verdad?',
     LEVEL_200_HINT_2: 'Cuenta las palabras. Puedes quitar algunas.',
-    LEVEL_200_HINT_3: 'Quita ESTA y FRASE: queda TIENE TRES PALABRAS, que es verdad.'
+    LEVEL_200_HINT_3: 'Quita ESTA y FRASE: queda TIENE TRES PALABRAS, que es verdad.',
+    CHAPTER_21: 'EN LA COCINA',
+    FB_CHEESE_MIDDLE: 'EL QUESO VA EN EL MEDIO',
+    FB_MISSING_INGREDIENT: 'FALTA UN INGREDIENTE...',
+    FB_SPILLED: '¡SE DERRAMÓ!',
+    FB_NOT_HALF: 'NO QUEDÓ EN EL MEDIO...',
+    FB_COLD_WATER: 'EL AGUA ESTÁ FRÍA',
+    FB_SLOWLY: '¡DESPACIO!',
+    FB_SALT: '¡ESO ES SAL!',
+    FB_PEEL_FIRST: 'PRIMERO PÉLALA',
+    FB_NO_CAKE_YET: 'TODAVÍA NO HAY PASTEL',
+
+    LEVEL_201_TITLE: 'HAZ UN SÁNDWICH',
+    LEVEL_201_HINT_1: 'Un sándwich tiene capas.',
+    LEVEL_201_HINT_2: 'El queso va entre los panes.',
+    LEVEL_201_HINT_3: 'Pon un pan en el plato, el queso encima y el otro pan arriba del todo.',
+
+    LEVEL_202_TITLE: 'HAZ UNA TOSTADA',
+    LEVEL_202_HINT_1: 'El pan va en la tostadora.',
+    LEVEL_202_HINT_2: 'La tostadora hay que encenderla.',
+    LEVEL_202_HINT_3: 'Pon el pan en la tostadora, tócala para bajar la palanca y espera.',
+
+    LEVEL_203_TITLE: 'BATE LA MASA',
+    LEVEL_203_HINT_1: 'Una masa lleva tres cosas.',
+    LEVEL_203_HINT_2: 'Con todo en el bol, remueve.',
+    LEVEL_203_HINT_3: 'Pon harina, huevo y leche en el bol y frota el bol para mezclar.',
+
+    LEVEL_204_TITLE: 'LLENA EL VASO',
+    LEVEL_204_HINT_1: 'Mira bien el vaso.',
+    LEVEL_204_HINT_2: 'Está boca abajo.',
+    LEVEL_204_HINT_3: 'Toca el vaso para darle la vuelta y luego sostén la jarra encima.',
+
+    LEVEL_205_TITLE: 'CORTA EL PASTEL POR LA MITAD',
+    LEVEL_205_HINT_1: 'Un cuchillo ayudaría.',
+    LEVEL_205_HINT_2: 'Tu dedo puede cortar.',
+    LEVEL_205_HINT_3: 'Dibuja una línea recta de arriba abajo, justo por el medio del pastel.',
+
+    LEVEL_206_TITLE: 'HIERVE EL AGUA',
+    LEVEL_206_HINT_1: 'La olla está en el fuego.',
+    LEVEL_206_HINT_2: 'La cocina está apagada.',
+    LEVEL_206_HINT_3: 'Gira el botón de la cocina para encender el fuego y espera a que hierva.',
+
+    LEVEL_207_TITLE: 'LLEVA EL ZUMO A LA MESA',
+    LEVEL_207_HINT_1: 'Los vasos son frágiles.',
+    LEVEL_207_HINT_2: 'Las prisas los tiran.',
+    LEVEL_207_HINT_3: 'Arrastra la bandeja muy despacio hasta la mesa.',
+
+    LEVEL_208_TITLE: '¿QUÉ TARRO TIENE AZÚCAR?',
+    LEVEL_208_HINT_1: 'Los tarros son iguales.',
+    LEVEL_208_HINT_2: '¿Quién adora el azúcar?',
+    LEVEL_208_HINT_3: 'Espera a las hormigas: van al tarro de azúcar (el de la derecha).',
+
+    LEVEL_209_TITLE: 'DALE EL PLÁTANO A RULI',
+    LEVEL_209_HINT_1: 'Ruli no come cáscara.',
+    LEVEL_209_HINT_2: '¿Cómo se pela un plátano?',
+    LEVEL_209_HINT_3: 'Desliza el dedo hacia abajo sobre el plátano y luego llévalo a Ruli.',
+
+    LEVEL_210_TITLE: 'HAZ UN PASTEL DE CUMPLEAÑOS',
+    LEVEL_210_HINT_1: 'La masa tiene que hornearse.',
+    LEVEL_210_HINT_2: 'El horno está apagado.',
+    LEVEL_210_HINT_3: 'Toca el horno para encenderlo, mete el bol, espera el pastel y pon la vela encima.'
   }
 };

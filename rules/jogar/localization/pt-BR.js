@@ -1235,6 +1235,66 @@ RULES.L10N['pt-BR'] = {
     LEVEL_200_TITLE: '[[t1|ESTA]] [[t2|FRASE]] [[t3|TEM]] [[t4|TRÊS]] [[t5|PALAVRAS]]',
     LEVEL_200_HINT_1: 'É verdade?',
     LEVEL_200_HINT_2: 'Conte as palavras. Dá para tirar algumas.',
-    LEVEL_200_HINT_3: 'Tire ESTA e FRASE: sobra TEM TRÊS PALAVRAS, que é verdade.'
+    LEVEL_200_HINT_3: 'Tire ESTA e FRASE: sobra TEM TRÊS PALAVRAS, que é verdade.',
+    CHAPTER_21: 'NA COZINHA',
+    FB_CHEESE_MIDDLE: 'O QUEIJO VAI NO MEIO',
+    FB_MISSING_INGREDIENT: 'FALTA INGREDIENTE...',
+    FB_SPILLED: 'DERRAMOU!',
+    FB_NOT_HALF: 'NÃO FICOU NO MEIO...',
+    FB_COLD_WATER: 'A ÁGUA ESTÁ FRIA',
+    FB_SLOWLY: 'DEVAGAR!',
+    FB_SALT: 'ESSE É SAL!',
+    FB_PEEL_FIRST: 'PRIMEIRO DESCASQUE',
+    FB_NO_CAKE_YET: 'AINDA NÃO TEM BOLO',
+
+    LEVEL_201_TITLE: 'FAÇA UM SANDUÍCHE',
+    LEVEL_201_HINT_1: 'Um sanduíche tem camadas.',
+    LEVEL_201_HINT_2: 'O queijo fica entre os pães.',
+    LEVEL_201_HINT_3: 'Coloque um pão no prato, o queijo em cima e o outro pão por cima de tudo.',
+
+    LEVEL_202_TITLE: 'FAÇA UMA TORRADA',
+    LEVEL_202_HINT_1: 'O pão vai na torradeira.',
+    LEVEL_202_HINT_2: 'Torradeira precisa ser ligada.',
+    LEVEL_202_HINT_3: 'Coloque o pão na torradeira, toque nela para abaixar a alavanca e espere.',
+
+    LEVEL_203_TITLE: 'BATA A MASSA',
+    LEVEL_203_HINT_1: 'Uma massa tem três coisas.',
+    LEVEL_203_HINT_2: 'Depois de tudo na tigela, mexa.',
+    LEVEL_203_HINT_3: 'Coloque farinha, ovo e leite na tigela e esfregue a tigela para misturar.',
+
+    LEVEL_204_TITLE: 'ENCHA O COPO',
+    LEVEL_204_HINT_1: 'Olhe bem para o copo.',
+    LEVEL_204_HINT_2: 'Ele está virado.',
+    LEVEL_204_HINT_3: 'Toque no copo para desvirar e depois segure a jarra em cima dele.',
+
+    LEVEL_205_TITLE: 'DIVIDA O BOLO AO MEIO',
+    LEVEL_205_HINT_1: 'Uma faca seria útil.',
+    LEVEL_205_HINT_2: 'Seu dedo pode cortar.',
+    LEVEL_205_HINT_3: 'Desenhe uma linha reta de cima até embaixo, bem no meio do bolo.',
+
+    LEVEL_206_TITLE: 'FERVA A ÁGUA',
+    LEVEL_206_HINT_1: 'A panela está no fogão.',
+    LEVEL_206_HINT_2: 'O fogão está desligado.',
+    LEVEL_206_HINT_3: 'Gire o botão do fogão para acender o fogo e espere a água ferver.',
+
+    LEVEL_207_TITLE: 'LEVE O SUCO ATÉ A MESA',
+    LEVEL_207_HINT_1: 'Os copos são frágeis.',
+    LEVEL_207_HINT_2: 'Pressa derruba.',
+    LEVEL_207_HINT_3: 'Arraste a bandeja bem devagar até a mesa.',
+
+    LEVEL_208_TITLE: 'QUAL POTE TEM AÇÚCAR?',
+    LEVEL_208_HINT_1: 'Os potes são iguais.',
+    LEVEL_208_HINT_2: 'Quem adora açúcar?',
+    LEVEL_208_HINT_3: 'Espere as formigas: elas vão até o pote de açúcar (o da direita).',
+
+    LEVEL_209_TITLE: 'DÊ A BANANA PARA O RULI',
+    LEVEL_209_HINT_1: 'O Ruli não come casca.',
+    LEVEL_209_HINT_2: 'Como se descasca uma banana?',
+    LEVEL_209_HINT_3: 'Deslize o dedo para baixo em cima da banana e depois leve até o Ruli.',
+
+    LEVEL_210_TITLE: 'FAÇA UM BOLO DE ANIVERSÁRIO',
+    LEVEL_210_HINT_1: 'A massa precisa assar.',
+    LEVEL_210_HINT_2: 'O forno está desligado.',
+    LEVEL_210_HINT_3: 'Toque no forno para ligar, coloque a tigela dentro, espere o bolo e coloque a vela em cima.'
   }
 };

@@ -598,6 +598,69 @@
     return '<path d="M10 40 Q4 14 34 12 Q50 2 70 12 Q98 14 92 40 Q96 64 60 62 Q40 70 24 60 Q4 58 10 40Z" fill="#fff" stroke="#EEE6D8" stroke-width="3"/><circle cx="50" cy="36" r="15" fill="' + C.yellow + '"/><ellipse cx="45" cy="31" rx="4" ry="3" fill="#fff" opacity=".6"/>';
   } };
 
+
+  // ---- cozinha (fases 201+) ----
+  T.bread = { view: '0 0 100 80', svg: function (p, o) {
+    var t = o.state.toasted, crust = t ? '#9C5B2E' : '#D9A066', in_ = t ? '#C98B5B' : '#FBE3B8';
+    return '<path d="M10 76 L10 34 Q2 10 30 8 Q50 0 70 8 Q98 10 90 34 L90 76Z" fill="' + crust + '"/><path d="M18 70 L18 36 Q12 18 32 16 Q50 9 68 16 Q88 18 82 36 L82 70Z" fill="' + in_ + '"/>';
+  } };
+  T.toaster = { view: '0 0 100 80', svg: function (p, o) {
+    return '<rect x="6" y="20" width="88" height="58" rx="14" fill="#C9CED6"/><rect x="22" y="14" width="22" height="10" rx="3" fill="#4A4E69"/><rect x="56" y="14" width="22" height="10" rx="3" fill="#4A4E69"/>' +
+      '<rect x="86" y="' + (o.state.on ? 56 : 32) + '" width="12" height="8" rx="3" fill="' + C.coral + '"/><circle cx="30" cy="54" r="4" fill="' + (o.state.on ? C.orange : '#9AA0B4') + '"/>';
+  } };
+  // tigela: state.n (ingredientes) e state.mixed
+  T.bowl = { view: '0 0 100 60', svg: function (p, o) {
+    var n = o.state.n || 0, fill = o.state.mixed ? '#F6D58E' : ['', '#F7F1E3', '#FBE7B5', '#FFF4D6'][Math.min(3, n)];
+    return (n ? '<ellipse cx="50" cy="18" rx="40" ry="9" fill="' + fill + '"/>' + (n && !o.state.mixed ? '<circle cx="38" cy="16" r="5" fill="' + C.yellow + '"/>' : '') : '') +
+      '<path d="M4 16 L96 16 Q92 58 50 58 Q8 58 4 16Z" fill="' + sc(p, o, C.blue) + '"/><path d="M18 26 Q24 44 40 50" stroke="#fff" stroke-width="4" fill="none" opacity=".4"/>';
+  } };
+  T.flour = { view: '0 0 70 100', svg: function () {
+    return '<path d="M10 24 L60 24 L64 96 L6 96Z" fill="#F4EBDD" stroke="#D8C9B0" stroke-width="3"/><path d="M10 24 L20 6 L50 6 L60 24Z" fill="#E8DCC6"/><circle cx="35" cy="60" r="12" fill="' + C.yellow + '" opacity=".6"/>';
+  } };
+  T.milk = { view: '0 0 60 100', svg: function () {
+    return '<path d="M8 30 L30 6 L52 30 L52 96 L8 96Z" fill="#fff" stroke="#BFD4EA" stroke-width="3"/><path d="M8 54 L52 54 L52 80 L8 80Z" fill="' + C.blue + '"/><path d="M30 6 L36 0 L44 8" stroke="#BFD4EA" stroke-width="3" fill="none"/>';
+  } };
+  T.oven = { view: '0 0 100 100', svg: function (p, o) {
+    var on = o.state.on;
+    return '<rect x="4" y="4" width="92" height="92" rx="10" fill="#E5E1D8" stroke="#9AA0B4" stroke-width="3"/><rect x="14" y="26" width="72" height="60" rx="6" fill="' + (on ? '#FFB86B' : '#4A4E69') + '"/>' +
+      '<rect x="20" y="32" width="60" height="48" rx="4" fill="' + (on ? '#FFD39A' : '#5C6080') + '" opacity=".7"/><circle cx="24" cy="15" r="5" fill="' + C.ink + '"/><circle cx="76" cy="15" r="5" fill="' + (on ? C.coral : C.ink) + '"/>';
+  } };
+  T.cake = { view: '0 0 100 80', svg: function (p, o) {
+    return '<rect x="10" y="34" width="80" height="40" rx="8" fill="#E8B07A"/><path d="M10 40 Q20 50 30 40 Q40 50 50 40 Q60 50 70 40 Q80 50 90 40 L90 34 L10 34Z" fill="' + C.pink + '"/>' +
+      '<rect x="6" y="72" width="88" height="6" rx="3" fill="#E5E1D8"/>';
+  } };
+  T.banana = { view: '0 0 100 60', svg: function (p, o) {
+    if (o.state.peeled) return '<path d="M10 40 Q50 64 90 20 Q86 34 70 44 Q40 60 10 40Z" fill="#FFF3C4"/><path d="M8 40 L0 50 M8 40 L2 30 M8 40 L14 54" stroke="' + C.yellow + '" stroke-width="6" stroke-linecap="round"/>';
+    return '<path d="M8 36 Q50 66 92 16 Q90 36 72 46 Q40 64 8 44Z" fill="' + C.yellow + '"/><path d="M92 16 L98 10" stroke="' + C.woodDark + '" stroke-width="5" stroke-linecap="round"/><path d="M20 44 Q50 58 80 34" stroke="#E5A92E" stroke-width="3" fill="none"/>';
+  } };
+  T.stove = { view: '0 0 100 40', svg: function (p, o) {
+    return '<rect x="2" y="16" width="96" height="22" rx="6" fill="#4A4E69"/>' + (o.state.fire ? '<path d="M30 16 Q34 4 40 12 Q44 0 50 10 Q56 0 60 12 Q66 4 70 16Z" fill="' + C.orange + '"/>' : '<ellipse cx="50" cy="16" rx="24" ry="4" fill="#2B2D42"/>');
+  } };
+  T.pot = { view: '0 0 100 70', svg: function (p, o) {
+    var b = o.state.boiling, k = o.state.baking || 0;
+    return (b ? '<path d="M30 6 Q26 -4 32 -10 M50 4 Q46 -6 52 -12 M70 6 Q66 -4 72 -10" stroke="#C9CED6" stroke-width="4" fill="none" stroke-linecap="round"/>' : '') +
+      '<rect x="0" y="18" width="12" height="6" rx="3" fill="' + C.ink + '"/><rect x="88" y="18" width="12" height="6" rx="3" fill="' + C.ink + '"/>' +
+      '<rect x="8" y="14" width="84" height="54" rx="8" fill="#7D8597"/><ellipse cx="50" cy="16" rx="40" ry="6" fill="' + (b ? '#A8D4FF' : C.blue) + '"/>' +
+      (b ? '<circle cx="36" cy="16" r="3" fill="#fff"/><circle cx="58" cy="15" r="2.4" fill="#fff"/><circle cx="66" cy="17" r="2" fill="#fff"/>' : (k > 0 ? '<circle cx="50" cy="16" r="' + (k * 4).toFixed(1) + '" fill="#fff" opacity=".7"/>' : ''));
+  } };
+  T.knob = { view: '0 0 100 100', svg: function () {
+    return '<circle cx="50" cy="50" r="44" fill="#E5E1D8" stroke="#9AA0B4" stroke-width="5"/><rect x="44" y="10" width="12" height="40" rx="6" fill="' + C.coral + '"/>';
+  } };
+  T.jar = { view: '0 0 80 100', svg: function (p) {
+    return '<rect x="14" y="4" width="52" height="14" rx="4" fill="' + col(p, C.coral) + '"/><path d="M10 22 Q10 16 18 16 L62 16 Q70 16 70 22 L70 90 Q70 96 62 96 L18 96 Q10 96 10 90Z" fill="#F7FBFF" stroke="#BFD4EA" stroke-width="3"/>' +
+      '<rect x="14" y="44" width="52" height="48" rx="6" fill="#fff"/><circle cx="26" cy="58" r="3" fill="#E9E4DA"/><circle cx="40" cy="70" r="3" fill="#E9E4DA"/><circle cx="54" cy="60" r="3" fill="#E9E4DA"/><circle cx="34" cy="82" r="3" fill="#E9E4DA"/>';
+  } };
+  T.ant = { view: '0 0 40 24', svg: function () {
+    return '<circle cx="8" cy="12" r="6" fill="' + C.ink + '"/><circle cx="20" cy="12" r="5" fill="' + C.ink + '"/><circle cx="32" cy="12" r="7" fill="' + C.ink + '"/><path d="M14 6 L10 0 M20 6 L20 0 M26 6 L30 0 M14 18 L10 24 M20 18 L20 24 M26 18 L30 24" stroke="' + C.ink + '" stroke-width="2"/>';
+  } };
+  T.tray = { view: '0 0 100 20', stretch: true, svg: function () {
+    return '<rect x="0" y="4" width="100" height="10" rx="5" fill="#9AA0B4"/><rect x="2" y="2" width="96" height="6" rx="3" fill="#C9CED6"/>';
+  } };
+  T.glass = { view: '0 0 60 100', svg: function (p, o) {
+    var c = col(p, C.orange);
+    return '<path d="M6 4 L54 4 L46 96 L14 96Z" fill="#F7FBFF" stroke="#BFD4EA" stroke-width="3"/><path d="M10 34 L50 34 L46 92 L14 92Z" fill="' + c + '" opacity=".8"/>';
+  } };
+
   // Ponto invisível (lugares de encaixe, controladores).
   T.marker = { view: '0 0 10 10', svg: function () { return ''; } };
 

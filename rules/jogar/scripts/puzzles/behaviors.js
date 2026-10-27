@@ -19,7 +19,7 @@
 //   gravity    { delay, g, solids:[ids] }         → cai; pousa em cima de "solids"; se cair da tela, volta
 //   snap       { to:[ids], tol, fitScale }        → solto perto de um lugar, encaixa (state.at = id)
 //   receives   { from:[ids], set, consume, requires, toolRequires, copyColor, returnTool, failSay } → ferramenta solta em cima
-//   rubbable   { count, decayMs, progress, set }  → esfregar (ou passar algo por cima) várias vezes
+//   rubbable   { count, decayMs, progress, set, requires } → esfregar (ou passar algo por cima) várias vezes
 //   carries    { ids:[...] }                      → ao ser arrastado, leva esses objetos junto
 //   stackPress { key }                            → tocar num objeto empilhado aciona também os de baixo
 //   merge      { with:[ids], into:'id', sameSize } → solto em cima de outro, os dois viram um terceiro
@@ -44,6 +44,7 @@
 //   spinner    { speed }                         → gira sozinho até state.stopped (aí grava state.angle)
 //   sumDisplay { container, ids:[...] }          → state.n = soma dos números dentro do container
 //   bake       { in:'id', ms, set }              → fica dentro de "in" por ms seguidos: liga os estados
+//   fragile    { max, carries:[ids] }            → arrastado rápido demais: evento 'spill' (e volta)
 //   encircle   { target:'id' }                   → um traço fechado em volta do alvo (state.done)
 //   palette    { from:[ids] }                    → mistura as cores soltas em cima (state.color); tocar limpa
 (function () {
@@ -359,6 +360,10 @@
         var tools = {}; // objetos arrastados por cima: última direção de cada eixo
         function bump() {
           if (done) return;
+          if (cfg.requires && !Object.keys(cfg.requires).every(function (k) { return o.state[k] === cfg.requires[k]; })) {
+            if (U.now() - last > 900) { last = U.now(); E.emit('rubdenied', { obj: o }); }
+            return;
+          }
           var now = U.now();
           if (cfg.decayMs && now - last > cfg.decayMs) n = 0;
           last = now;
@@ -930,6 +935,44 @@
             E.check();
           }
         }, 100);
+      }
+    },
+
+    fragile: {
+      init: function (o, cfg, E) {
+        var rx, ry, rt, sx, sy, st;
+        function spill() {
+          E.input.cancel(o);
+          o.fx('shake');
+          R.Audio.play('collision');
+          E.emit('spill', { obj: o });
+        }
+        E.on('dragstart', function (e) { if (e.obj === o) { rx = null; sx = o.x; sy = o.y; st = U.now(); } });
+        // arrasto curto e rápido: confere a velocidade média ao soltar
+        E.on('drop', function (e) {
+          if (e.obj !== o || st == null) return;
+          var dt = Math.max(30, U.now() - st), v = U.dist(o.x, o.y, sx, sy) / dt;
+          st = null;
+          if (v <= (cfg.max || 0.12)) return;
+          // volta na hora (antes da conferência de vitória), levando junto o que ele carrega
+          var dx = sx - o.x, dy = sy - o.y, c = o.behaviors.carries;
+          [o].concat(((c && c.ids) || []).map(function (id) { return E.get(id); })).forEach(function (x) {
+            if (x) { x.x += dx; x.y += dy; x.layout(); }
+          });
+          e.handled = true;
+          o.fx('shake');
+          R.Audio.play('collision');
+          E.emit('spill', { obj: o });
+        });
+        E.on('dragmove', function (e) {
+          if (e.obj !== o) return;
+          var now = U.now();
+          if (rx == null) { rx = o.x; ry = o.y; rt = now; return; }
+          if (now - rt < 120) return;           // mede a velocidade em janelas de ~0,1 s
+          var v = U.dist(o.x, o.y, rx, ry) / (now - rt);
+          rx = o.x; ry = o.y; rt = now;
+          if (v > (cfg.max || 0.12)) { st = null; spill(); }
+        });
       }
     },
 

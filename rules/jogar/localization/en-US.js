@@ -1235,6 +1235,66 @@ RULES.L10N['en-US'] = {
     LEVEL_200_TITLE: '[[t1|THIS]] [[t2|SENTENCE]] [[t3|HAS]] [[t4|THREE]] [[t5|WORDS]]',
     LEVEL_200_HINT_1: 'Is it true?',
     LEVEL_200_HINT_2: 'Count the words. You can take some away.',
-    LEVEL_200_HINT_3: 'Remove THIS and SENTENCE: HAS THREE WORDS is left, which is true.'
+    LEVEL_200_HINT_3: 'Remove THIS and SENTENCE: HAS THREE WORDS is left, which is true.',
+    CHAPTER_21: 'IN THE KITCHEN',
+    FB_CHEESE_MIDDLE: 'THE CHEESE GOES IN THE MIDDLE',
+    FB_MISSING_INGREDIENT: 'SOMETHING IS MISSING...',
+    FB_SPILLED: 'SPILLED!',
+    FB_NOT_HALF: 'THAT\'S NOT THE MIDDLE...',
+    FB_COLD_WATER: 'THE WATER IS COLD',
+    FB_SLOWLY: 'SLOWLY!',
+    FB_SALT: 'THAT\'S SALT!',
+    FB_PEEL_FIRST: 'PEEL IT FIRST',
+    FB_NO_CAKE_YET: 'THERE\'S NO CAKE YET',
+
+    LEVEL_201_TITLE: 'MAKE A SANDWICH',
+    LEVEL_201_HINT_1: 'A sandwich has layers.',
+    LEVEL_201_HINT_2: 'The cheese goes between the breads.',
+    LEVEL_201_HINT_3: 'Put one bread on the plate, the cheese on it and the other bread on top.',
+
+    LEVEL_202_TITLE: 'MAKE TOAST',
+    LEVEL_202_HINT_1: 'The bread goes in the toaster.',
+    LEVEL_202_HINT_2: 'The toaster needs to be switched on.',
+    LEVEL_202_HINT_3: 'Put the bread in the toaster, tap it to push the lever down and wait.',
+
+    LEVEL_203_TITLE: 'MIX THE BATTER',
+    LEVEL_203_HINT_1: 'Batter needs three things.',
+    LEVEL_203_HINT_2: 'Once everything is in the bowl, stir.',
+    LEVEL_203_HINT_3: 'Put flour, egg and milk in the bowl and rub the bowl to mix.',
+
+    LEVEL_204_TITLE: 'FILL THE GLASS',
+    LEVEL_204_HINT_1: 'Look closely at the glass.',
+    LEVEL_204_HINT_2: 'It\'s upside down.',
+    LEVEL_204_HINT_3: 'Tap the glass to turn it over, then hold the jug above it.',
+
+    LEVEL_205_TITLE: 'CUT THE CAKE IN HALF',
+    LEVEL_205_HINT_1: 'A knife would help.',
+    LEVEL_205_HINT_2: 'Your finger can cut.',
+    LEVEL_205_HINT_3: 'Draw a straight line from top to bottom, right through the middle of the cake.',
+
+    LEVEL_206_TITLE: 'BOIL THE WATER',
+    LEVEL_206_HINT_1: 'The pot is on the stove.',
+    LEVEL_206_HINT_2: 'The stove is off.',
+    LEVEL_206_HINT_3: 'Turn the stove knob to light the fire and wait for the water to boil.',
+
+    LEVEL_207_TITLE: 'TAKE THE JUICE TO THE TABLE',
+    LEVEL_207_HINT_1: 'The glasses are fragile.',
+    LEVEL_207_HINT_2: 'Hurrying knocks them over.',
+    LEVEL_207_HINT_3: 'Drag the tray very slowly to the table.',
+
+    LEVEL_208_TITLE: 'WHICH JAR HAS SUGAR?',
+    LEVEL_208_HINT_1: 'The jars look the same.',
+    LEVEL_208_HINT_2: 'Who loves sugar?',
+    LEVEL_208_HINT_3: 'Wait for the ants: they go to the sugar jar (the one on the right).',
+
+    LEVEL_209_TITLE: 'GIVE RULI THE BANANA',
+    LEVEL_209_HINT_1: 'Ruli doesn\'t eat the peel.',
+    LEVEL_209_HINT_2: 'How do you peel a banana?',
+    LEVEL_209_HINT_3: 'Swipe down on the banana, then bring it to Ruli.',
+
+    LEVEL_210_TITLE: 'MAKE A BIRTHDAY CAKE',
+    LEVEL_210_HINT_1: 'The batter needs baking.',
+    LEVEL_210_HINT_2: 'The oven is off.',
+    LEVEL_210_HINT_3: 'Tap the oven to turn it on, put the bowl inside, wait for the cake and put the candle on top.'
   }
 };
