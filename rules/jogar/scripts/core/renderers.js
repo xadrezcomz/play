@@ -108,8 +108,9 @@
   } };
 
   T.button = { view: '0 0 100 100', svg: function (p, o) {
-    var c = col(p, C.coral), down = o.state.pressed;
-    return '<ellipse cx="50" cy="70" rx="46" ry="22" fill="' + shade(c, -60) + '"/>' +
+    var c = col(p, C.coral), down = o.state.pressed || o.state.on;
+    if (o.state.on) c = shade(c, 45);
+    return (o.state.on ? '<ellipse cx="50" cy="56" rx="50" ry="34" fill="' + c + '" opacity=".35"/>' : '') + '<ellipse cx="50" cy="70" rx="46" ry="22" fill="' + shade(c, -60) + '"/>' +
       '<rect x="12" y="' + (down ? 52 : 38) + '" width="76" height="' + (down ? 18 : 32) + '" rx="10" fill="' + shade(c, -30) + '"/>' +
       '<ellipse cx="50" cy="' + (down ? 52 : 38) + '" rx="38" ry="16" fill="' + c + '"/>';
   } };
@@ -263,9 +264,12 @@
     return '<rect width="100" height="100" rx="4" fill="' + fill + '"/>' +
       (night ? '<circle cx="20" cy="30" r="1.6" fill="#fff"/><circle cx="70" cy="18" r="1.2" fill="#fff"/><circle cx="84" cy="56" r="1.4" fill="#fff"/><circle cx="40" cy="70" r="1" fill="#fff"/>' : '');
   } };
-  T.clock = { view: '0 0 100 100', svg: function () {
+  T.clock = { view: '0 0 100 100', svg: function (p) {
     var t = '';
     for (var i = 0; i < 12; i++) t += '<rect x="48.5" y="8" width="3" height="' + (i % 3 ? 5 : 9) + '" rx="1.5" fill="' + C.ink + '" transform="rotate(' + i * 30 + ' 50 50)"/>';
+    if (p.numbers) [[12, 50, 30], [3, 74, 55], [6, 50, 80], [9, 26, 55]].forEach(function (q) {
+      t += '<text x="' + q[1] + '" y="' + q[2] + '" text-anchor="middle" font-size="13" font-weight="900" fill="' + C.ink + '" font-family="Nunito, system-ui, sans-serif">' + q[0] + '</text>';
+    });
     return '<circle cx="50" cy="50" r="47" fill="#fff" stroke="' + C.ink + '" stroke-width="5"/>' + t;
   } };
   // ponteiro: desenhado do centro para cima, para girar em volta do centro
@@ -383,11 +387,11 @@
   } };
   T.leaf = { view: '0 0 100 70', svg: function (p, o) {
     var c = sc(p, o, '#D6D0C4');
-    return '<path d="M6 60 Q10 6 94 8 Q88 64 6 60Z" fill="' + c + '"/><path d="M10 58 Q50 36 88 12" stroke="#fff" stroke-width="3" fill="none" opacity=".6"/>';
+    return (o.state.flip ? '<g transform="translate(100 0) scale(-1 1)">' : '<g>') + '<path d="M6 60 Q10 6 94 8 Q88 64 6 60Z" fill="' + c + '"/><path d="M10 58 Q50 36 88 12" stroke="#fff" stroke-width="3" fill="none" opacity=".6"/></g>';
   } };
   T.xmark = { view: '0 0 100 100', svg: function (p, o) {
     var a = 1 - (o.state.erase || 0);
-    return '<path d="M16 16 L84 84 M84 16 L16 84" stroke="' + C.coral + '" stroke-width="16" stroke-linecap="round" opacity="' + a.toFixed(2) + '"/>';
+    return '<path d="M16 16 L84 84 M84 16 L16 84" stroke="' + col(p, C.coral) + '" stroke-width="16" stroke-linecap="round" opacity="' + a.toFixed(2) + '"/>';
   } };
   T.mirrorline = { view: '0 0 10 100', stretch: true, svg: function () {
     return '<rect x="2" y="0" width="6" height="100" fill="#BDE3FF"/><rect x="4" y="0" width="2" height="100" fill="#fff"/>';
@@ -399,7 +403,8 @@
     var c = col(p, C.coral);
     return '<path d="M12 4 L68 4 L78 86 L2 86Z" fill="' + c + '"/><rect x="0" y="80" width="80" height="10" rx="4" fill="' + shade(c, -30) + '"/><path d="M20 14 L16 70" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".4"/>';
   } };
-  T.paper = { view: '0 0 100 60', stretch: true, svg: function () {
+  T.paper = { view: '0 0 100 60', stretch: true, svg: function (p) {
+    if (p.blank) return '<rect x="0" y="0" width="100" height="60" rx="3" fill="#FFFDF5" stroke="#E3DDD2" stroke-width="2"/>';
     return '<rect x="0" y="0" width="100" height="60" rx="3" fill="#FFFDF5" stroke="#E3DDD2" stroke-width="2"/><path d="M10 16 L70 16 M10 28 L84 28 M10 40 L60 40" stroke="#E3DDD2" stroke-width="3" stroke-linecap="round"/>';
   } };
   T.outline = { view: '0 0 100 100', stretch: true, svg: function (p) {
@@ -407,6 +412,318 @@
     return '<rect x="3" y="3" width="94" height="94" rx="6" fill="' + c + '" fill-opacity=".12" stroke="' + c + '" stroke-width="3" stroke-dasharray="8 6" vector-effect="non-scaling-stroke"/>';
   } };
   T.blackout = { view: '0 0 10 10', stretch: true, svg: function () { return '<rect width="10" height="10" fill="#1B1D33"/>'; } };
+
+
+  // ---- fases 101+ ----
+  // peça com número: props.n ou state.n; props.color; props.text (texto livre, ex.: '−5')
+  T.number = { view: '0 0 100 100', svg: function (p, o) {
+    var c = sc(p, o, '#fff'), n = o.state.n != null ? o.state.n : (p.text != null ? p.text : p.n);
+    var ink = (c === '#fff' || c === '#FFFDF5') ? C.ink : '#fff';
+    var str = String(n), fs = str.length > 2 ? 44 : str.length > 1 ? 56 : 72;
+    if (p.plain) return '<text x="50" y="84" text-anchor="middle" font-size="104" font-weight="900" fill="' + (p.color ? col(p) : C.ink) + '" font-family="Nunito, system-ui, sans-serif">' + str + '</text>';
+    return '<rect x="4" y="8" width="92" height="88" rx="16" fill="' + shade(c === '#fff' ? '#E3DDD2' : c, -30) + '"/>' +
+      '<rect x="4" y="4" width="92" height="86" rx="16" fill="' + c + '"' + (c === '#fff' ? ' stroke="#E3DDD2" stroke-width="3"' : '') + '/>' +
+      '<text x="50" y="' + (47 + fs * 0.36) + '" text-anchor="middle" font-size="' + fs + '" font-weight="900" fill="' + ink + '" font-family="Nunito, system-ui, sans-serif">' + str + '</text>' +
+      (p.underline ? '<rect x="34" y="78" width="32" height="5" rx="2.5" fill="' + ink + '" opacity=".6"/>' : '');
+  } };
+  // seta apontando para a direita (gire com rot)
+  T.arrow = { view: '0 0 100 60', svg: function (p, o) {
+    var c = sc(p, o, C.blue);
+    return '<path d="M6 22 L60 22 L60 6 L96 30 L60 54 L60 38 L6 38Z" fill="' + c + '" stroke="' + c + '" stroke-width="6" stroke-linejoin="round"/>';
+  } };
+  T.heart = { view: '0 0 100 90', svg: function (p, o) {
+    var c = sc(p, o, C.coral);
+    return '<path d="M50 86 Q6 56 6 28 Q6 6 28 6 Q42 6 50 20 Q58 6 72 6 Q94 6 94 28 Q94 56 50 86Z" fill="' + c + '"/><ellipse cx="28" cy="26" rx="9" ry="6" fill="#fff" opacity=".45" transform="rotate(-30 28 26)"/>';
+  } };
+  // ovo: state.crack (0–1) racha; state.hatched mostra o pintinho
+  T.egg = { view: '0 0 80 100', svg: function (p, o) {
+    if (o.state.cooked) return '<g transform="translate(-10 18)">' + T.fried.svg(p, o) + '</g>';
+    if (o.state.hatched) {
+      return '<path d="M8 66 L18 56 L28 66 L40 54 L52 66 L62 56 L72 66 Q72 96 40 96 Q8 96 8 66Z" fill="#FFF6E6" stroke="#E8D9BE" stroke-width="3"/>' +
+        '<circle cx="40" cy="44" r="22" fill="' + C.yellow + '"/><circle cx="33" cy="40" r="3.4" fill="' + C.ink + '"/><circle cx="47" cy="40" r="3.4" fill="' + C.ink + '"/><path d="M36 48 L44 48 L40 54Z" fill="' + C.orange + '"/>';
+    }
+    var k = o.state.crack || 0;
+    return '<ellipse cx="40" cy="56" rx="32" ry="40" fill="' + sc(p, o, '#FFF6E6') + '" stroke="#E8D9BE" stroke-width="3"/><ellipse cx="28" cy="36" rx="7" ry="11" fill="#fff" opacity=".8"/>' +
+      (k > 0 ? '<path d="M14 54 L24 46 L32 56 L42 44 L50 56 L60 46 L68 54" fill="none" stroke="' + C.ink + '" stroke-width="3" stroke-linejoin="round" opacity="' + Math.min(1, k * 1.5).toFixed(2) + '"/>' : '');
+  } };
+  T.chick = { view: '0 0 80 80', svg: function () {
+    return '<ellipse cx="40" cy="50" rx="30" ry="26" fill="' + C.yellow + '"/><circle cx="40" cy="26" r="18" fill="' + C.yellow + '"/><circle cx="34" cy="23" r="3.2" fill="' + C.ink + '"/><circle cx="46" cy="23" r="3.2" fill="' + C.ink + '"/><path d="M36 30 L44 30 L40 36Z" fill="' + C.orange + '"/><path d="M30 76 L30 70 M50 76 L50 70" stroke="' + C.orange + '" stroke-width="4" stroke-linecap="round"/>';
+  } };
+  // vela: state.lit (acesa por padrão se props.lit)
+  T.candle = { view: '0 0 40 100', svg: function (p, o) {
+    var lit = o.state.lit != null ? o.state.lit : p.lit;
+    return (lit ? '<path class="flame" d="M20 4 Q30 18 26 26 Q22 32 20 32 Q18 32 14 26 Q10 18 20 4Z" fill="' + C.orange + '"/><path d="M20 14 Q25 22 22 27 Q20 29 18 27 Q15 22 20 14Z" fill="' + C.yellow + '"/>' : '<path d="M20 30 Q24 22 18 16 Q14 10 20 4" fill="none" stroke="#C9CED6" stroke-width="2.5" opacity=".8"/>') +
+      '<rect x="18.5" y="28" width="3" height="8" fill="' + C.ink + '"/><rect x="8" y="34" width="24" height="62" rx="5" fill="' + sc(p, o, C.pink) + '"/><rect x="12" y="40" width="5" height="40" rx="2.5" fill="#fff" opacity=".4"/>';
+  } };
+  T.bell = { view: '0 0 100 100', svg: function (p, o) {
+    var c = sc(p, o, C.yellow);
+    return '<circle cx="50" cy="10" r="7" fill="none" stroke="' + shade(c, -40) + '" stroke-width="5"/><path d="M50 16 Q22 16 20 52 Q20 70 8 80 L92 80 Q80 70 80 52 Q78 16 50 16Z" fill="' + c + '"/><circle cx="50" cy="86" r="9" fill="' + shade(c, -40) + '"/><path d="M34 30 Q30 44 30 60" stroke="#fff" stroke-width="5" stroke-linecap="round" fill="none" opacity=".5"/>';
+  } };
+  T.coin = { view: '0 0 100 100', svg: function (p) {
+    var c = col(p, C.yellow);
+    return '<circle cx="50" cy="50" r="46" fill="' + shade(c, -30) + '"/><circle cx="50" cy="46" r="42" fill="' + c + '"/><text x="50" y="62" text-anchor="middle" font-size="44" font-weight="900" fill="' + shade(c, -50) + '" font-family="Nunito, system-ui, sans-serif">' + (p.n != null ? p.n : '$') + '</text>';
+  } };
+  T.piggy = { view: '0 0 110 90', svg: function (p, o) {
+    var c = sc(p, o, C.pink);
+    return '<ellipse cx="55" cy="50" rx="44" ry="34" fill="' + c + '"/><circle cx="96" cy="48" r="11" fill="' + shade(c, -20) + '"/><circle cx="93" cy="46" r="2" fill="' + C.ink + '"/><circle cx="99" cy="46" r="2" fill="' + C.ink + '"/>' +
+      '<circle cx="76" cy="36" r="4" fill="' + C.ink + '"/><path d="M60 18 L68 4 L74 20Z" fill="' + shade(c, -20) + '"/><rect x="40" y="16" width="22" height="5" rx="2.5" fill="' + C.ink + '"/>' +
+      '<rect x="24" y="76" width="12" height="12" rx="4" fill="' + shade(c, -20) + '"/><rect x="70" y="76" width="12" height="12" rx="4" fill="' + shade(c, -20) + '"/>';
+  } };
+  // bateria: state.charge de 0 a 1
+  T.battery = { view: '0 0 100 50', svg: function (p, o) {
+    var k = o.state.charge != null ? o.state.charge : (p.charge || 0), w = 76 * k, c = k > 0.6 ? C.green : k > 0.25 ? C.yellow : C.coral;
+    return '<rect x="2" y="4" width="88" height="42" rx="8" fill="#fff" stroke="' + C.ink + '" stroke-width="4"/><rect x="90" y="16" width="8" height="18" rx="3" fill="' + C.ink + '"/>' +
+      (w > 0 ? '<rect x="8" y="10" width="' + w.toFixed(1) + '" height="30" rx="4" fill="' + c + '"/>' : '');
+  } };
+  // cadeado: state.open
+  T.lock = { view: '0 0 80 100', svg: function (p, o) {
+    var c = sc(p, o, C.yellow), open = o.state.open;
+    return '<path d="M18 46 L18 30 Q18 6 40 6 Q62 6 62 30 L62 ' + (open ? 20 : 46) + '" fill="none" stroke="#9AA0B4" stroke-width="10" stroke-linecap="round"' + (open ? ' transform="translate(0 -14)"' : '') + '/>' +
+      '<rect x="6" y="44" width="68" height="52" rx="10" fill="' + c + '"/><circle cx="40" cy="64" r="7" fill="' + shade(c, -50) + '"/><rect x="37" y="66" width="6" height="16" rx="3" fill="' + shade(c, -50) + '"/>';
+  } };
+  T.cheese = { view: '0 0 100 70', svg: function () {
+    return '<path d="M4 64 L4 30 L96 10 L96 64Z" fill="' + C.yellow + '"/><path d="M4 30 L96 10 L70 4Z" fill="#FFE08A"/><circle cx="30" cy="46" r="7" fill="#E5A92E"/><circle cx="64" cy="36" r="5" fill="#E5A92E"/><circle cx="74" cy="54" r="6" fill="#E5A92E"/>';
+  } };
+  T.mouse = { view: '0 0 100 70', svg: function (p, o) {
+    var c = sc(p, o, '#B8BFCC');
+    return '<path d="M8 50 Q-4 40 6 30" fill="none" stroke="' + shade(c, -30) + '" stroke-width="4" stroke-linecap="round"/><ellipse cx="46" cy="46" rx="36" ry="20" fill="' + c + '"/><circle cx="74" cy="22" r="13" fill="' + shade(c, -15) + '"/><circle cx="74" cy="22" r="7" fill="' + C.pink + '"/>' +
+      '<path d="M76 40 L98 50 L80 58Z" fill="' + c + '"/><circle cx="97" cy="50" r="3.5" fill="' + C.pink + '"/><circle cx="84" cy="46" r="3" fill="' + C.ink + '"/>';
+  } };
+  // presente: state.open
+  T.gift = { view: '0 0 100 100', svg: function (p, o) {
+    var c = sc(p, o, C.coral), r = C.yellow, open = o.state.open;
+    return '<rect x="10" y="42" width="80" height="54" rx="6" fill="' + c + '"/><rect x="44" y="42" width="12" height="54" fill="' + r + '"/>' +
+      '<g' + (open ? ' transform="translate(30 -26) rotate(24 50 36)"' : '') + '><rect x="4" y="28" width="92" height="18" rx="5" fill="' + shade(c, -20) + '"/><rect x="44" y="28" width="12" height="18" fill="' + r + '"/>' +
+      '<path d="M50 28 Q30 4 22 18 Q20 28 50 28 Q80 28 78 18 Q70 4 50 28Z" fill="' + r + '"/></g>' +
+      (open ? '<circle cx="50" cy="40" r="16" fill="#FFE27A" opacity=".6"/>' : '');
+  } };
+  // cortina: state.open
+  T.curtain = { view: '0 0 100 100', stretch: true, svg: function (p, o) {
+    var c = sc(p, o, C.coral), w = o.state.open ? 14 : 50, folds = '';
+    [[0, 1], [100, -1]].forEach(function (s) {
+      for (var i = 0; i < 4; i++) { var x = s[0] + s[1] * (w * i / 4 + w / 8); folds += '<rect x="' + (x - 1) + '" y="4" width="2" height="96" fill="' + shade(c, -30) + '" opacity=".5"/>'; }
+    });
+    return '<rect x="0" y="4" width="' + w + '" height="96" fill="' + c + '"/><rect x="' + (100 - w) + '" y="4" width="' + w + '" height="96" fill="' + c + '"/>' + folds +
+      '<rect x="0" y="0" width="100" height="6" rx="3" fill="' + C.woodDark + '"/>';
+  } };
+  T.plug = { view: '0 0 60 100', svg: function () {
+    return '<rect x="18" y="0" width="6" height="18" rx="2" fill="#9AA0B4"/><rect x="36" y="0" width="6" height="18" rx="2" fill="#9AA0B4"/><rect x="8" y="16" width="44" height="34" rx="8" fill="' + C.ink + '"/><path d="M30 50 Q30 76 40 100" fill="none" stroke="' + C.ink + '" stroke-width="6" stroke-linecap="round"/>';
+  } };
+  T.socket = { view: '0 0 80 80', svg: function () {
+    return '<rect x="2" y="2" width="76" height="76" rx="14" fill="#F2EEE6" stroke="#D6D0C4" stroke-width="3"/><circle cx="40" cy="40" r="24" fill="#E5E1D8"/><rect x="29" y="30" width="6" height="16" rx="3" fill="' + C.ink + '"/><rect x="45" y="30" width="6" height="16" rx="3" fill="' + C.ink + '"/>';
+  } };
+  T.snowman = { view: '0 0 80 110', svg: function (p, o) {
+    var m = o.state.melt || 0;
+    return '<ellipse cx="40" cy="' + (84 + m * 10) + '" rx="' + (32 + m * 10) + '" ry="' + (24 - m * 10) + '" fill="#fff" stroke="#DCE6F0" stroke-width="3"/>' +
+      (m < 0.7 ? '<circle cx="40" cy="' + (44 + m * 30) + '" r="' + (20 - m * 12) + '" fill="#fff" stroke="#DCE6F0" stroke-width="3"/><circle cx="33" cy="' + (40 + m * 30) + '" r="2.6" fill="' + C.ink + '"/><circle cx="47" cy="' + (40 + m * 30) + '" r="2.6" fill="' + C.ink + '"/><path d="M40 ' + (46 + m * 30) + ' L54 ' + (49 + m * 30) + ' L40 ' + (51 + m * 30) + 'Z" fill="' + C.orange + '"/>' : '') +
+      (m < 0.4 ? '<rect x="26" y="' + (14 + m * 30) + '" width="28" height="14" rx="3" fill="' + C.ink + '"/><rect x="20" y="' + (26 + m * 30) + '" width="40" height="5" rx="2" fill="' + C.ink + '"/>' : '');
+  } };
+  T.flower = { view: '0 0 60 100', svg: function (p, o) {
+    var c = sc(p, o, C.pink), open = o.state.open != null ? o.state.open : true, pet = '';
+    if (open) for (var i = 0; i < 6; i++) pet += '<ellipse cx="30" cy="16" rx="8" ry="12" fill="' + c + '" transform="rotate(' + i * 60 + ' 30 30)"/>';
+    return '<path d="M30 40 L30 98" stroke="' + C.green + '" stroke-width="5"/><ellipse cx="40" cy="70" rx="10" ry="5" fill="' + C.green + '" transform="rotate(-30 40 70)"/>' + pet +
+      '<circle cx="30" cy="30" r="' + (open ? 9 : 11) + '" fill="' + (open ? C.yellow : c) + '"/>';
+  } };
+  T.carrot = { view: '0 0 40 100', svg: function () {
+    return '<path d="M20 96 L6 30 Q20 22 34 30Z" fill="' + C.orange + '"/><path d="M12 46 L20 48 M14 62 L22 64" stroke="' + shade(C.orange, -40) + '" stroke-width="3" stroke-linecap="round"/><path d="M20 28 L10 6 M20 28 L20 2 M20 28 L30 6" stroke="' + C.green + '" stroke-width="5" stroke-linecap="round"/>';
+  } };
+  T.bone = { view: '0 0 100 40', svg: function () {
+    return '<path d="M18 14 L82 14 M18 26 L82 26" stroke="#F4EBDD" stroke-width="12"/><circle cx="14" cy="12" r="10" fill="#F4EBDD"/><circle cx="14" cy="28" r="10" fill="#F4EBDD"/><circle cx="86" cy="12" r="10" fill="#F4EBDD"/><circle cx="86" cy="28" r="10" fill="#F4EBDD"/>';
+  } };
+  T.dog = { view: '0 0 100 90', svg: function (p, o) {
+    var happy = o.state.happy;
+    return '<ellipse cx="50" cy="64" rx="30" ry="22" fill="' + C.wood + '"/><circle cx="50" cy="36" r="24" fill="' + C.wood + '"/><ellipse cx="28" cy="34" rx="8" ry="16" fill="' + C.woodDark + '"/><ellipse cx="72" cy="34" rx="8" ry="16" fill="' + C.woodDark + '"/>' +
+      '<circle cx="42" cy="32" r="3.4" fill="' + C.ink + '"/><circle cx="58" cy="32" r="3.4" fill="' + C.ink + '"/><ellipse cx="50" cy="42" rx="5" ry="3.6" fill="' + C.ink + '"/>' +
+      (happy ? '<path d="M42 48 Q50 58 58 48" fill="' + C.pink + '" stroke="' + C.ink + '" stroke-width="2.4"/><path d="M80 62 Q96 50 92 36" stroke="' + C.woodDark + '" stroke-width="6" fill="none" stroke-linecap="round"/>'
+             : '<path d="M44 50 Q50 47 56 50" stroke="' + C.ink + '" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M80 70 Q92 76 96 84" stroke="' + C.woodDark + '" stroke-width="6" fill="none" stroke-linecap="round"/>');
+  } };
+  T.cat = { view: '0 0 100 90', svg: function (p, o) {
+    var c = sc(p, o, C.orange), sleep = o.state.sleep;
+    return '<ellipse cx="50" cy="64" rx="32" ry="22" fill="' + c + '"/><circle cx="50" cy="38" r="22" fill="' + c + '"/><path d="M30 26 L32 6 L46 20Z M70 26 L68 6 L54 20Z" fill="' + c + '"/>' +
+      (sleep ? '<path d="M38 38 Q42 42 46 38 M54 38 Q58 42 62 38" stroke="' + C.ink + '" stroke-width="2.6" fill="none" stroke-linecap="round"/>' : '<ellipse cx="42" cy="36" rx="3" ry="4.5" fill="' + C.ink + '"/><ellipse cx="58" cy="36" rx="3" ry="4.5" fill="' + C.ink + '"/>') +
+      '<path d="M47 45 L53 45 L50 48Z" fill="' + C.pink + '"/><path d="M80 70 Q98 62 92 44" stroke="' + c + '" stroke-width="7" fill="none" stroke-linecap="round"/>';
+  } };
+  // tela de números (marcador): state.n
+  T.display = { view: '0 0 120 60', svg: function (p, o) {
+    var n = o.state.n != null ? o.state.n : (p.n != null ? p.n : 0);
+    if (typeof n === 'number') n = Math.ceil(n - 1e-9);
+    return '<rect x="2" y="2" width="116" height="56" rx="10" fill="' + C.ink + '"/><rect x="8" y="8" width="104" height="44" rx="6" fill="#1E2033"/>' +
+      '<text x="60" y="45" text-anchor="middle" font-size="38" font-weight="900" fill="' + (p.color ? col(p) : '#7CF29A') + '" font-family="ui-monospace, Menlo, monospace">' + n + '</text>';
+  } };
+  // parede fina de labirinto (estica sem deformar o desenho)
+  T.bar = { view: '0 0 10 10', stretch: true, svg: function (p) {
+    return '<rect width="10" height="10" fill="' + col(p, '#8C7B9E') + '"/>';
+  } };
+  // paleta de pintor: state.color é a tinta misturada no meio
+  T.palette = { view: '0 0 100 80', svg: function (p, o) {
+    var c = o.state.color ? (C[o.state.color] || o.state.color) : null;
+    return '<path d="M50 4 Q96 4 96 40 Q96 64 74 62 Q62 60 62 70 Q62 78 50 76 Q4 76 4 40 Q4 4 50 4Z" fill="' + C.wood + '"/>' +
+      '<circle cx="74" cy="44" r="7" fill="#F7F1E3"/>' +
+      (c ? '<ellipse cx="42" cy="38" rx="22" ry="17" fill="' + c + '"/>' : '<ellipse cx="42" cy="38" rx="22" ry="17" fill="#fff" opacity=".35"/>');
+  } };
+  T.bush = { view: '0 0 100 70', stretch: true, svg: function (p) {
+    var c = col(p, C.green);
+    return '<ellipse cx="24" cy="44" rx="24" ry="24" fill="' + c + '"/><ellipse cx="52" cy="32" rx="28" ry="30" fill="' + c + '"/><ellipse cx="78" cy="44" rx="22" ry="24" fill="' + c + '"/>' +
+      '<rect x="6" y="44" width="88" height="26" rx="10" fill="' + c + '"/><ellipse cx="40" cy="24" rx="8" ry="5" fill="#fff" opacity=".25"/>';
+  } };
+  T.bubble = { view: '0 0 100 100', svg: function () {
+    return '<circle cx="50" cy="50" r="46" fill="#BDE3FF" fill-opacity=".35" stroke="#7FC1F5" stroke-width="3"/><ellipse cx="32" cy="26" rx="12" ry="7" fill="#fff" opacity=".7" transform="rotate(-30 32 26)"/>';
+  } };
+  T.rope = { view: '0 0 20 100', stretch: true, svg: function () {
+    return '<rect x="7" y="0" width="6" height="86" rx="3" fill="' + C.wood + '"/><circle cx="10" cy="90" r="8" fill="' + C.coral + '"/>';
+  } };
+  T.book = { view: '0 0 120 80', svg: function (p, o) {
+    return '<rect x="2" y="6" width="116" height="72" rx="6" fill="' + C.blue + '"/><rect x="8" y="2" width="50" height="70" rx="3" fill="#FFFDF5"/><rect x="62" y="2" width="50" height="70" rx="3" fill="#FFFDF5"/>' +
+      '<path d="M60 4 L60 72" stroke="#E3DDD2" stroke-width="3"/><path d="M70 64 L104 64" stroke="#E3DDD2" stroke-width="3"/><text x="98" y="16" font-size="9" font-weight="900" fill="#B8BFCC" font-family="sans-serif">' + (o.state.page || 1) + '</text>';
+  } };
+  T.rainbow = { view: '0 0 120 64', svg: function () {
+    var cols = [C.coral, C.orange, C.yellow, C.green, C.blue, C.purple], t = '';
+    cols.forEach(function (c, i) { var r = 56 - i * 6; t += '<path d="M' + (60 - r) + ' 62 A' + r + ' ' + r + ' 0 0 1 ' + (60 + r) + ' 62" fill="none" stroke="' + c + '" stroke-width="6.5"/>'; });
+    return t;
+  } };
+  // carta do jogo da memória: virada (state.open) mostra o desenho props.sym
+  T.mcard = { view: '0 0 60 80', svg: function (p, o) {
+    if (!o.state.open && !o.state.matched) {
+      return '<rect x="2" y="2" width="56" height="76" rx="8" fill="' + C.purple + '"/><rect x="8" y="8" width="44" height="64" rx="5" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="6 5" opacity=".6"/><circle cx="30" cy="40" r="7" fill="#fff" opacity=".5"/>';
+    }
+    var t = T[p.sym] || T.circle, inner = t.svg({ color: p.symColor }, { state: {}, def: { props: {} } });
+    var v = t.view.split(' ').map(Number), k = Math.min(40 / v[2], 44 / v[3]);
+    return '<rect x="2" y="2" width="56" height="76" rx="8" fill="#fff" stroke="' + (o.state.matched ? C.green : '#E3DDD2') + '" stroke-width="4"/>' +
+      '<g transform="translate(' + (30 - v[2] * k / 2).toFixed(1) + ' ' + (40 - v[3] * k / 2).toFixed(1) + ') scale(' + k.toFixed(3) + ')">' + inner + '</g>';
+  } };
+  // fio/cano desenhado por pontos (props.pts no espaço 0–100 do próprio objeto)
+  T.wire = { view: '0 0 100 100', stretch: true, svg: function (p) {
+    var pts = p.pts || [], d = pts.map(function (q, i) { return (i ? 'L' : 'M') + q[0] + ' ' + q[1]; }).join(' ');
+    return '<path d="' + d + '" fill="none" stroke="' + col(p, C.ink) + '" stroke-width="' + (p.width || 3) + '" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>';
+  } };
+  T.disc = { view: '0 0 100 20', stretch: true, svg: function (p) {
+    var c = col(p, C.coral);
+    return '<rect x="0" y="0" width="100" height="20" rx="10" fill="' + c + '"/><rect x="6" y="3" width="88" height="5" rx="2.5" fill="#fff" opacity=".3"/>';
+  } };
+  T.lens = { view: '0 0 100 100', svg: function () {
+    return '<path d="M64 64 L94 94" stroke="' + C.woodDark + '" stroke-width="12" stroke-linecap="round"/><circle cx="40" cy="40" r="34" fill="#DFF3FF" fill-opacity=".35" stroke="' + C.ink + '" stroke-width="7"/><ellipse cx="28" cy="26" rx="10" ry="6" fill="#fff" opacity=".7" transform="rotate(-30 28 26)"/>';
+  } };
+  T.snake = { view: '0 0 100 30', stretch: true, svg: function () {
+    return '<rect x="0" y="6" width="100" height="18" rx="9" fill="' + C.green + '"/><path d="M8 15 L92 15" stroke="#4FA85A" stroke-width="3" stroke-dasharray="6 8"/>';
+  } };
+  T.hat = { view: '0 0 60 70', svg: function (p, o) {
+    var c = sc(p, o, C.coral);
+    return '<path d="M30 4 L54 64 L6 64Z" fill="' + c + '"/><path d="M18 34 L42 34 M13 48 L47 48" stroke="#fff" stroke-width="4" opacity=".6"/><circle cx="30" cy="5" r="5" fill="' + C.yellow + '"/><rect x="2" y="60" width="56" height="8" rx="4" fill="' + shade(c, -25) + '"/>';
+  } };
+  // balão de pensamento com um desenho dentro (props.sym)
+  T.thought = { view: '0 0 100 80', svg: function (p) {
+    var t = T[p.sym] || T.star, v = t.view.split(' ').map(Number), k = Math.min(44 / v[2], 36 / v[3]);
+    return '<circle cx="18" cy="74" r="4" fill="#fff" stroke="#E3DDD2" stroke-width="2"/><circle cx="28" cy="64" r="6" fill="#fff" stroke="#E3DDD2" stroke-width="2"/>' +
+      '<ellipse cx="58" cy="32" rx="40" ry="28" fill="#fff" stroke="#E3DDD2" stroke-width="3"/>' +
+      '<g transform="translate(' + (58 - v[2] * k / 2).toFixed(1) + ' ' + (32 - v[3] * k / 2).toFixed(1) + ') scale(' + k.toFixed(3) + ')">' + t.svg({ color: p.symColor }, { state: {}, def: { props: {} } }) + '</g>';
+  } };
+  T.camera = { view: '0 0 100 70', svg: function () {
+    return '<rect x="4" y="14" width="92" height="52" rx="10" fill="' + C.ink + '"/><rect x="30" y="4" width="30" height="14" rx="4" fill="' + C.ink + '"/><circle cx="50" cy="40" r="18" fill="#4A4E69"/><circle cx="50" cy="40" r="11" fill="#7FC1F5"/><circle cx="82" cy="24" r="4" fill="' + C.coral + '"/>';
+  } };
+  T.candy = { view: '0 0 100 50', svg: function (p) {
+    var c = col(p, C.pink);
+    return '<path d="M20 25 L2 8 L2 42Z" fill="' + c + '"/><path d="M80 25 L98 8 L98 42Z" fill="' + c + '"/><ellipse cx="50" cy="25" rx="32" ry="20" fill="' + c + '"/><path d="M34 12 Q50 25 34 38 M50 6 Q66 25 50 44" stroke="#fff" stroke-width="4" fill="none" opacity=".5"/>';
+  } };
+  T.bin = { view: '0 0 80 100', svg: function (p, o) {
+    var c = sc(p, o, '#9AA0B4');
+    return '<rect x="30" y="2" width="20" height="8" rx="3" fill="' + shade(c, -30) + '"/><rect x="4" y="8" width="72" height="12" rx="5" fill="' + shade(c, -20) + '"/>' +
+      '<path d="M10 22 L70 22 L64 96 L16 96Z" fill="' + c + '"/><path d="M28 34 L30 86 M40 34 L40 86 M52 34 L50 86" stroke="' + shade(c, -25) + '" stroke-width="4" stroke-linecap="round"/>';
+  } };
+  T.trophy = { view: '0 0 100 100', svg: function () {
+    return '<path d="M26 8 L74 8 L72 40 Q70 60 50 62 Q30 60 28 40Z" fill="' + C.yellow + '"/><path d="M26 16 Q6 16 10 32 Q14 44 28 44 M74 16 Q94 16 90 32 Q86 44 72 44" fill="none" stroke="' + C.yellow + '" stroke-width="6"/>' +
+      '<rect x="44" y="60" width="12" height="18" fill="#E5A92E"/><rect x="28" y="78" width="44" height="14" rx="4" fill="' + C.woodDark + '"/><path d="M38 18 L40 40" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".5"/>';
+  } };
+  T.pan = { view: '0 0 120 50', svg: function (p, o) {
+    return '<rect x="74" y="16" width="44" height="9" rx="4.5" fill="' + C.ink + '"/><ellipse cx="40" cy="24" rx="38" ry="14" fill="#4A4E69"/><ellipse cx="40" cy="20" rx="32" ry="9" fill="#5C6080"/>' +
+      (o.state.hot ? '<path d="M24 8 Q20 0 26 -6 M40 6 Q36 -2 42 -8 M56 8 Q52 0 58 -6" stroke="#C9CED6" stroke-width="3" fill="none" stroke-linecap="round"/>' : '');
+  } };
+  T.fried = { view: '0 0 100 70', svg: function (p, o) {
+    return '<path d="M10 40 Q4 14 34 12 Q50 2 70 12 Q98 14 92 40 Q96 64 60 62 Q40 70 24 60 Q4 58 10 40Z" fill="#fff" stroke="#EEE6D8" stroke-width="3"/><circle cx="50" cy="36" r="15" fill="' + C.yellow + '"/><ellipse cx="45" cy="31" rx="4" ry="3" fill="#fff" opacity=".6"/>';
+  } };
+
+
+  // ---- cozinha (fases 201+) ----
+  T.bread = { view: '0 0 100 80', svg: function (p, o) {
+    var t = o.state.toasted, crust = t ? '#9C5B2E' : '#D9A066', in_ = t ? '#C98B5B' : '#FBE3B8';
+    return '<path d="M10 76 L10 34 Q2 10 30 8 Q50 0 70 8 Q98 10 90 34 L90 76Z" fill="' + crust + '"/><path d="M18 70 L18 36 Q12 18 32 16 Q50 9 68 16 Q88 18 82 36 L82 70Z" fill="' + in_ + '"/>';
+  } };
+  T.toaster = { view: '0 0 100 80', svg: function (p, o) {
+    return '<rect x="6" y="20" width="88" height="58" rx="14" fill="#C9CED6"/><rect x="22" y="14" width="22" height="10" rx="3" fill="#4A4E69"/><rect x="56" y="14" width="22" height="10" rx="3" fill="#4A4E69"/>' +
+      '<rect x="86" y="' + (o.state.on ? 56 : 32) + '" width="12" height="8" rx="3" fill="' + C.coral + '"/><circle cx="30" cy="54" r="4" fill="' + (o.state.on ? C.orange : '#9AA0B4') + '"/>';
+  } };
+  // tigela: state.n (ingredientes) e state.mixed
+  T.bowl = { view: '0 0 100 60', svg: function (p, o) {
+    var n = o.state.n || 0, fill = o.state.mixed ? '#F6D58E' : ['', '#F7F1E3', '#FBE7B5', '#FFF4D6'][Math.min(3, n)];
+    return (n ? '<ellipse cx="50" cy="18" rx="40" ry="9" fill="' + fill + '"/>' + (n && !o.state.mixed ? '<circle cx="38" cy="16" r="5" fill="' + C.yellow + '"/>' : '') : '') +
+      '<path d="M4 16 L96 16 Q92 58 50 58 Q8 58 4 16Z" fill="' + sc(p, o, C.blue) + '"/><path d="M18 26 Q24 44 40 50" stroke="#fff" stroke-width="4" fill="none" opacity=".4"/>';
+  } };
+  T.flour = { view: '0 0 70 100', svg: function () {
+    return '<path d="M10 24 L60 24 L64 96 L6 96Z" fill="#F4EBDD" stroke="#D8C9B0" stroke-width="3"/><path d="M10 24 L20 6 L50 6 L60 24Z" fill="#E8DCC6"/><circle cx="35" cy="60" r="12" fill="' + C.yellow + '" opacity=".6"/>';
+  } };
+  T.milk = { view: '0 0 60 100', svg: function () {
+    return '<path d="M8 30 L30 6 L52 30 L52 96 L8 96Z" fill="#fff" stroke="#BFD4EA" stroke-width="3"/><path d="M8 54 L52 54 L52 80 L8 80Z" fill="' + C.blue + '"/><path d="M30 6 L36 0 L44 8" stroke="#BFD4EA" stroke-width="3" fill="none"/>';
+  } };
+  T.oven = { view: '0 0 100 100', svg: function (p, o) {
+    var on = o.state.on;
+    return '<rect x="4" y="4" width="92" height="92" rx="10" fill="#E5E1D8" stroke="#9AA0B4" stroke-width="3"/><rect x="14" y="26" width="72" height="60" rx="6" fill="' + (on ? '#FFB86B' : '#4A4E69') + '"/>' +
+      '<rect x="20" y="32" width="60" height="48" rx="4" fill="' + (on ? '#FFD39A' : '#5C6080') + '" opacity=".7"/><circle cx="24" cy="15" r="5" fill="' + C.ink + '"/><circle cx="76" cy="15" r="5" fill="' + (on ? C.coral : C.ink) + '"/>';
+  } };
+  T.cake = { view: '0 0 100 80', svg: function (p, o) {
+    return '<rect x="10" y="34" width="80" height="40" rx="8" fill="#E8B07A"/><path d="M10 40 Q20 50 30 40 Q40 50 50 40 Q60 50 70 40 Q80 50 90 40 L90 34 L10 34Z" fill="' + C.pink + '"/>' +
+      '<rect x="6" y="72" width="88" height="6" rx="3" fill="#E5E1D8"/>';
+  } };
+  T.banana = { view: '0 0 100 60', svg: function (p, o) {
+    if (o.state.peeled) return '<path d="M10 40 Q50 64 90 20 Q86 34 70 44 Q40 60 10 40Z" fill="#FFF3C4"/><path d="M8 40 L0 50 M8 40 L2 30 M8 40 L14 54" stroke="' + C.yellow + '" stroke-width="6" stroke-linecap="round"/>';
+    return '<path d="M8 36 Q50 66 92 16 Q90 36 72 46 Q40 64 8 44Z" fill="' + C.yellow + '"/><path d="M92 16 L98 10" stroke="' + C.woodDark + '" stroke-width="5" stroke-linecap="round"/><path d="M20 44 Q50 58 80 34" stroke="#E5A92E" stroke-width="3" fill="none"/>';
+  } };
+  T.stove = { view: '0 0 100 40', svg: function (p, o) {
+    return '<rect x="2" y="16" width="96" height="22" rx="6" fill="#4A4E69"/>' + (o.state.fire ? '<path d="M30 16 Q34 4 40 12 Q44 0 50 10 Q56 0 60 12 Q66 4 70 16Z" fill="' + C.orange + '"/>' : '<ellipse cx="50" cy="16" rx="24" ry="4" fill="#2B2D42"/>');
+  } };
+  T.pot = { view: '0 0 100 70', svg: function (p, o) {
+    var b = o.state.boiling, k = o.state.baking || 0;
+    return (b ? '<path d="M30 6 Q26 -4 32 -10 M50 4 Q46 -6 52 -12 M70 6 Q66 -4 72 -10" stroke="#C9CED6" stroke-width="4" fill="none" stroke-linecap="round"/>' : '') +
+      '<rect x="0" y="18" width="12" height="6" rx="3" fill="' + C.ink + '"/><rect x="88" y="18" width="12" height="6" rx="3" fill="' + C.ink + '"/>' +
+      '<rect x="8" y="14" width="84" height="54" rx="8" fill="#7D8597"/><ellipse cx="50" cy="16" rx="40" ry="6" fill="' + (b ? '#A8D4FF' : C.blue) + '"/>' +
+      (b ? '<circle cx="36" cy="16" r="3" fill="#fff"/><circle cx="58" cy="15" r="2.4" fill="#fff"/><circle cx="66" cy="17" r="2" fill="#fff"/>' : (k > 0 ? '<circle cx="50" cy="16" r="' + (k * 4).toFixed(1) + '" fill="#fff" opacity=".7"/>' : ''));
+  } };
+  T.knob = { view: '0 0 100 100', svg: function () {
+    return '<circle cx="50" cy="50" r="44" fill="#E5E1D8" stroke="#9AA0B4" stroke-width="5"/><rect x="44" y="10" width="12" height="40" rx="6" fill="' + C.coral + '"/>';
+  } };
+  T.jar = { view: '0 0 80 100', svg: function (p) {
+    return '<rect x="14" y="4" width="52" height="14" rx="4" fill="' + col(p, C.coral) + '"/><path d="M10 22 Q10 16 18 16 L62 16 Q70 16 70 22 L70 90 Q70 96 62 96 L18 96 Q10 96 10 90Z" fill="#F7FBFF" stroke="#BFD4EA" stroke-width="3"/>' +
+      '<rect x="14" y="44" width="52" height="48" rx="6" fill="#fff"/><circle cx="26" cy="58" r="3" fill="#E9E4DA"/><circle cx="40" cy="70" r="3" fill="#E9E4DA"/><circle cx="54" cy="60" r="3" fill="#E9E4DA"/><circle cx="34" cy="82" r="3" fill="#E9E4DA"/>';
+  } };
+  T.ant = { view: '0 0 40 24', svg: function () {
+    return '<circle cx="8" cy="12" r="6" fill="' + C.ink + '"/><circle cx="20" cy="12" r="5" fill="' + C.ink + '"/><circle cx="32" cy="12" r="7" fill="' + C.ink + '"/><path d="M14 6 L10 0 M20 6 L20 0 M26 6 L30 0 M14 18 L10 24 M20 18 L20 24 M26 18 L30 24" stroke="' + C.ink + '" stroke-width="2"/>';
+  } };
+  T.tray = { view: '0 0 100 20', stretch: true, svg: function () {
+    return '<rect x="0" y="4" width="100" height="10" rx="5" fill="#9AA0B4"/><rect x="2" y="2" width="96" height="6" rx="3" fill="#C9CED6"/>';
+  } };
+  T.glass = { view: '0 0 60 100', svg: function (p, o) {
+    var c = col(p, C.orange);
+    return '<path d="M6 4 L54 4 L46 96 L14 96Z" fill="#F7FBFF" stroke="#BFD4EA" stroke-width="3"/><path d="M10 34 L50 34 L46 92 L14 92Z" fill="' + c + '" opacity=".8"/>';
+  } };
+
+
+  // ---- chaves e portas (fases 211+) ----
+  T.frame = { view: '0 0 100 80', svg: function (p) {
+    return '<rect x="2" y="2" width="96" height="76" rx="4" fill="' + C.wood + '"/><rect x="10" y="10" width="80" height="60" fill="#BDE3FF"/>' +
+      '<path d="M10 70 L36 40 L54 58 L68 46 L90 70Z" fill="' + C.green + '"/><circle cx="72" cy="26" r="7" fill="' + C.yellow + '"/>';
+  } };
+  // anel com uma abertura (gire com rot): a abertura começa em cima
+  T.ring = { view: '0 0 100 100', svg: function (p) {
+    var c = col(p, '#8C7B9E');
+    return '<path d="M56 6 A44 44 0 1 1 44 6" fill="none" stroke="' + c + '" stroke-width="10" stroke-linecap="round"/>';
+  } };
+  // bloco de gelo: state.melt de 0 a 1
+  T.ice = { view: '0 0 100 100', svg: function (p, o) {
+    var m = o.state.melt || (o.state.baking || 0) * 0.7, k = 1 - m * 0.75;
+    return '<rect x="' + (50 - 46 * k) + '" y="' + (98 - 92 * k) + '" width="' + (92 * k) + '" height="' + (92 * k) + '" rx="' + (10 + m * 20) + '" fill="#DFF3FF" fill-opacity=".75" stroke="#9FC9E8" stroke-width="4"/>' +
+      '<path d="M' + (50 - 30 * k) + ' ' + (98 - 80 * k) + ' L' + (50 - 14 * k) + ' ' + (98 - 80 * k) + '" stroke="#fff" stroke-width="5" stroke-linecap="round"/>';
+  } };
+  T.sensor = { view: '0 0 60 30', svg: function (p, o) {
+    return '<rect x="2" y="2" width="56" height="26" rx="8" fill="' + C.ink + '"/><circle cx="30" cy="15" r="7" fill="' + (o.state.on ? C.green : C.coral) + '"/>';
+  } };
 
   // Ponto invisível (lugares de encaixe, controladores).
   T.marker = { view: '0 0 10 10', svg: function () { return ''; } };
@@ -417,7 +734,7 @@
 
     // Só redesenha quando o desenho depende do estado (svg(props, obj)).
     usesState: function (obj) {
-      if (obj.type === 'word') return false;
+      if (obj.type === 'word') return true;   // palavras podem ser pintadas (state.color)
       if (obj.type === 'ruli') return true;
       var t = T[obj.type];
       return !!t && t.svg.length >= 2;
@@ -427,10 +744,11 @@
     draw: function (obj) {
       if (obj.type === 'word') {
         obj.inner.textContent = obj.text;
+        obj.inner.style.color = obj.state.color ? (C[obj.state.color] || obj.state.color) : '';
         return;
       }
       if (obj.type === 'ruli') {
-        obj.inner.innerHTML = R.Ruli.svg(obj.state.expr || 'normal', (obj.def.props || {}).color, obj.state.balloon);
+        obj.inner.innerHTML = R.Ruli.svg(obj.state.expr || 'normal', obj.state.color || (obj.def.props || {}).color, obj.state.balloon);
         return;
       }
       var t = T[obj.type];

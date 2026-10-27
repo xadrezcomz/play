@@ -3,7 +3,7 @@
 (function () {
   'use strict';
   var R = window.RULES;
-  R.LAST_LEVEL = 100;
+  R.LAST_LEVEL = 300;
 
   // Todas as fases que existem, na ordem (1, 2, 3...).
   R.LEVEL_ORDER = [];
@@ -19,6 +19,26 @@
     { id: 7, title: 'CHAPTER_7', theme: 'ch2' },
     { id: 8, title: 'CHAPTER_8', theme: 'ch3' },
     { id: 9, title: 'CHAPTER_9', theme: 'ch4' },
-    { id: 10, title: 'CHAPTER_10', theme: 'ch5' }
+    { id: 10, title: 'CHAPTER_10', theme: 'ch5' },
+    { id: 11, title: 'CHAPTER_11', theme: 'ch1' },
+    { id: 12, title: 'CHAPTER_12', theme: 'ch2' },
+    { id: 13, title: 'CHAPTER_13', theme: 'ch3' },
+    { id: 14, title: 'CHAPTER_14', theme: 'ch4' },
+    { id: 15, title: 'CHAPTER_15', theme: 'ch5' },
+    { id: 16, title: 'CHAPTER_16', theme: 'ch1' },
+    { id: 17, title: 'CHAPTER_17', theme: 'ch2' },
+    { id: 18, title: 'CHAPTER_18', theme: 'ch3' },
+    { id: 19, title: 'CHAPTER_19', theme: 'ch4' },
+    { id: 20, title: 'CHAPTER_20', theme: 'ch5' },
+    { id: 21, title: 'CHAPTER_21', theme: 'ch1' },
+    { id: 22, title: 'CHAPTER_22', theme: 'ch2' },
+    { id: 23, title: 'CHAPTER_23', theme: 'ch3' },
+    { id: 24, title: 'CHAPTER_24', theme: 'ch4' },
+    { id: 25, title: 'CHAPTER_25', theme: 'ch5' },
+    { id: 26, title: 'CHAPTER_26', theme: 'ch1' },
+    { id: 27, title: 'CHAPTER_27', theme: 'ch2' },
+    { id: 28, title: 'CHAPTER_28', theme: 'ch3' },
+    { id: 29, title: 'CHAPTER_29', theme: 'ch4' },
+    { id: 30, title: 'CHAPTER_30', theme: 'ch5' }
   ];
 })();

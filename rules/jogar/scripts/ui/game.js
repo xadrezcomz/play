@@ -204,6 +204,7 @@
           b.disabled = !open;
           var n = U.el('span', 'map-n', b);
           n.textContent = U.pad(R.Levels.number(id));
+          if (n.textContent.length > 2) n.classList.add('long');
           var txt = U.el('span', 'map-txt', b);
           U.el('span', 'map-title', txt).textContent = open ? R.i18n.plain(R.Levels.get(id).instruction) : '? ? ?';
           var sub = U.el('span', 'map-sub', txt);

@@ -13,6 +13,18 @@
 //   { type:'same', ids:[...], key?, scaleTol? } → mesmo estado e/ou mesmo tamanho
 //   { type:'balanced', left, right, ids:[...] } → mesmo peso (props.weight) em dois pratos
 //   { type:'split', divider, ids:[...] }   → mesma quantidade dos dois lados da divisória
+//   { type:'count', objects:[ids], container, min, max } → quantos estão dentro
+//   { type:'sorted', ids:[...], axis:'x'|'y' }  → em ordem (esquerda → direita / cima → baixo)
+//   { type:'bigger', a, b }                → a está maior que b (tamanho na tela)
+//   { type:'attempt', min }                → número da tentativa (reiniciar conta)
+//   { type:'value', target, equals }       → número de uma peça (o 9 de cabeça para baixo vale 6)
+//   { type:'sum', container, ids:[...], equals } → soma dos números dentro do container
+//   { type:'countState', ids:[...], key, equals|min|max } → quantos têm o estado ligado
+//   { type:'stacked', ids:[...] }          → empilhados, de cima para baixo, um apoiado no outro
+//   { type:'wordsIn', ids:[...], equals|min|max } → quantas dessas palavras continuam na instrução
+//   { type:'wordText', target, equals }    → o texto de uma palavra-objeto
+//   { type:'attemptIs', target, key }      → estado igual ao número de tentativas (reiniciar conta)
+//   { type:'realHour', target, key, tol }  → ângulo (graus) igual à hora de agora no relógio do aparelho
 //   state também aceita min/max (números)
 //   { type:'all'|'any', of:[...] }, { type:'not', of: cond }
 (function () {
@@ -108,6 +120,72 @@
       if (!d) return false;
       c.ids.forEach(function (id) { var o = E.get(id); if (o) { if (o.x < d.x) l++; else r++; } });
       return l === r;
+    },
+
+    countState: function (c, E) {
+      var n = 0, k = c.key || 'on';
+      c.ids.forEach(function (id) { var o = E.get(id); if (o && o.state[k]) n++; });
+      if (c.equals != null) return n === c.equals;
+      return n >= (c.min != null ? c.min : 0) && n <= (c.max != null ? c.max : Infinity);
+    },
+
+    stacked: function (c, E) {
+      for (var i = 0; i + 1 < c.ids.length; i++) {
+        var a = E.get(c.ids[i]), b = E.get(c.ids[i + 1]);
+        if (!a || !b) return false;
+        if (Math.abs(a.x - b.x) > b.sw / 2) return false;
+        if (Math.abs((a.y + a.sh / 2) - (b.y - b.sh / 2)) > 3) return false;
+      }
+      return true;
+    },
+
+    wordsIn: function (c, E) {
+      var n = 0;
+      c.ids.forEach(function (id) { var o = E.get(id); if (o && o.inText) n++; });
+      if (c.equals != null) return n === c.equals;
+      return n >= (c.min != null ? c.min : 0) && n <= (c.max != null ? c.max : Infinity);
+    },
+
+    wordText: function (c, E) { var o = E.get(c.target); return !!o && String(o.text).trim() === String(c.equals); },
+
+    attemptIs: function (c, E) { var o = E.get(c.target); return !!o && o.state[c.key || 'n'] === E.attempt; },
+
+    realHour: function (c, E) {
+      var o = E.get(c.target);
+      if (!o || o.state[c.key || 'angle'] == null) return false;
+      var d = new Date(), want = ((d.getHours() % 12) + d.getMinutes() / 60) * 30;
+      var diff = Math.abs(((o.state[c.key || 'angle'] - want) % 360 + 540) % 360 - 180);
+      return diff <= (c.tol != null ? c.tol : 30);
+    },
+
+    count: function (c, E) {
+      var box = E.get(c.container), n = 0;
+      if (!box) return false;
+      c.objects.forEach(function (id) { var o = E.get(id); if (o && !o.hidden && E.isInside(o, box)) n++; });
+      return n >= (c.min != null ? c.min : 0) && n <= (c.max != null ? c.max : Infinity);
+    },
+
+    sorted: function (c, E) {
+      var k = c.axis || 'x', os = c.ids.map(function (id) { return E.get(id); });
+      if (os.some(function (o) { return !o || o.hidden; })) return false;
+      for (var i = 1; i < os.length; i++) if (os[i].center()[k === 'x' ? 0 : 1] <= os[i - 1].center()[k === 'x' ? 0 : 1] + (c.gap || 1)) return false;
+      return true;
+    },
+
+    bigger: function (c, E) {
+      var a = E.get(c.a), b = E.get(c.b);
+      return !!a && !!b && a.sw * (a.sh || 1) > b.sw * (b.sh || 1) * (c.ratio || 1);
+    },
+
+    attempt: function (c, E) { return E.attempt >= (c.min || 1); },
+
+    value: function (c, E) { var o = E.get(c.target); return !!o && R.numValue(o) === c.equals; },
+
+    sum: function (c, E) {
+      var box = E.get(c.container), s = 0;
+      if (!box) return false;
+      c.ids.forEach(function (id) { var o = E.get(id); if (o && !o.hidden && E.isInside(o, box)) s += R.numValue(o); });
+      return s === c.equals;
     },
 
     scale: function (c, E) {

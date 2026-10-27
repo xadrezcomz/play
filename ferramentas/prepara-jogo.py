@@ -36,7 +36,7 @@ JOGOS = {
     },
     'rules': {
         'titulo': 'RULES — jogue grátis no navegador',
-        'desc': 'Cada fase tem uma instrução simples. O difícil é descobrir como interpretá-la. 100 fases de puzzle grátis, no celular ou no computador.',
+        'desc': 'Cada fase tem uma instrução simples. O difícil é descobrir como interpretá-la. 300 fases de puzzle grátis, no celular ou no computador.',
         'imagem': 'img/capa-rules.jpg',
         'alt': 'RULES: leia, pense, duvide',
         'contagem': '/jogo/rules',

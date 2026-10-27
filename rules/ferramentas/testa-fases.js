@@ -16,7 +16,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', e => errors.push('pageerror: ' + e.message));
-  page.on('console', m => { if (m.type() === 'error' && !/ERR_TUNNEL|ERR_CONNECTION|ERR_NAME/.test(m.text())) errors.push('console: ' + m.text()); });
+  page.on('console', m => { if (m.type() === 'error' && !/ERR_TUNNEL|ERR_CONNECTION|ERR_NAME|ERR_CERT/.test(m.text())) errors.push('console: ' + m.text()); });
   const cdp = await ctx.newCDPSession(page);
 
   await page.goto(URL);
@@ -119,7 +119,9 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     const r = thin ? Math.max(c[2], c[3]) * 0.3 : Math.min(c[2], c[3]) * 0.35;
     const a0 = thin ? rot * Math.PI / 180 : -Math.PI / 2;
     await touch('touchStart', [[c[0] + Math.cos(a0) * r, c[1] + Math.sin(a0) * r]]);
-    for (let i = 1; i <= n; i++) { const a = a0 + i * Math.PI * 2 / 24; await touch('touchMove', [[c[0] + Math.cos(a) * r, c[1] + Math.sin(a) * r]]); await sleep(12); }
+    // primeiro um passo para fora (na mesma direção): começa a girar sem perder ângulo
+    const R2 = r + 12; await touch('touchMove', [[c[0] + Math.cos(a0) * R2, c[1] + Math.sin(a0) * R2]]); await sleep(12);
+    for (let i = 1; i <= n; i++) { const a = a0 + i * Math.PI * 2 / 24; await touch('touchMove', [[c[0] + Math.cos(a) * R2, c[1] + Math.sin(a) * R2]]); await sleep(12); }
     await touch('touchEnd', []); await sleep(80);
   };
   const drawPath = async (pts) => {
@@ -375,7 +377,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       await spin('p1', 0.25); await notWon(93, 'só um cano');
       await spin('p2', 0.5); await spin('p3', 0.25);
     }],
-    94: ['COFRE', async () => { await tap('d1'); await notWon(94, 'tocar no disco'); await spin('d1', 0.15); await spin('d2', 0.65); }],
+    94: ['COFRE', async () => { await tap('d1'); await notWon(94, 'tocar no disco'); await spin('d1', 0.1); await spin('d2', 0.6); }],
     95: ['RULI DORMIR', async () => {
       await tap('switch'); await dragTo('radio', 'box'); await sleep(800); await tap('ruli'); await sleep(2500); await notWon(95, 'acordar o Ruli');
       await sleep(3500);
@@ -395,14 +397,20 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     }]
   };
 
+  // roteiros das fases 101+ ficam em arquivos roteiros-*.js (recebem os ajudantes)
+  const H = { page, sleep, center, board, unit, touch, tapXY, tap, dragXY, drag, dragBy, dragTo, pinch, rub, tapTogether, state, obj, notWon, restart, pinchAt, spin, drawPath, dragToBoard };
+  for (const f of require('fs').readdirSync(__dirname).filter(f => /^roteiros-.*\.js$/.test(f)).sort()) Object.assign(LEVELS, require('./' + f)(H));
+
   // START=40 node testa-fases.js → começa da fase 40 (as anteriores contam como feitas)
+  // END=60 → para depois da fase 60
   const START = parseInt(process.env.START || '1', 10);
   if (START > 1) {
     await page.evaluate(n => { const c = {}; for (let i = 1; i < n; i++) c[i] = true; localStorage.setItem('rules.save.v1', JSON.stringify({ completed: c })); }, START);
     await page.reload(); await sleep(400);
   }
   await page.click('#btn-play');
-  const ids = (await page.evaluate(() => RULES.Levels.order())).filter(id => id >= START);
+  const END = parseInt(process.env.END || '99999', 10);
+  const ids = (await page.evaluate(() => RULES.Levels.order())).filter(id => id >= START && id <= END);
   for (const id of ids) {
     const L = LEVELS[id];
     if (!L) throw new Error('sem roteiro de teste para a fase ' + id);
@@ -420,6 +428,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     }
   }
 
+  if (END < 99999) { console.log(errors.length ? 'ERROS:\n' + errors.join('\n') : 'sem erros no console'); await browser.close(); process.exit(errors.length ? 1 : 0); }
   await sleep(1400);
   console.log('tela final:', (await state()).screen);
   await page.screenshot({ path: SHOTS + 'end.png' });
@@ -430,4 +439,4 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   console.log(errors.length ? 'ERROS:\n' + errors.join('\n') : 'sem erros no console');
   await browser.close();
   process.exit(errors.length ? 1 : 0);
-})().catch(e => { console.error('FALHOU:', e.message); process.exit(1); });
+})().catch(e => { console.error('FALHOU:', e.message, process.env.DEBUG ? e.stack : ''); process.exit(1); });

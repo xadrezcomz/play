@@ -50,7 +50,7 @@ window.JOGOS = [
   },
   {
     nome: 'RULES',
-    desc: 'Cada fase tem uma instrução simples. O difícil é descobrir como interpretá-la. 100 fases para pensar diferente, com o Ruli.',
+    desc: 'Cada fase tem uma instrução simples. O difícil é descobrir como interpretá-la. 300 fases para pensar diferente, com o Ruli.',
     capa: 'img/capa-rules.webp',
     tipos: ['Quebra-cabeça'], lancado: '2026-10-06',
     jogar: 'rules/jogar/',

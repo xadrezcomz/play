@@ -188,6 +188,7 @@
       var o = p.obj;
       p.mode = 'rotate';
       p.lastA = this.angleTo(o, p);
+      o.state.spin = 0;                                  // giro com sinal de cada gesto
       o.el.classList.add('dragging');
       o.el.style.transition = '';
       R.Audio.play('drag');
@@ -200,6 +201,7 @@
       p.lastA = a;
       o.rot += d;
       o.state.turns = (o.state.turns || 0) + Math.abs(d) / 360;
+      o.state.spin = (o.state.spin || 0) + d;            // + horário, − anti-horário
       o.layout();
       this.E.emit('rotate', { obj: o, delta: d });
     },
@@ -211,6 +213,7 @@
       if (ang === 360) ang = 0;
       o.animate(function () { o.layout(); }, 120);
       o.setState('angle', ang);
+      o.engine.emit('state', { obj: o, key: 'spin', value: o.state.spin });
       R.Audio.play('click');
       this.E.emit('rotated', { obj: o, angle: ang });
     },
