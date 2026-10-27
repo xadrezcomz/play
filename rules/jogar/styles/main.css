@@ -476,3 +476,4 @@ button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-c
 .flipx .obj-inner { transform: scaleX(-1); }
 .flipy .obj-inner { transform: scaleY(-1); }
 .reflect .obj-inner { transform: scaleY(-1); opacity: .55; }
+.faint .obj-inner { opacity: .28; }

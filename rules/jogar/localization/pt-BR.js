@@ -1360,6 +1360,68 @@ RULES.L10N['pt-BR'] = {
     LEVEL_220_TITLE: 'SAIA DA SALA',
     LEVEL_220_HINT_1: 'O cadeado tem 3 números.',
     LEVEL_220_HINT_2: 'Os desenhos embaixo dos números mostram a ordem.',
-    LEVEL_220_HINT_3: 'Relógio: 7 horas. Atrás do quadro: 5. Dentro da caixa: 2 bolas. Senha 7, 5, 2.'
+    LEVEL_220_HINT_3: 'Relógio: 7 horas. Atrás do quadro: 5. Dentro da caixa: 2 bolas. Senha 7, 5, 2.',
+    CHAPTER_23: 'ESCONDIDO',
+    LEVEL_224_MSG: 'TOQUE NA LUA',
+    FB_HEARD_SOMETHING: 'OUVI ALGUMA COISA...',
+    FB_EMPTY: 'VAZIA...',
+    FB_READ_FIRST: 'LEIA A MENSAGEM PRIMEIRO',
+    FB_NOT_WHAT_IT_SAYS: 'NÃO FOI ISSO QUE ELA DISSE',
+    FB_JUST_LEAVES: 'SÓ FOLHAS...',
+    FB_THATS_SUN: 'ESSE É O SOL',
+    FB_LOOK_CLOSER: 'OLHE COM ATENÇÃO...',
+    FB_JUST_BALLS: 'SÓ BOLAS...',
+    FB_ALL_YELLOW: 'TUDO AMARELO...',
+    FB_NOT_RULI: 'ESSE NÃO É O RULI',
+
+    LEVEL_221_TITLE: 'ENCONTRE O RULI',
+    LEVEL_221_HINT_1: 'Ele não está à vista.',
+    LEVEL_221_HINT_2: 'Algo está balançando.',
+    LEVEL_221_HINT_3: 'Tire o arbusto do lugar e toque no Ruli.',
+
+    LEVEL_222_TITLE: 'QUANTOS RULIS EXISTEM?',
+    LEVEL_222_HINT_1: 'Conte com cuidado.',
+    LEVEL_222_HINT_2: 'Tem um escondido e um minúsculo.',
+    LEVEL_222_HINT_3: 'São 4: um atrás da nuvem e um bem pequeno no canto. Marque 4 e aperte o botão.',
+
+    LEVEL_223_TITLE: 'ACHE A CHAVE',
+    LEVEL_223_HINT_1: 'As caixas estão vazias.',
+    LEVEL_223_HINT_2: 'Dentro não. E embaixo?',
+    LEVEL_223_HINT_3: 'Arraste a caixa do meio: a chave está embaixo dela.',
+
+    LEVEL_224_TITLE: 'LEIA A MENSAGEM SECRETA',
+    LEVEL_224_HINT_1: 'O papel parece vazio.',
+    LEVEL_224_HINT_2: 'Esfregue como um lápis.',
+    LEVEL_224_HINT_3: 'Esfregue o papel até a mensagem aparecer: TOQUE NA LUA.',
+
+    LEVEL_225_TITLE: 'ENCONTRE O CAMALEÃO',
+    LEVEL_225_HINT_1: 'Ele se disfarça.',
+    LEVEL_225_HINT_2: 'Ele se mexe devagar.',
+    LEVEL_225_HINT_3: 'Procure a folha que anda: é o camaleão. Toque nele.',
+
+    LEVEL_226_TITLE: 'TOQUE NA LUA',
+    LEVEL_226_HINT_1: 'É de dia.',
+    LEVEL_226_HINT_2: 'A lua também aparece de dia.',
+    LEVEL_226_HINT_3: 'A lua clarinha está no céu, à direita, no alto.',
+
+    LEVEL_227_TITLE: 'ACHE AS 5 ESTRELAS',
+    LEVEL_227_HINT_1: 'Três são fáceis.',
+    LEVEL_227_HINT_2: 'Mexa nas coisas e olhe os cantos.',
+    LEVEL_227_HINT_3: 'Uma está atrás da nuvem e outra, minúscula, no canto de baixo à esquerda.',
+
+    LEVEL_228_TITLE: 'ACHE O GATO',
+    LEVEL_228_HINT_1: 'Ele é laranja como as bolas.',
+    LEVEL_228_HINT_2: 'Procure as orelhas.',
+    LEVEL_228_HINT_3: 'O gato está à direita, um pouco abaixo do meio.',
+
+    LEVEL_229_TITLE: 'ENCONTRE A ESTRELA',
+    LEVEL_229_HINT_1: 'Tudo está amarelo.',
+    LEVEL_229_HINT_2: 'Grande demais para ver.',
+    LEVEL_229_HINT_3: 'Diminua o amarelo com dois dedos (ou a rodinha do mouse) e toque na estrela.',
+
+    LEVEL_230_TITLE: 'ENCONTRE O RULI',
+    LEVEL_230_HINT_1: 'O Ruli é verde-azulado.',
+    LEVEL_230_HINT_2: 'Ele está perto de uma beirada.',
+    LEVEL_230_HINT_3: 'O Ruli está na beirada da direita, no meio da altura.'
   }
 };

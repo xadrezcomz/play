@@ -1360,6 +1360,68 @@ RULES.L10N['en-US'] = {
     LEVEL_220_TITLE: 'GET OUT OF THE ROOM',
     LEVEL_220_HINT_1: 'The padlock has 3 numbers.',
     LEVEL_220_HINT_2: 'The pictures under the numbers show the order.',
-    LEVEL_220_HINT_3: 'Clock: 7 o\'clock. Behind the painting: 5. Inside the box: 2 balls. Code 7, 5, 2.'
+    LEVEL_220_HINT_3: 'Clock: 7 o\'clock. Behind the painting: 5. Inside the box: 2 balls. Code 7, 5, 2.',
+    CHAPTER_23: 'HIDDEN',
+    LEVEL_224_MSG: 'TAP THE MOON',
+    FB_HEARD_SOMETHING: 'I HEARD SOMETHING...',
+    FB_EMPTY: 'EMPTY...',
+    FB_READ_FIRST: 'READ THE MESSAGE FIRST',
+    FB_NOT_WHAT_IT_SAYS: 'THAT\'S NOT WHAT IT SAID',
+    FB_JUST_LEAVES: 'JUST LEAVES...',
+    FB_THATS_SUN: 'THAT\'S THE SUN',
+    FB_LOOK_CLOSER: 'LOOK CLOSELY...',
+    FB_JUST_BALLS: 'JUST BALLS...',
+    FB_ALL_YELLOW: 'ALL YELLOW...',
+    FB_NOT_RULI: 'THAT\'S NOT RULI',
+
+    LEVEL_221_TITLE: 'FIND RULI',
+    LEVEL_221_HINT_1: 'He\'s not in sight.',
+    LEVEL_221_HINT_2: 'Something is moving.',
+    LEVEL_221_HINT_3: 'Move the bush and tap Ruli.',
+
+    LEVEL_222_TITLE: 'HOW MANY RULIS ARE THERE?',
+    LEVEL_222_HINT_1: 'Count carefully.',
+    LEVEL_222_HINT_2: 'There\'s a hidden one and a tiny one.',
+    LEVEL_222_HINT_3: 'There are 4: one behind the cloud and a tiny one in the corner. Set 4 and press the button.',
+
+    LEVEL_223_TITLE: 'FIND THE KEY',
+    LEVEL_223_HINT_1: 'The boxes are empty.',
+    LEVEL_223_HINT_2: 'Not inside. What about under?',
+    LEVEL_223_HINT_3: 'Drag the middle box: the key is under it.',
+
+    LEVEL_224_TITLE: 'READ THE SECRET MESSAGE',
+    LEVEL_224_HINT_1: 'The paper looks empty.',
+    LEVEL_224_HINT_2: 'Rub it like a pencil.',
+    LEVEL_224_HINT_3: 'Rub the paper until the message appears: TAP THE MOON.',
+
+    LEVEL_225_TITLE: 'FIND THE CHAMELEON',
+    LEVEL_225_HINT_1: 'It disguises itself.',
+    LEVEL_225_HINT_2: 'It moves slowly.',
+    LEVEL_225_HINT_3: 'Look for the leaf that walks: that is the chameleon. Tap it.',
+
+    LEVEL_226_TITLE: 'TAP THE MOON',
+    LEVEL_226_HINT_1: 'It\'s daytime.',
+    LEVEL_226_HINT_2: 'The moon shows up in the day too.',
+    LEVEL_226_HINT_3: 'The pale moon is high in the sky, on the right.',
+
+    LEVEL_227_TITLE: 'FIND THE 5 STARS',
+    LEVEL_227_HINT_1: 'Three are easy.',
+    LEVEL_227_HINT_2: 'Move things and check the corners.',
+    LEVEL_227_HINT_3: 'One is behind the cloud and a tiny one is in the bottom left corner.',
+
+    LEVEL_228_TITLE: 'FIND THE CAT',
+    LEVEL_228_HINT_1: 'It\'s orange like the balls.',
+    LEVEL_228_HINT_2: 'Look for the ears.',
+    LEVEL_228_HINT_3: 'The cat is on the right, a bit below the middle.',
+
+    LEVEL_229_TITLE: 'FIND THE STAR',
+    LEVEL_229_HINT_1: 'Everything is yellow.',
+    LEVEL_229_HINT_2: 'Too big to see.',
+    LEVEL_229_HINT_3: 'Shrink the yellow with two fingers (or the mouse wheel) and tap the star.',
+
+    LEVEL_230_TITLE: 'FIND RULI',
+    LEVEL_230_HINT_1: 'Ruli is teal.',
+    LEVEL_230_HINT_2: 'He is near an edge.',
+    LEVEL_230_HINT_3: 'Ruli is on the right edge, halfway down.'
   }
 };

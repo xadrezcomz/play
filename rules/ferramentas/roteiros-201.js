@@ -75,6 +75,20 @@ module.exports = ({ unit, touch, sleep, center, board, tapXY, tap, dragXY, drag,
       for (let i = 0; i < 5; i++) await tap('d2');
       await notWon(220, 'faltando um número');
       for (let i = 0; i < 2; i++) await tap('d3');
-    }]
+    }],
+    221: ['RULI ESCONDIDO', async () => { await tap('bush'); await notWon(221, 'tocar no arbusto'); await dragBy('bush', -150, 0); await sleep(200); await tap('ruli'); }],
+    222: ['QUANTOS RULIS', async () => { await tapN('ans', 2); await tap('ok'); await notWon(222, 'contar 2'); await tapN('ans', 2); await tap('ok'); }],
+    223: ['CHAVE EMBAIXO', async () => { await tap('c0'); await tap('c1'); await tap('c2'); await notWon(223, 'abrir as caixas'); await dragBy('c1', 0, -170); await sleep(200); await tap('key'); }],
+    224: ['MENSAGEM', async () => { await tap('moon'); await notWon(224, 'adivinhar sem ler'); await rub('paper', 16, 40); await sleep(300); await tap('moon'); }],
+    225: ['CAMALEÃO', async () => { await tap('f0'); await notWon(225, 'tocar numa folha');
+      const c = await page.evaluate(() => { const r = document.querySelector('[data-obj="cham"]').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }); await tapXY(c[0], c[1]); }],
+    226: ['LUA DE DIA', async () => { await tap('sun'); await notWon(226, 'tocar no sol'); await tap('moon'); }],
+    227: ['5 ESTRELAS', async () => {
+      for (const s of ['s1', 's2', 's3']) await tap(s);
+      await notWon(227, 'três estrelas'); await dragBy('cloud', -80, 160); await sleep(200); await tap('s4'); await tap('s5');
+    }],
+    228: ['GATO', async () => { const o = await board(30, 100); await tapXY(o[0], o[1]); await notWon(228, 'tocar no vazio'); await tap('cat'); }],
+    229: ['ESTRELA GIGANTE', async () => { await tap('star'); await notWon(229, 'tocar no amarelo'); for (let i = 0; i < 4; i++) { await pinch('star', 0.25); await sleep(150); } await tap('star'); }],
+    230: ['RULI NA MULTIDÃO', async () => { await tap('p0'); await notWon(230, 'tocar num amigo'); await tap('ruli'); }]
   };
 };

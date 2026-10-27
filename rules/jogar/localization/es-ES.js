@@ -1360,6 +1360,68 @@ RULES.L10N['es-ES'] = {
     LEVEL_220_TITLE: 'SAL DE LA SALA',
     LEVEL_220_HINT_1: 'El candado tiene 3 números.',
     LEVEL_220_HINT_2: 'Los dibujos bajo los números muestran el orden.',
-    LEVEL_220_HINT_3: 'Reloj: las 7. Detrás del cuadro: 5. Dentro de la caja: 2 pelotas. Clave 7, 5, 2.'
+    LEVEL_220_HINT_3: 'Reloj: las 7. Detrás del cuadro: 5. Dentro de la caja: 2 pelotas. Clave 7, 5, 2.',
+    CHAPTER_23: 'ESCONDIDO',
+    LEVEL_224_MSG: 'TOCA LA LUNA',
+    FB_HEARD_SOMETHING: 'OÍ ALGO...',
+    FB_EMPTY: 'VACÍA...',
+    FB_READ_FIRST: 'LEE EL MENSAJE PRIMERO',
+    FB_NOT_WHAT_IT_SAYS: 'NO ES LO QUE DIJO',
+    FB_JUST_LEAVES: 'SOLO HOJAS...',
+    FB_THATS_SUN: 'ESE ES EL SOL',
+    FB_LOOK_CLOSER: 'MIRA CON ATENCIÓN...',
+    FB_JUST_BALLS: 'SOLO PELOTAS...',
+    FB_ALL_YELLOW: 'TODO AMARILLO...',
+    FB_NOT_RULI: 'ESE NO ES RULI',
+
+    LEVEL_221_TITLE: 'ENCUENTRA A RULI',
+    LEVEL_221_HINT_1: 'No está a la vista.',
+    LEVEL_221_HINT_2: 'Algo se mueve.',
+    LEVEL_221_HINT_3: 'Quita el arbusto y toca a Ruli.',
+
+    LEVEL_222_TITLE: '¿CUÁNTOS RULIS HAY?',
+    LEVEL_222_HINT_1: 'Cuenta con cuidado.',
+    LEVEL_222_HINT_2: 'Hay uno escondido y uno diminuto.',
+    LEVEL_222_HINT_3: 'Son 4: uno detrás de la nube y uno muy pequeño en la esquina. Marca 4 y pulsa el botón.',
+
+    LEVEL_223_TITLE: 'ENCUENTRA LA LLAVE',
+    LEVEL_223_HINT_1: 'Las cajas están vacías.',
+    LEVEL_223_HINT_2: 'Dentro no. ¿Y debajo?',
+    LEVEL_223_HINT_3: 'Arrastra la caja del medio: la llave está debajo.',
+
+    LEVEL_224_TITLE: 'LEE EL MENSAJE SECRETO',
+    LEVEL_224_HINT_1: 'El papel parece vacío.',
+    LEVEL_224_HINT_2: 'Frótalo como con un lápiz.',
+    LEVEL_224_HINT_3: 'Frota el papel hasta que aparezca el mensaje: TOCA LA LUNA.',
+
+    LEVEL_225_TITLE: 'ENCUENTRA EL CAMALEÓN',
+    LEVEL_225_HINT_1: 'Se disfraza.',
+    LEVEL_225_HINT_2: 'Se mueve despacio.',
+    LEVEL_225_HINT_3: 'Busca la hoja que camina: es el camaleón. Tócalo.',
+
+    LEVEL_226_TITLE: 'TOCA LA LUNA',
+    LEVEL_226_HINT_1: 'Es de día.',
+    LEVEL_226_HINT_2: 'La luna también sale de día.',
+    LEVEL_226_HINT_3: 'La luna pálida está arriba en el cielo, a la derecha.',
+
+    LEVEL_227_TITLE: 'ENCUENTRA LAS 5 ESTRELLAS',
+    LEVEL_227_HINT_1: 'Tres son fáciles.',
+    LEVEL_227_HINT_2: 'Mueve cosas y mira las esquinas.',
+    LEVEL_227_HINT_3: 'Una está detrás de la nube y otra, diminuta, en la esquina de abajo a la izquierda.',
+
+    LEVEL_228_TITLE: 'ENCUENTRA EL GATO',
+    LEVEL_228_HINT_1: 'Es naranja como las pelotas.',
+    LEVEL_228_HINT_2: 'Busca las orejas.',
+    LEVEL_228_HINT_3: 'El gato está a la derecha, un poco debajo del medio.',
+
+    LEVEL_229_TITLE: 'ENCUENTRA LA ESTRELLA',
+    LEVEL_229_HINT_1: 'Todo está amarillo.',
+    LEVEL_229_HINT_2: 'Demasiado grande para verla.',
+    LEVEL_229_HINT_3: 'Achica el amarillo con dos dedos (o la rueda del ratón) y toca la estrella.',
+
+    LEVEL_230_TITLE: 'ENCUENTRA A RULI',
+    LEVEL_230_HINT_1: 'Ruli es verde azulado.',
+    LEVEL_230_HINT_2: 'Está cerca de un borde.',
+    LEVEL_230_HINT_3: 'Ruli está en el borde derecho, a media altura.'
   }
 };
