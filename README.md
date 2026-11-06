@@ -132,5 +132,6 @@ computador, e cresce junto em monitores grandes:
      `sw.js` e troque a versão (`xz-site-v1` → `xz-site-v2`).
   4. Acrescente o jogo em `ferramentas/prepara-jogo.py` para ganhar as tags de
      compartilhamento.
-  5. Se quiser, refaça `img/compartilhar-site.jpg` (a imagem do link do site)
+  5. Se quiser, refaça `img/compartilhar-site.jpg` (a imagem do link do site,
+     montada em `ferramentas/arte-compartilhar.html`)
      com os jogos novos.
