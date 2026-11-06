@@ -4,7 +4,8 @@
 //   nome, desc        nome e uma ou duas frases sobre o jogo
 //   capa              imagem 1200×630 em img/, em .webp (ex.: img/capa-meu-jogo.webp),
 //                     com uma cópia de 640 px de largura ao lado (img/capa-meu-jogo-640.webp)
-//   jogar             pasta onde o jogo roda (ex.: 'meu-jogo/jogar/')
+//   jogar             pasta onde o jogo roda (ex.: 'meu-jogo/jogar/'), ou o endereço
+//                     completo se o jogo roda em outro site (ex.: 'https://meu-jogo.fly.dev/')
 //   saiba             (opcional) página com mais detalhes do jogo
 //   contagem          (opcional) caminho do GoatCounter, ex.: '/jogo/meu-jogo'
 //   tipos             tipos do jogo, que viram os filtros da página (ex.: ['Quebra-cabeça', 'Xadrez'])
@@ -18,6 +19,14 @@
 // (a capa e a data são opcionais). Ele aparece numa seção "Em breve", sem botão de jogar.
 // Quando o jogo sair, apague o emBreve e preencha os outros campos.
 window.JOGOS = [
+  {
+    nome: 'Hero Ultimate',
+    desc: 'Monte seu herói, cace monstros e fique cada vez mais forte. Um RPG online para explorar um mundo sem fim com outros jogadores, juntar itens lendários e enfrentar chefes.',
+    capa: 'img/capa-hero-ultimate.webp',
+    tipos: ['RPG'], lancado: '2026-11-06',
+    jogar: 'https://heroultimate.fly.dev/',   // roda no servidor do próprio jogo
+    selos: ['Online com outros jogadores', 'Celular e computador']
+  },
   {
     nome: 'Imobiliário 3D',
     desc: 'Compre, construa e negocie numa cidade em miniatura. O clássico jogo de tabuleiro em 3D, com amigos no mesmo aparelho ou contra o computador.',

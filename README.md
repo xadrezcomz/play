@@ -105,6 +105,11 @@ computador, e cresce junto em monitores grandes:
 - **App instalado:** aparece na tela inicial como "Z Games" (`short_name` em
   `manifest.webmanifest`).
 
+- **Jogo que roda em outro site** (como o Hero Ultimate, que tem servidor
+  próprio): em `jogar`, coloque o endereço completo (`https://...`) e pule os
+  passos 1, 2 e 4 abaixo. Sem o `contador.js` no jogo, o cartão não mostra
+  "Jogado X vezes" nem entra no "Continue jogando". Se o jogo não roda neste
+  site, confira se `privacidade.html` explica o que ele guarda.
 - **Anunciar antes de sair:** acrescente em `jogos.js`
   `{ nome: 'Nome', desc: 'Uma frase', emBreve: true }`. Ele aparece na seção
   "Em breve", sem botão de jogar (uma capa é opcional).

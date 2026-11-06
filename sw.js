@@ -4,12 +4,13 @@
    Páginas e scripts: "rede primeiro" (com internet vem sempre a versão nova).
    Imagens e fontes: "cópia primeiro" (mais rápido; mudou a imagem, mude o nome
    ou a versão abaixo). */
-const COPIA = 'xz-site-v2';
+const COPIA = 'xz-site-v3';
 const ARQUIVOS = [
   './', 'jogos.js', 'contador.js', 'manifest.webmanifest', 'privacidade.html',
   'fontes/fontes.css', 'fontes/chakrapetch-700-latin.woff2', 'fontes/exo2-400-latin.woff2',
   'img/logo.svg', 'img/favicon-64.png', 'img/icone-192.png',
-  'img/capa-imobiliario-640.webp', 'img/capa-rock-orbit-640.webp', 'img/capa-slide-chess-640.webp', 'img/capa-rules-640.webp'
+  'img/capa-imobiliario-640.webp', 'img/capa-rock-orbit-640.webp', 'img/capa-slide-chess-640.webp', 'img/capa-rules-640.webp',
+  'img/capa-hero-ultimate-640.webp'
 ];
 
 self.addEventListener('install', (evento) => {

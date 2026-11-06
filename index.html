@@ -390,7 +390,10 @@
   function menor(capa){ return /\.webp$/.test(capa) ? capa.replace(/\.webp$/, '-640.webp') : capa; }
   function evento(nome){ var gc = window.goatcounter; if (gc && gc.count) try { gc.count({ path: 'site/' + nome, title: 'Site', event: true }); } catch (e) {} }
   function data(j){ return j.lancado ? new Date(j.lancado + 'T12:00:00').getTime() : 0; }
-  function idDe(j){ return (j.contagem || j.jogar).replace(/^\/jogo\//, '').replace(/\/.*$/, ''); }
+  function idDe(j){
+    if (j.contagem) return j.contagem.replace(/^\/jogo\//, '').replace(/\/.*$/, '');
+    return j.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  }
 
   var prontos = window.JOGOS.filter(function(j){ return !j.emBreve; });
   var breve = window.JOGOS.filter(function(j){ return j.emBreve; });
